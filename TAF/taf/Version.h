@@ -23,7 +23,7 @@
 
 #define TAF_MAJOR_VERSION 1
 #define TAF_MINOR_VERSION 4
-#define TAF_BETA_VERSION 2
-#define TAF_VERSION "1.4.2"
+#define TAF_BETA_VERSION 3
+#define TAF_VERSION "1.4.3"
 
 #endif // TAF_VERSION_H
