@@ -1,0 +1,42 @@
+// These features are ON by default to disable you need to explicitly set
+// <feature> = 0 in your feature file.
+project {
+  specific(prop:microsoft) {  // Visual Studio Code Analysis
+    DisableSpecificWarnings += 6320  // Exception-filter might mask exceptions that were not intended to be handled.
+    DisableSpecificWarnings += 26135 // Missing annotation _Acquires_lock_(* m)
+ }
+}
+
+feature(gcc_no_hidden) {
+  verbatim(gnuace, macros, 1) { // NOTE: explicit ,1 in verbatim add = 1 means its appended
+    override no_hidden_visibility ?= 1
+    override no_strict_aliasing ?= 1
+    override inline ?= 1
+  }
+}
+
+feature(dafversion) {
+  verbatim(gnuace,extension,1) { // NOTE: explicit ,1 in verbatim add = 1 means its appended
+
+    include $(DAF_ROOT)/MPC/include/rules.daf.GNU
+
+  }
+}
+
+feature(!warn_unused_variable){
+  verbatim(gnuace,top,1) { // NOTE: explicit ,1 in verbatim add = 1 means its appended
+
+        CCFLAGS += -Wno-unused-variable
+
+  }
+
+  specific(prop:microsoft) {
+      DisableSpecificWarnings += 4101 // Ignore vc warnings "unreferenced local variable"
+  }
+}
+
+feature(vc_avoid_throw_warning) {
+  specific(prop:microsoft) {
+    DisableSpecificWarnings += 4290 // Ignore vc warnings from declarations that contain the throw clause
+  }
+}

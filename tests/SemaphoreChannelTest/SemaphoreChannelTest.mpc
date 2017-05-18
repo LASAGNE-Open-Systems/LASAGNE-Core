@@ -1,0 +1,15 @@
+project(SemaphoreChannelTest) : daflib  {
+  exename = *
+  
+  Source_Files {
+    SemaphoreChannelTest.cpp
+  }
+}
+
+project(ChannelTest) : daflib {
+  exename = *
+  
+  Source_Files {
+    ChannelTest.cpp
+  }
+}

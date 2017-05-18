@@ -1,0 +1,5 @@
+project : daflib {
+  includes  += $(DAF_ROOT)/TTY_Asynch
+  libs      += TTY_Asynch
+  after     += TTY_Asynch
+}

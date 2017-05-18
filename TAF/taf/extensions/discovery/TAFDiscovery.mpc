@@ -1,0 +1,35 @@
+project(TAFDiscovery) : taflib {
+
+  requires += tafextensions
+  requires += tafdiscovery
+
+  sharedname   = *
+  idlflags    += -Wb,export_macro=TAFDiscovery_Export -Wb,export_include=TAFDiscovery_export.h
+  libout       = $(DAF_ROOT)/lib
+
+  dynamicflags +=  TAFDISCOVERY_BUILD_DLL
+
+  macros += TAF_HAS_DISCOVERY
+
+  specific(cdt6,cdt7) {
+      prebuild   =  perl ${ACE_ROOT}/bin/generate_export_file.pl TAFDiscovery > TAFDiscovery_export.h
+  } else {
+      prebuild   =  perl $(ACE_ROOT)/bin/generate_export_file.pl TAFDiscovery > TAFDiscovery_export.h
+  }
+
+  IDL_Files {
+    Discovery.idl
+  }
+
+  Header_Files {
+    DiscoveryHandler.h
+    DiscoveryService.h
+    TAFDiscovery_export.h
+  }
+
+  Source_Files {
+    DiscoveryHandler.cpp
+    DiscoveryService.cpp
+  }
+
+}

@@ -1,0 +1,11 @@
+project(TTY_Asynch) : daflib {
+  sharedname    =  *
+  libout        =  $(DAF_ROOT)/lib
+  dynamicflags +=  TTY_ASYNCH_BUILD_DLL
+
+  specific(cdt6,cdt7) {
+      prebuild   =  perl ${ACE_ROOT}/bin/generate_export_file.pl TTY_Asynch > TTY_Asynch_export.h
+  } else {
+      prebuild   =  perl $(ACE_ROOT)/bin/generate_export_file.pl TTY_Asynch > TTY_Asynch_export.h
+  }
+}

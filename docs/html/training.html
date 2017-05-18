@@ -1,0 +1,174 @@
+﻿<!doctype html>
+<html lang="en-au">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="common.css" />
+        <link rel="stylesheet" href="index.css" />
+        <title>LASAGNE - Training</title>
+    </head>
+    <body>
+        <header>
+            <img src="Lasagne-banner.png"/>
+        </header>
+        <nav>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="documentation.html">Documentation</a></li>
+                <li><a class="active" href="training.html">Training</a></li>
+                <li><a href="contacts.html">Contact Us</a></li>
+            </ul>
+        </nav>
+        <section>
+            <h2>Quick-Look Training Syllabus (5 day course)</h2>
+            <ul>
+                <li>Monday
+                    <ul>
+                        <li>Quick architecture overview</li>
+                        <li>Build process (MPC)</li>
+                        <li>Configuration:
+                            <ul>
+                                <li>Properties</li>
+                                <li>Structure of .conf files</li>
+                                <li>Command line</li>
+                            </ul>
+                        </li>
+                        <li>Execution and service lifecycles</li>
+                    </ul>
+                </li>
+                <li>Tuesday
+                    <ul>
+                        <li>Patterns of LASAGNE (DAF)
+                            <ul>
+                                <li>Concurrency</li>
+                                <li>Reactors</li>
+                                <li>Service Structure (Passive/Active)</li>
+                                <li>Connectors</li>
+                            </ul>
+                        </li>
+                        <li>Execution lifecycle</li>
+                    </ul>
+                </li>
+                <li>Wednesday
+                    <ul>
+                        <li>DDS Connectors
+                            <ul>
+                                <li>Based on TDFAdapter</li>
+                                <li>Service structure</li>
+                                <li>Service lifecyle</li>
+                                <li>Execution lifecycle</li>
+                                <li>Synchronisation</li>
+                                <li>Interfacing to 3rd party products through transforms</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>Thursday
+                    <ul>
+                        <li>
+                            CORBA (RPC) Connectors
+                            <ul>
+                                <li>Based on TextParser Service/Client</li>
+                                <li>Service structure</li>
+                                <li>Service lifecyle</li>
+                                <li>Execution lifecycle</li>
+                                <li>Callback algorithms</li>
+                                <li>Dynamics</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>Friday - Overflow
+                    <ul>
+                        <li>DDS/CORBA Mixins (Radar)</li>
+                        <li>SDDU</li>
+                        <li>Advanced bootstrap and configuration of services</li>
+                        <li>Deployment</li>
+                        <li>System decomposition for domain-model services (LAVA)</li>
+                        <li>Real-time</li>
+                        <li>Tradeoffs</li>
+                        <li>SQLite?</li>
+                        <li>Messaging protocols (AMQP/MQTT)?</li>
+                        <li>Enterprise Integration?</li>
+                        <li>Other target platforms (Linux/Android/embedded..)?</li>
+                    </ul>
+                </li>
+            </ul>
+
+            <h2>Training syllabus</h2>
+			<p><b>Under Development...</b></p>
+            <ol>    
+                <li><a href="training/cpp_for_lasagne.html">C++ for LASAGNE</a>
+                    <ul>
+                        <li>Objects in C++</li>
+                        <li>Scope</li>
+                        <li>Order of Construction</li>
+                        <li>Virtual Inheritance (diamonds)</li>
+                        <li>Visibility (DLL export)</li>
+                        <li>Templates</li>
+                    </ul>
+                </li>
+                <li><a href="training/operating_systems.html">Operating Systems</a>
+                    <ul>
+                        <li>Processes</li>
+                        <li>Threads</li>
+                        <li>Heap and Stack</li>
+                    </ul>
+                </li>
+                <li>General Patterns
+                    <ul>
+                        <li>Reference-Counted Proxy</li>
+                        <li>Traits</li>
+                        <li>Factory</li>
+                        <li>Gestalt</li>
+                        <li>Service Configurator</li>
+                    </ul>
+                </li>
+                <li>Concurrency Patterns and Idioms
+                    <ul>
+                        <li>Mutexes</li>
+                        <li>Condition Variables</li>
+                        <li>Guards</li>
+                        <li>Barrier</li>
+                        <li>Rendezvous</li>
+                        <li>Channel</li>
+                    </ul>
+                </li>
+                <li>Execution Patterns and Idioms
+                    <ul>
+                        <li>Active Object</li>
+                        <li>Thread Pool</li>
+                        <li>Future Result</li>
+                        <li>Leader/Follower</li>
+                        <li>Reactor</li>
+                    </ul>
+                </li>
+                <li>Tools
+                    <ul>
+                        <li>MPC</li>
+                    </ul>
+                </li>
+                <li>Middleware Technologies
+                    <ul>
+                        <li>Interface Definition Language (IDL)</li>
+                        <li>Common Data Representation (CDR)</li>
+                        <li>CORBA</li>
+                        <li>DDS</li>
+                    </ul>
+                </li>
+                <li>Using LASAGNE
+                    <ul>
+                        <li>Hello LASAGNE!</li>
+                        <li>Loading Components</li>
+                        <li>Component Configuration</li>
+                        <li>Component Life Cycle</li>
+                    </ul>
+                </li>
+            </ol>         
+        </section>
+        <footer>
+            <p>Last Updated - September 14th 2016</p>
+            <p>Copyright &copy; 2016 - DST Group, Australia</p>
+        </footer>
+    </body>
+
+</html>

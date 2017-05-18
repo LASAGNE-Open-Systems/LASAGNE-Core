@@ -1,0 +1,9 @@
+project(ReactiveService) : taflib {
+  sharedname    = *
+
+  libout        = $(DAF_ROOT)/lib 
+
+  dynamicflags += REACTIVESERVICE_BUILD_DLL
+
+  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl ReactiveService > ReactiveService_export.h
+}

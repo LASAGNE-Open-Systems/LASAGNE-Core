@@ -1,0 +1,4 @@
+project : taflib, gsoap {
+  libs += TAFSoap
+  after += TAFSoap
+}

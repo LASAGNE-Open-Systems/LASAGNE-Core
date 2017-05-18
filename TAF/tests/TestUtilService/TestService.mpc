@@ -1,0 +1,14 @@
+project (TAF_TestService) : taflib {
+    sharedname = *
+
+    dynamicflags += TAF_TEST_SERVICE_BUILD_DLL
+
+    prebuild += perl $(ACE_ROOT)/bin/generate_export_file.pl TAF_TEST_SERVICE > TestService_export.h
+
+
+    Source_Files {
+        TestService.cpp
+    }
+
+
+}

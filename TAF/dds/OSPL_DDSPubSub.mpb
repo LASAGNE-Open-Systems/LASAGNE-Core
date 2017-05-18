@@ -1,0 +1,21 @@
+// OSPL PubSub file to allow for building the OSPL IDL interface with TAO_IDL
+// ONLY needed on osplcorba
+
+feature(osplcorba) {
+  requires += opensplice
+  // To Support OSPL + CORBA we need to build the 
+  // TAO/ORB interface from OpenSplice 
+  OSPLTypeSupport_Files {
+    $(OSPL_HOME)/etc/idl/dds_builtinTopics.idl
+    $(OSPL_HOME)/etc/idl/dds_dcps_builtintopics.idl
+    $(OSPL_HOME)/etc/idl/dds_namedQosTypes.idl
+  }
+
+  IDL_Files {
+    $(OSPL_HOME)/etc/idl/dds_builtinTopics.idl
+    $(OSPL_HOME)/etc/idl/dds_dcps.idl
+    $(OSPL_HOME)/etc/idl/dds_dcps_builtintopics.idl
+    $(OSPL_HOME)/etc/idl/dds_dcps_interfaces.idl
+    $(OSPL_HOME)/etc/idl/dds_namedQosTypes.idl
+  }
+}

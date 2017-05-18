@@ -1,0 +1,6 @@
+feature(tafdiscovery) {
+  requires += tafextensions
+  libs  += TAFDiscovery
+  after += TAFDiscovery
+  macros += TAF_HAS_DISCOVERY
+}

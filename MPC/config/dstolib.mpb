@@ -1,0 +1,5 @@
+project : taflib {
+  libout    = $(DSTO_ROOT)/lib
+  libpaths += $(DSTO_ROOT)/lib
+  includes += $(DSTO_ROOT)
+}

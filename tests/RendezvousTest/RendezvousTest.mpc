@@ -1,0 +1,8 @@
+project(RendezvousTest) : daflib {
+    exename = *
+
+    //requires += dummy
+    Source_Files {
+        RendezvousTest.cpp
+    }
+}

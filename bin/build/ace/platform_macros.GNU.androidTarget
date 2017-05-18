@@ -1,0 +1,6 @@
+include $(DAF_ROOT)/MPC/config/TAF.features
+versioned_so = 0
+TAO_IDL := $(HOST_ROOT)/bin/tao_idl
+TAO_IDLFLAGS += -g $(HOST_ROOT)/bin/gperf
+TAO_IDL_DEP := $(HOST_ROOT)/bin/tao_idl$(EXEEXT)
+include $(ACE_ROOT)/include/makeinclude/platform_android.GNU

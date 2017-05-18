@@ -1,0 +1,5 @@
+feature (tafsecurity) : security, tafssliop {
+  libs   += TAFSecurity
+  after  += TAFSecurity
+  macros += TAF_HAS_SECURITY
+}

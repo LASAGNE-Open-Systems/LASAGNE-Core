@@ -1,0 +1,32 @@
+project : taflib, nddslib, ndds_ts_defaults {
+  requires      += ndds
+  macros        += TAF_USES_DDS TAF_USES_NDDS
+  idlflags      += -DTAF_USES_DDS -DTAF_USES_NDDS
+  ndds_ts_flags += -DTAF_USES_DDS -DTAF_USES_NDDS
+
+  specific(prop:microsoft) {
+    DisableSpecificWarnings += 4275 // non dll-interface class 'xxx' used as base for dll-interface class
+    DisableSpecificWarnings += 4458 // declaration of 'xxx' hides class member
+ }
+
+  verbatim(gnuace,bottom) {
+    #Reset implicit rule of .o -> .cc to prohibit CoreDX source being used
+    $(VSHDIR)%.$(OBJEXT) : %.cc
+  }
+
+  Modify_Custom(NDDSTypeSupport) {
+    dependent =
+    command   = rtiddsgen
+  }
+
+  IDL_Files {
+  }
+}
+
+feature(nddscorba) {
+  requires      += ndds
+  macros        += TAF_USES_DDSCORBA
+  idlflags      += -DTAF_USES_DDSCORBA
+
+  ndds_ts_flags += -DTAF_USES_DDSCORBA -orb ACE_TAO2.0 -enableEscapeChar -I$(TAO_ROOT) -I$(TAO_ROOT)/tao
+}

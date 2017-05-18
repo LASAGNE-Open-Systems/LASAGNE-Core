@@ -1,0 +1,30 @@
+project(TAF) : daflib, tafbasedefaults {
+  sharedname    =  *
+  idlflags      += -Wb,export_macro=TAF_Export -Wb,export_include=TAF_export.h
+
+  dynamicflags  += TAF_BUILD_DLL
+
+  prebuild      =  perl $(ACE_ROOT)/bin/generate_export_file.pl TAF > TAF_export.h
+
+  specific(prop:microsoft) {
+    DisableSpecificWarnings += 4661 // no suitable definition provided for explicit template instantiation request
+  }
+
+  Documentation_Files {
+    $(DAF_ROOT)/MPC/config/TAF.features
+  }
+
+  Header_Files {
+    !extensions
+  }
+
+
+  Source_Files {
+    !extensions
+  }
+
+
+  Template_Files {
+    !extensions
+  }
+}

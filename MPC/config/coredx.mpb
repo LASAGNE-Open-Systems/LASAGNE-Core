@@ -1,0 +1,27 @@
+project : taflib, coredxlib, coredx_ts_defaults {
+  requires        += coredx
+  macros          += TAF_USES_DDS TAF_USES_COREDX
+  idlflags        += -DTAF_USES_DDS -DTAF_USES_COREDX
+
+  coredx_ts_flags -= -f
+  coredx_ts_flags  = -l cpp -DTAF_USES_COREDX
+
+  specific(prop:windows) {
+    macros += COREDX_DLL _TIMESPEC_DEFINED
+  }
+
+  Modify_Custom(CoreDXTypeSupport) {
+    dependent =
+  }
+
+  IDL_Files {
+  }
+}
+
+//feature(coredxcorba) { // Not Supported yet
+//  requires      += coredx
+//  macros        += TAF_USES_DDSCORBA
+//  idlflags      += -DTAF_USES_DDSCORBA
+//
+//  coredx_ts_flags += -DTAF_USES_DDSCORBA -orb ACE_TAO2.0 -enableEscapeChar -I$(TAO_ROOT) -I$(TAO_ROOT)/tao
+//}

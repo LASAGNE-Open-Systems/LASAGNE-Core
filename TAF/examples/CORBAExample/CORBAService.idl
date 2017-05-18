@@ -1,0 +1,75 @@
+/***************************************************************
+    Copyright 2016, 2017 Defence Science and Technology Group,
+    Department of Defence,
+    Australian Government
+
+	This file is part of LASAGNE.
+
+    LASAGNE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    LASAGNE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
+***************************************************************/
+
+#ifndef CORBA_SERVICE_IDL
+#define CORBA_SERVICE_IDL
+
+#pragma prefix "dsto.defence.gov.au"
+
+module taf_xmpl
+{
+#   pragma version taf_xmpl 1.0
+
+    struct Structure
+    {
+        short           i;
+        long            j;
+        string          k;
+    //    sequence<long> seq;
+    };
+
+    exception test_exception
+    {
+      short error_code;
+      string error_message;
+      string status_message;
+    };
+
+    interface SimpleCallback
+    {
+        void callback_op(in string name);
+    };
+
+    interface SimpleServer
+    {
+      attribute long test_val;
+
+      void register_callback(in SimpleCallback callback_ptr);
+
+      long test_method (in long x,
+                        in Structure the_in_structure,
+                        out Structure the_out_structure,
+                        inout string name);
+
+      void test_callback(in SimpleCallback callback_ptr, in string txt);
+
+      oneway void test_oneway (in string name);
+
+      void raise_user_exception () raises (test_exception);
+
+      void raise_system_exception ();
+    };
+
+    const string MY_SERVICE_OID     = "MySimpleServer";
+    const string MY_CALLBACK_OID    = "MySimpleCallback";
+};
+
+#endif // CORBA_SERVICE_IDL

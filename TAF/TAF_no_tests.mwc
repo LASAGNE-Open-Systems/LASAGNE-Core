@@ -1,0 +1,13 @@
+// $Id: TAF.mwc
+
+workspace {
+  cmdline += -include $DAF_ROOT/MPC/config \
+             -feature_file $DAF_ROOT/MPC/config/TAF.features
+  $(DAF_ROOT)/DAF_no_tests.mwc
+  .
+
+  exclude {
+    tests
+  }
+}
+

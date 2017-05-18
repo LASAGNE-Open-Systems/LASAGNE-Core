@@ -1,0 +1,4 @@
+project : opensplice {
+  libs  += OSPL_PubSub
+  after += OSPL_PubSub
+}

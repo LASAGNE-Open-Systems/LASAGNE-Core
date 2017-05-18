@@ -1,0 +1,34 @@
+project : build_files {
+  after += TAF_IDL_BE
+  
+  Define_Custom(LASAGNEIDL) {
+    automatic_in = 0 
+    automatic_out = 1
+    
+    command = $(DAF_ROOT)/bin/lasagne_idl
+	dependent_libs       = $(ACE_ROOT)/lib/TAO_IDL_FE $(DAF_ROOT)/lib/TAF_IDL_BE
+    libpath              = $(DAF_ROOT)/lib
+	// Looks like you can only have one path addition. This gets added as "$(DAF_ROOT)/lib $(ACE_ROOT)/lib;" not "$(DAF_ROOT)/lib;$(ACE_ROOT)/lib;"
+	//libpath             += $(ACE_ROOT)/lib
+
+    inputext = .idl 
+    
+    header_outputext = .h 
+    source_outputext = .cpp
+    
+    keyword lasagne_idl_flags = commandflags
+    
+    optional(source_pre_extension) {
+      commandflags(!-notaf) = TAFSupport
+    }
+    
+    optional(header_pre_extension) {
+      commandflags(!-notaf) = TAFSupport
+    }
+    
+    optional(header_pre_extension) {
+      commandflags(-enum) = EnumHelper
+    }
+  }
+
+}

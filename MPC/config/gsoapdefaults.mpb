@@ -1,0 +1,26 @@
+
+project: build_files {
+    requires += gsoap
+    includes += $(GSOAP_HOME)/gsoap
+    includes += $(GSOAP_HOME)/gsoap/import    
+    libpaths += $(DAF_ROOT)/lib
+    
+    macros += WITH_PURE_VIRTUAL WITH_COOKIES
+    
+    // TODO: better detection for linux platform
+    specific(gnuace) {
+        macros += LINUX
+    }
+ 
+    specific(prop:microsoft) {
+        DisableSpecificWarnings += 4458 // vc14 - declaration of 'xxx' hides class member
+        DisableSpecificWarnings += 4459 // vc14 - declaration of 'xxx' hides global
+    }
+
+}
+
+feature(gsoap_openssl) : openssl {
+    requires += gsoap
+    macros += WITH_OPENSSL    
+}
+

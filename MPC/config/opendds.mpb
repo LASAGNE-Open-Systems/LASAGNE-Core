@@ -1,0 +1,13 @@
+feature(opendds) : taflib, dcps, dcps_ts_defaults {
+  idlflags      -= -Sa -St
+  macros        += TAF_USES_DDS TAF_USES_OPENDDS TAF_USES_DDSCORBA
+  idlflags      += -DTAF_USES_DDS -DTAF_USES_OPENDDS
+  dcps_ts_flags += -DTAF_USES_DDS -DTAF_USES_OPENDDS -DTAF_USES_DDSCORBA
+
+  Modify_Custom(TypeSupport) {
+    dependent =
+  }
+
+  IDL_Files {
+  }
+}

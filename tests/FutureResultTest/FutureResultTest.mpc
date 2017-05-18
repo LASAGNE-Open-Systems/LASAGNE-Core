@@ -1,0 +1,8 @@
+project(FutureResultTest) : daflib {
+    exename = * 
+    //requires += dummy
+    Source_Files {
+        FutureResultTest.cpp
+    }
+}
+

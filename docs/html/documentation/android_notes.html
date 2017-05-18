@@ -1,0 +1,181 @@
+﻿<!doctype html>
+<html lang="en-au">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="../common.css" />
+        <title>LASAGNE - Documentation</title>
+    </head>
+    <body>
+        <header>
+            <img src="../Lasagne-banner.png"/>
+        </header>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a class="active" href="../documentation.html">Documentation</a></li>
+                <li><a href="../training.html">Training</a></li>
+                <li><a href="../contacts.html">Contact Us</a></li>
+            </ul>
+        </nav>
+        <section>
+            <h1>LASAGNE Documentation - Platform Notes - Android</h1>
+        </section>
+        <section>
+            <h1 id="AndroidSupport-GettingStarted">Getting Started</h1>
+
+            <h2 id="AndroidSupport-VirtualMachineforDevelopment">Virtual Machine for Development</h2>
+            <p>Assuming we are using VirtualBox:</p>
+            <ul>
+                <li>
+                    Create a new VM
+                    <ul>
+                        <li>Linux 64-bit</li>
+                        <li>40.0+ GB hard disk space</li>
+                    </ul>
+                </li>
+                <li>Install Lubuntu 16.04 LTS</li>
+                <li>
+                    Install the VirtualBox Guest Additions ISO
+                    <ul>
+                        <li>It may be necessary to perform a number of updates first to ensure all dependencies are in place for the Guest Additions scripts to work</li>
+                    </ul>
+                </li>
+            </ul>
+                        
+            <div class="code panel pdl conf-macro output-block" style="border-width: 1px;" data-hasbody="true" data-macro-name="code">
+                <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+                    <b>Installing Guest Additions</b>
+                </div>
+                <div class="codeContent panelContent pdl">
+                    <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get install build-essential module-assistant
+sudo sh /media/cdrom/VBoxLinuxAdditions.run
+                    </pre>
+                </div>
+            </div>
+            
+            <h2 id="AndroidSupport-OracleJDK">Oracle JDK</h2>
+            <p>Install Oracle JDK</p>
+            <ul>
+                <li>Remove the OpenJDK first if it is present</li>
+                <li>Download Oracle JDK from <a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html" class="external-link" rel="nofollow">http://www.oracle.com/technetwork/java/javase/downloads/index.html</a></li>
+                <li>Configure environment variables</li>
+            </ul>
+                        
+            <div class="code panel pdl conf-macro output-block" style="border-width: 1px;" data-hasbody="true" data-macro-name="code">
+                <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+                    <b>Java-related Environment Variables</b>
+                </div>
+                <div class="codeContent panelContent pdl">
+                    <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">
+export JAVA_HOME=/opt/java/jdk1.8.0_91
+export JRE_HOME=$JAVA_HOME/jre
+export PATH=$PATH:$JAVA_HOME/bin
+export PATH=$PATH:$JRE_HOME/bin
+                    </pre>
+                </div>
+            </div>
+
+            <h2 id="AndroidSupport-AndroidSDK">Android SDK</h2>
+            <ul>
+                <li>
+                    Download and install the Android SDK
+                    <ul>
+                        <li>Download the Android SDK from <a href="http://developer.android.com/sdk/index.html" class="external-link" rel="nofollow">http://developer.android.com/sdk/index.html</a><ul><li>Note that only the command line tools are required, not the bundle with Android Studio</li></ul></li>
+                        <li>Unpack the archive</li>
+                        <li>
+                            Though not strictly necessary it can be useful to add an environment variable that points to the location of the Android SDK
+                            <ul>
+                                <li>For example:
+                                    <div class="code panel pdl conf-macro output-block" style="border-width: 1px;" data-hasbody="true" data-macro-name="code">
+                                        <div class="codeHeader panelHeader pdl" style="border-bottom-width: 1px;">
+                                            <b>Android SDK Environment Variables</b>
+                                        </div>
+                                        <div class="codeContent panelContent pdl">
+                                            <pre class="syntaxhighlighter-pre" data-syntaxhighlighter-params="brush: java; gutter: false; theme: Confluence" data-theme="Confluence">
+export ANDROID_SDK_HOME=/home/username/AndroidDev/android-sdk-Linux
+export PATH=$PATH:$ANDROID_SDK_HOME/tools
+                                            </pre>
+                                        </div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>Use the SDK Manager to install libraries and other tools as required
+                    <ul>
+                        <li>To open the SDK Manager, run the command <em>$(ANDROID_SDK_HOME)/tools/android sdk</em></li>
+                        <li>The following set is recommended at a minimum:
+                            <ul>
+                                <li>Tools =&gt; Android SDK Tools</li>
+                                <li>Tools =&gt; Android SDK Platform-tools</li>
+                                <li>Tools =&gt; Android SDK Build-tools</li>
+                                <li>Android 6.0 (API 23) =&gt; Documentation for Android SDK</li>
+                                <li>Android 6.0 (API 23) =&gt; SDK Platform</li>
+                                <li>Android 6.0 (API 23) =&gt; ARM EABI v7a System Image</li>
+                                <li>Extras =&gt; Android Support Library </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li>Configure an Android Target device
+                    <ul>
+                        <li>Emulated devices can be created using the AVD Manager
+                            <ul>
+                                <li>To open the AVD Manager, run the command <em>$(ANDROID_SDK_HOME/tools/android avd</em></li>
+                                <li>Note that if the host is a VM provided by VirtualBox the Android Studio AVD Manager will not allow you to create emulated devices with any sort of hardware virtualization support since VirtualBox does not support nested virtualization</li>
+                            </ul>
+                        </li>
+                        <li>Physical devices can also be used directly</li>
+                    </ul>
+                    <ul>
+                        <li style="list-style-type: none;background-image: none;">
+                            <ul>
+                                <li><a href="http://developer.android.com/tools/device.html" class="external-link" rel="nofollow">http://developer.android.com/tools/device.html</a></li>
+                                <li>
+                                    <div class="confluence-information-macro confluence-information-macro-note conf-macro output-block" data-hasbody="true" data-macro-name="note">
+                                        <p class="title">VirtualBox USB Filters</p>
+                                        <span class="aui-icon aui-icon-small aui-iconfont-warning confluence-information-macro-icon"> </span>
+                                        <div class="confluence-information-macro-body">
+                                            <p>If using VirtualBox to host a VM, note that the USB settings include a filter list. Make sure that the device to be used appears as allowable in the list. If it isn't there, create a new blank filter.</p>
+                                        </div>
+                                    </div>
+                                </li>
+                                <li>Connect the device to the host via USB
+                                    <ul>
+                                        <li>If running on Windows, some OEM device drivers may be required</li>
+                                        <li>If running on Ubuntu, a USB rules file needs to be added/updated (use the Android developer webpages for this step)</li>
+                                    </ul>
+                                </li>
+                                <li>The device must have developer mode unlocked</li>
+                                <li>The developer tools must have USB debugging switched on
+                                    <ul>
+                                        <li>For Android 4.2.2 and above, there is an additional prompt about RSA that also needs to be agreed to when a debugging session is to commence</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </li>
+                        <li> The presence of a physical device can be checked using the SDK's <em>adb</em> tool
+                            <ul>
+                                <li>To see a list of the currently connected devices, run the command <em>$(ANDROID_SDK_HOME)/platform-tools/adb devices</em></li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+                    
+        </section>
+        <section>
+            <h2>More coming soon...</h2> 
+
+        </section>
+        <footer>
+            <p>Last Updated - May 18th 2017</p>
+            <p>Copyright &copy; 2017 - DST Group, Australia</p>
+        </footer>
+    </body>
+
+</html>

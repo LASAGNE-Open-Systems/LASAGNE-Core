@@ -1,0 +1,9 @@
+project(PassiveService) : taflib {
+  sharedname    = *
+
+  libout        = $(DAF_ROOT)/lib 
+
+  dynamicflags += PASSIVESERVICE_BUILD_DLL
+
+  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl PassiveService > PassiveService_export.h
+}

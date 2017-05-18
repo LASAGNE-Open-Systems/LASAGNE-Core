@@ -1,0 +1,11 @@
+project(VectorSequenceTest) : taflib {
+    exename = *
+
+    IDL_Files {
+      VectorSequenceTest.idl
+    }
+
+    Source_Files {
+      VectorSequenceTest.cpp
+    }
+}

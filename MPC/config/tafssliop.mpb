@@ -1,0 +1,4 @@
+feature (tafssliop) : ssliop {
+  requires += tafsecurity
+  macros   += TAF_HAS_SSLIOP
+}

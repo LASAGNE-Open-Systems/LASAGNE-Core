@@ -1,0 +1,3 @@
+project : lasagneidl, daflib {
+  includes += $(TAF_ROOT)
+}

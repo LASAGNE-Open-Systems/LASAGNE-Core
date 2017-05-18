@@ -1,0 +1,7 @@
+project(BarrierTest) : daflib {
+    exename = *
+
+    Source_Files {
+        BarrierTest.cpp
+    }
+}
