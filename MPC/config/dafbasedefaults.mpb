@@ -1,0 +1,11 @@
+project : build_files, svc_conf_files, dafcompilersupport {
+  includes  += .
+  includes  += $(DAF_ROOT)
+  libpaths  += $(DAF_ROOT)/lib
+  libout    =  $(DAF_ROOT)/lib
+  exeout    =  .
+
+  specific(gnuace) {
+    build_dir_per_project = 1
+  }
+}

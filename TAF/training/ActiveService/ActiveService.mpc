@@ -1,0 +1,9 @@
+project(ActiveService) : taflib {
+  sharedname    = *
+
+  libout        = $(DAF_ROOT)/lib 
+
+  dynamicflags += ACTIVESERVICE_BUILD_DLL
+
+  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl ActiveService > ActiveService_export.h
+}

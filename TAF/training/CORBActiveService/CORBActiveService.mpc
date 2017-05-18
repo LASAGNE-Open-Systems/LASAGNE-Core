@@ -1,0 +1,49 @@
+project(CORBActiveService) : taflib, odds_pubsub {
+  sharedname    = *
+
+  idlflags      += -Wb,export_include=CORBActiveService_export.h -Wb,export_macro=CORBActiveService_Export
+  dcps_ts_flags += -Wb,export_include=CORBActiveService_export.h -Wb,export_macro=CORBActiveService_Export
+
+  libout        = $(DAF_ROOT)/lib 
+
+  dynamicflags  += CORBACTIVESERVICE_BUILD_DLL
+
+  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl CORBActiveService > CORBActiveService_export.h
+
+  Idl_Files {
+    CORBActiveService.idl
+  }
+
+  TypeSupport_Files {
+    CORBActiveService.idl
+  }
+
+  Header_Files {
+    CORBActiveService.h
+    CORBActiveDataSupport.h
+  }
+
+  Source_Files {
+    CORBActiveService.cpp
+    CORBActiveDataSupport.cpp
+  }
+}
+
+project(CORBActiveClient) : taflib {
+  exename    = *
+  after     += CORBActiveService
+
+  macros    += CORBACTIVESERVICE_HAS_DLL=0 
+
+  verbatim(vc14, debug_cmd_args) {
+    "-ORBInitRef LTM_CORBActiveService=corbaloc:iiop:localhost:8989/LTM_CORBActiveService -ORBObjRefStyle URL"
+  }
+
+  IDL_Files {
+  }
+
+  Source_Files {
+    CORBActiveClient.cpp
+  }
+}
+

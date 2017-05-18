@@ -1,0 +1,26 @@
+project (sqlite3) : build_files {
+  staticname    = *
+  requires     += ldbc_sqlite
+  libout        = ../lib
+  macros       += SQLITE_THREADSAFE=1
+
+  specific(prop:microsoft) {
+     Debug::runtime_library   = MultiThreadedDebugDLL
+     Release::runtime_library = MultiThreadedDLL
+  }
+
+  verbatim(gnuace,top,1) {
+    CFLAGS += -fPIC
+  }
+
+  Documentation_Files {
+  }
+
+  Header_Files {
+    sqlite3.h
+  }
+
+  Source_Files {
+    sqlite3.c
+  }
+}

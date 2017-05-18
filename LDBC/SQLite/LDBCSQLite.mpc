@@ -1,0 +1,22 @@
+// $Id$
+
+project (LDBCSQLite) : ldbc_sqlite_defaults {
+  sharedname     = *
+  libout         = $(DAF_ROOT)/lib
+  libpaths      += ./lib
+  includes      += sqlite3
+
+  dynamicflags  += SQLITE_BUILD_DLL
+
+  specific(prop:microsoft) {
+    libs        += sqlite3s
+  } else {
+    libs        += sqlite3
+  }
+
+  specific(cdt6,cdt7) {
+      prebuild   = perl ${ACE_ROOT}/bin/generate_export_file.pl SQLite > SQLite_export.h
+  } else {
+      prebuild   = perl $(ACE_ROOT)/bin/generate_export_file.pl SQLite > SQLite_export.h
+  }
+}

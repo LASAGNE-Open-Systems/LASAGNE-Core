@@ -1,0 +1,41 @@
+project(TAF_IDL_BE) : daflib, tao_idl_fe {
+    sharedname = *
+    
+    dynamicflags += TAF_IDL_BE_BUILD_DLL
+    
+    prebuild += perl $(ACE_ROOT)/bin/generate_export_file.pl TAF_IDL_BE > TAF_IDL_BE_export.h
+    
+    includes += . $(TAO_ROOT)/TAO_IDL/include $(TAO_ROOT)/TAO_IDL/fe $(TAO_ROOT) $(TAF_ROOT)
+    
+    
+    Source_Files {
+        be_global.cpp
+        be_init.cpp
+        be_util.cpp
+        be_produce.cpp
+        Visitor.cpp
+        VisitorTafSupport.cpp
+        VisitorUtils.cpp
+        VisitorEnumSupport.cpp
+    }
+}
+
+
+project(lasagne_idl) : daflib {
+    exename = *
+    exeout = $(DAF_ROOT)/bin
+    
+    after += TAO_IDL_FE TAF_IDL_BE
+    libs  += TAO_IDL_FE TAF_IDL_BE
+    
+    includes += . $(TAO_ROOT)/TAO_IDL/include $(TAO_ROOT)/TAO_IDL/fe $(TAO_ROOT)
+    
+    Source_Files {
+        lasagne_idl.cpp // Main Entry
+        $(TAO_ROOT)/TAO_IDL/driver/drv_args.cpp
+        $(TAO_ROOT)/TAO_IDL/driver/drv_preproc.cpp
+        //drv_preproc.cpp
+        
+    }
+
+}

@@ -1,0 +1,4 @@
+project : dafbasedefaults, acelib {
+  libs  += DAF
+  after += DAF
+}

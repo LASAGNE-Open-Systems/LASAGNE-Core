@@ -1,0 +1,30 @@
+project(DDSPubSub) : DDSPubSub {
+  custom_only   = 1
+  specific(cdt6,cdt7) {
+      prebuild   = perl ${ACE_ROOT}/bin/generate_export_file.pl DDSPubSub > DDSPubSub_export.h
+  } else {
+      prebuild   = perl $(ACE_ROOT)/bin/generate_export_file.pl DDSPubSub > DDSPubSub_export.h
+  }
+}
+
+project(ODDS_PubSub) : opendds, DDSPubSub {
+  requires += opendds
+  Test_Files {
+    $(DAF_ROOT)/bin/dds.ini
+  }
+  after  += DDSPubSub
+}
+
+project(NDDS_PubSub) : ndds, DDSPubSub {
+  macros += NDDS_USER_DLL_EXPORT
+  after  += DDSPubSub
+}
+
+project(CDDS_PubSub) : coredx, DDSPubSub {
+  macros += CDDS_USER_DLL_EXPORT
+  after  += DDSPubSub
+}
+
+project(OSPL_PubSub) : opensplice, DDSPubSub, OSPL_DDSPubSub {
+  after  += DDSPubSub
+}

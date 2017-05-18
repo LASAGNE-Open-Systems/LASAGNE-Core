@@ -1,0 +1,4 @@
+project : gsoapdefaults {  
+  libs  += gsoap++ 
+  after += GSoap
+}

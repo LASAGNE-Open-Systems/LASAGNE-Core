@@ -1,0 +1,9 @@
+project : build_files {
+  requires += mqtt
+  
+  includes  += $(MOSQUITTO_ROOT)/include
+  libs      += mosquittopp
+  
+  // TODO - rework the libpaths 
+  libpaths  += $(MOSQUITTO_ROOT)/lib
+}

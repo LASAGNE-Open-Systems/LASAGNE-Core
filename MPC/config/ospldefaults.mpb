@@ -1,0 +1,30 @@
+project  {
+  includes += $(OSPL_HOME)/include
+  includes += $(OSPL_HOME)/include/sys
+  libpaths += $(OSPL_HOME)/lib
+  
+  // OpenSplice DOES NOT have a single header file to "inspect" the version
+  // It DOES have a $OSPL_HOME/etc/RELEASEINFO script to "source"
+  // To provide compat with TAF/dds we will set the OSPL Version numbers
+  // via this expansion method + macros. Fallback is 0.0.0
+  expand(OSPL_MAJOR_VERSION) {
+    $OSPL_MAJOR
+    0
+  }
+
+  expand(OSPL_MINOR_VERSION) {
+    $OSPL_MINOR
+    0
+  }
+
+  expand(OSPL_MAINT_VERSION) {
+    $OSPL_MAINT
+    0
+  }
+
+  macros += OSPL_MAJOR_VERSION=$(OSPL_MAJOR_VERSION) OSPL_MINOR_VERSION=$(OSPL_MINOR_VERSION) OSPL_MAINT_VERSION=$(OSPL_MAINT_VERSION)
+
+  specific(gnuace) {
+    build_dir_per_project = 1
+  }
+}

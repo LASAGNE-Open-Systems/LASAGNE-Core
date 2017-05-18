@@ -1,0 +1,6 @@
+project : build_files, daflib,  amqp {
+
+    includes += $(TAF_ROOT)
+    libs += TAF_AMQP
+    after += TAF_AMQP
+}

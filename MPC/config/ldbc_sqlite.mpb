@@ -1,0 +1,7 @@
+// $Id$
+
+project : ldbc_sqlite_defaults {
+  libs      += LDBCSQLite
+  includes  += $(DAF_ROOT)/LDBC/SQLite
+  after     += LDBCSQLite
+}

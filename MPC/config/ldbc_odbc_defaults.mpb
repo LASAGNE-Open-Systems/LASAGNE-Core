@@ -1,0 +1,13 @@
+// $Id$
+
+project : ldbc_defaults {
+  requires  += ldbc_odbc
+  includes  += $(DAF_ROOT)/LDBC/ODBC/odbc++/include
+  after     += odbc++
+
+  verbatim(gnuace, macros, 1) { // NOTE: explicit ,1 in verbatim add = 1 means its appended
+    odbc++ ?= 1
+  }
+
+}
+

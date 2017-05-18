@@ -1,0 +1,7 @@
+project(ServiceConfiguratorTest) : daflib  {
+  exename = *
+
+  verbatim(vc10, debug_cmd_args) {
+    "-DAFProperties \"TEST.conf:A,B,C,D,E\""
+  }
+}

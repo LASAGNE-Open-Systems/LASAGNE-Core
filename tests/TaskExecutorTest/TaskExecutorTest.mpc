@@ -1,0 +1,20 @@
+project(TaskExecutorTest) : daflib {
+    exename = *
+
+  verbatim(vc10, debug_cmd_args) {
+    "-z -n 10"
+  }
+
+  verbatim(vc12, debug_cmd_args) {
+    "-z -n 10"
+  }
+
+  verbatim(vc14, debug_cmd_args) {
+    "-z -n 10"
+  }
+
+    //requires += dummy
+    Source_Files {
+        TaskExecutorTest.cpp
+    }
+}

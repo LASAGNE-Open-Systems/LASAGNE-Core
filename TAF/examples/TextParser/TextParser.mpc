@@ -1,0 +1,70 @@
+project(TextParserService) : taflib {
+  sharedname    =   *
+  idlflags      +=  -Wb,export_macro=TextParserService_Export \
+                    -Wb,export_include=TextParserService_export.h
+  libout        =   $(DAF_ROOT)/lib 
+
+  macros        +=  TEXTPARSERSERVICE_BUILD_DLL
+
+  prebuild      =   perl $(ACE_ROOT)/bin/generate_export_file.pl TextParserService > TextParserService_export.h
+
+  IDL_Files {
+    TextParser.idl
+  }
+
+  Header_Files {
+    TextParserService.h
+    TextParserService_export.h
+  }
+
+  Inline_Files {
+  }
+
+  Source_Files {
+    TextParserService.cpp
+  }
+
+  Documentation_Files {
+  }
+}
+
+project(TextParserClient) : taflib {
+  exename       =  *
+  exeout        =  .
+  after         += TextParserService
+  
+  macros        += TEXTPARSERSERVICE_HAS_DLL=0
+ 
+  verbatim(vc10, debug_cmd_args) {
+    "-z -w 5 -f SOA_Abstract.txt -TAFBaseContext TAF\/XMPL -ORBInitRef TAF_XMPL_TextParserService=corbaloc:iiop:localhost:8989/TAF_XMPL_TextParserService"
+  }
+
+  verbatim(vc12, debug_cmd_args) {
+    "-z -w 5 -f SOA_Abstract.txt -TAFBaseContext TAF\/XMPL -ORBInitRef TAF_XMPL_TextParserService=corbaloc:iiop:localhost:8989/TAF_XMPL_TextParserService"
+  }
+
+  verbatim(vc14, debug_cmd_args) {
+    "-z -w 5 -f SOA_Abstract.txt -TAFBaseContext TAF\/XMPL -ORBInitRef TAF_XMPL_TextParserService=corbaloc:iiop:localhost:8989/TAF_XMPL_TextParserService"
+  }
+
+  IDL_Files {
+  }
+
+  Header_Files {
+  }
+  
+  Inline_Files {
+  }
+
+  Source_Files {
+    TextParserClient.cpp
+  }
+
+  Documentation_Files {
+    SOA_Abstract.txt
+  }
+
+  Test_Files {
+    TextParserClient.bat
+  }
+}

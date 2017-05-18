@@ -1,0 +1,15 @@
+project : taolib_with_idl, portableserver, iortable, naming, anytypecode, tafsecurity {
+  includes  += $(TAF_ROOT)
+  idlflags  += -I$(TAF_ROOT)
+  exeout    =  .
+
+  Modify_Custom(IDL) {
+    output_follows_input = 0
+    automatic_out = 1
+    dependent =
+  }
+}
+
+feature(taostrategies) : strategies {
+  macros += TAF_HAS_STRATEGIES
+}

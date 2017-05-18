@@ -1,0 +1,7 @@
+project(SemaphoreTest) : daflib {
+    exename = *
+    
+    Source_Files {
+        SemaphoreTest.cpp
+    }
+}

@@ -1,0 +1,11 @@
+feature(opendds) : odds_pubsub {
+  TypeSupport_Files {
+    common.idl
+    Test.idl
+  }
+  
+  IDL_Files {
+    common.idl
+    Test.idl
+  }
+}

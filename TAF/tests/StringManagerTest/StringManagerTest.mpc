@@ -1,0 +1,8 @@
+project(StringManagerTest) : taflib {
+    exename = *
+    exeout  = .
+
+    Source_Files {
+      StringManagerTest.cpp
+    }
+}

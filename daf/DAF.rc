@@ -1,0 +1,57 @@
+/***************************************************************
+    Copyright 2016, 2017 Defence Science and Technology Group,
+    Department of Defence,
+    Australian Government
+
+	This file is part of LASAGNE.
+
+    LASAGNE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    LASAGNE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
+***************************************************************/
+#include "Winver.h"
+#include "Version.h"
+
+#ifndef DEBUG
+#define VER_DEBUG 0
+#else
+#define VER_DEBUG VS_FF_DEBUG
+#endif
+
+1 VERSIONINFO
+ FILEVERSION DAF_MAJOR_VERSION,DAF_MINOR_VERSION,DAF_BETA_VERSION,0
+ PRODUCTVERSION DAF_MAJOR_VERSION,DAF_MINOR_VERSION,DAF_BETA_VERSION,0
+ FILEFLAGSMASK VS_FFI_FILEFLAGSMASK
+ FILEFLAGS   (VER_DEBUG)
+ FILEOS      VOS__WINDOWS32
+ FILETYPE    VFT_DLL
+ FILESUBTYPE VFT2_UNKNOWN
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904B0"
+        BEGIN
+            VALUE "FileDescription", "DAF\0"
+            VALUE "FileVersion", DAF_VERSION "\0"
+            VALUE "InternalName", "DAFDLL\0"
+            VALUE "LegalCopyright", "Copyright 2011, Defence Science and Technology Organisation, Department of Defence. Australia.\0"
+            VALUE "LegalTrademarks", "\0"
+            VALUE "OriginalFilename", "DAF.DLL\0"
+            VALUE "ProductName", "DAF\0"
+            VALUE "ProductVersion", DAF_VERSION "\0"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0x409, 1200
+    END
+END

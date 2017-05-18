@@ -1,0 +1,13 @@
+// $Id$
+
+project (LDBCSQLiteTest) : ldbc_sqlite {
+  exename     = *
+  requires   += ldbc_sqlite
+
+  Header_Files {
+  }
+
+  Source_Files {
+    LDBCSQLiteTest.cpp
+  }
+}

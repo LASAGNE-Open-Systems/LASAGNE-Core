@@ -1,0 +1,14 @@
+project (ODDSInitTest) : odds_pubsub, taflib {
+    sharedname = *
+
+    dynamicflags += DDS_INIT_TEST_BUILD_DLL
+
+    prebuild += perl $(ACE_ROOT)/bin/generate_export_file.pl DDS_INIT_TEST > DDSInitTest_export.h
+
+
+    Source_Files {
+        DDSSvcTest.cpp
+    }
+
+
+}

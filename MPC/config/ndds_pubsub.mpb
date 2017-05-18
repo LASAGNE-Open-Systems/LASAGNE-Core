@@ -1,0 +1,4 @@
+project : ndds {
+  libs  += NDDS_PubSub
+  after += NDDS_PubSub
+}

@@ -1,0 +1,60 @@
+project  {
+
+  requires += opensplice
+
+  Define_Custom(OSPLTypeSupport) {
+    automatic_in               = 0
+    automatic_out              = 1
+    
+    command                   = <%quote%>$(OSPL_HOME)/bin/idlpp<%quote%>
+    dependent                 = $(OSPL_HOME)/bin/idlpp
+
+    inputext                = .idl
+
+    source_outputext        += .cpp
+    //source_pre_extension    += , Dcps, SplDcps, Dcps_impl
+    
+    header_outputext        += .h
+    header_pre_extension    += , Dcps, Dcps_impl, SplDcps
+    
+    
+    keyword splice_ts_flags      = commandflags  
+    
+    output_follows_input = 0
+    
+    optional(source_pre_extension) {
+        commandflags(!-C) += , Dcps, SplDcps, Dcps_impl
+    }
+    
+    optional(source_pre_extension) {
+        commandflags(-C) += SplDcps, Dcps_impl
+    }
+    
+    // These are now handled by the OSPLTYPESUPPORTHelper.pm module
+    // optional(generic_outputext) {
+    //     commandflags(-C) += .idl
+    // }
+    
+    // optional(generic_pre_extension) {
+    //     commandflags(-C) += Dcps
+    // }
+   
+    
+    
+  }
+
+  splice_ts_flags += -I$(OSPL_HOME)/etc/idl -l cpp
+
+}
+
+feature(osplcorba) {
+    requires += opensplice
+    splice_ts_flags += -C -bCCPP/$(SPLICE_ORB) -I $(OSPL_HOME)/include/dcps/C++/CCPP/$(SPLICE_ORB)
+    idlflags += -I $(OSPL_HOME)/custom_lib/ccpp
+
+}
+
+feature(!osplcorba) {
+    requires += opensplice
+    splice_ts_flags += -S
+}

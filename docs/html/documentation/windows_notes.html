@@ -1,0 +1,228 @@
+﻿<!doctype html>
+<html lang="en-au">
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="../common.css" />
+        <title>LASAGNE - Documentation</title>
+    </head>
+    <body>
+        <header>
+            <img src="../Lasagne-banner.png"/>
+        </header>
+        <nav>
+            <ul>
+                <li><a href="../index.html">Home</a></li>
+                <li><a class="active" href="../documentation.html">Documentation</a></li>
+                <li><a href="../training.html">Training</a></li>
+                <li><a href="../contacts.html">Contact Us</a></li>
+            </ul>
+        </nav>
+        <section>
+            <h2>LASAGNE Documentation - Platform Notes - Windows</h2>
+        </section>
+        <section>
+            <h2>Getting Started</h2>
+            <h3>Supporting Tools</h3>
+            <h4>Install Perl</h4>
+            <p>For working with Perl on Windows we've used ActiveState Perl in the past</p>
+            <ol>
+                <li>Obtain the latest Perl release - <a href="http://www.activestate.com/activeperl">ActiveState's ActivePerl site</a></li>
+                <li>Install Perl</li>
+            </ol>
+            <h4>Install Visual Studio 2015</h4>
+            <p>For IDE-related steps the use of Visual Studio 2015 is assumed from here on. It is possible to use MPC to generate workspaces/projects for different IDEs but that is not covered here.</p>
+            <ol>
+                <li>Obtain and install Visual Studio
+                    <ul>
+                        <li>If appropriate, the community version installer can be downloaded from <a href="https://www.visualstudio.com/downloads/">Visual Studio download site</a></li>
+                        <li>Note that a default installation of Visual Studio may not include the support for C++ development. Make sure this is included by performing a custom installation.</li>
+                    </ul>
+                </li>
+                <li>Obtain and install a Windows SDK
+                    <ul>
+                        <li>It is possible that machine may not have a Windows SDK</li>
+                        <li>Windows 8.1 SDK - <a href="https://developer.microsoft.com/en-us/windows/downloads/windows-8-1-sdk">Microsoft developer download site</a></li>
+                        <li>Windows 10 SDK - <a href="https://developer.microsoft.com/en-us/windows/downloads/windows-10-sdk">Microsoft developer download site</a></li>
+                    </ul>
+                </li>
+            </ol>
+            <h4>Install Rapid Environment Editor (Optional)</h4>
+            <p>LASAGNE does require working with environment variables on Windows. To make this easier we have used the Rapid Environment Editor</p>
+            <ol>
+                <li>Obtain the Rapid Environment Editor from <a href="http://www.rapidee.com/en/download">Rapid Environment Editor download site</a></li>
+                <li>Install the Rapid Environment Editor</li>
+            </ol>
+
+            <h3>Software Source</h3>
+
+            <h4>Obtain LASAGNE</h4>
+            <ol>
+                <li>Obtain the latest LASAGNE release
+                    <ul>
+                        <li>
+                            Contact DST Group for a CD
+                            <ul>
+                                <li>lasagne@dsto.defence.gov.au</li>
+                            </ul>
+                        </li>
+                        <li>
+                            Coming soon to public hosting
+                        </li>
+                    </ul>
+                </li>
+                <li>Set environment variables
+                    <ul>
+                        <li><pre>DAF_ROOT = [extracted path]/DAF</pre></li>
+                        <li><pre>TAF_ROOT = [extracted path]/DAF/TAF</pre></li>
+                        <li><pre>PATH = %PATH%;[extracted path]/DAF/bin;[extracted path]/DAF/lib</pre></li>
+                    </ul>
+                </li>
+                <li>Set desired features
+                    <ul>
+                        <li>Open %DAF_ROOT%/MPC/config/TAF.features in a text editor</li>
+                        <li>Set features on by setting values to 1. Note that any missing feature will be default to ON</li>
+                    </ul>
+                </li>
+
+            </ol>
+            <h4>Build ACE and TAO</h4>
+            <ol>
+                <li>Obtain the latest ACE/TAO release - <a href="http://download.dre.vanderbilt.edu/">ACE/TAO download page</a></li>
+                <li>Extract the archive</li>
+                <li>Set environment variables
+                    <ul>
+                        <li><pre>ACE_ROOT = [extracted path]/ACE_wrappers</pre></li>
+                        <li><pre>MPC_ROOT = [extracted path]/ACE_wrappers/MPC</pre></li>
+                        <li><pre>TAO_ROOT = [extracted path]/ACE_wrappers/TAO</pre></li>
+                        <li><pre>PATH = %PATH%;[extracted path]/ACE_wrappers/bin;[extracted path]/ACE_wrappers/lib</pre></li>
+                    </ul>
+                </li>
+                <li>Create the platform configuration file
+                    <ul>
+                        <li>Copy config.h from %DAF_ROOT%/bin/build/ace to %ACE_ROOT%/ace</li>
+                    </ul>
+                </li>
+                <li>Create the build features file
+                    <ul>
+                        <li>Copy default.features from %DAF_ROOT%/bin/build/ace to %ACE_ROOT%/bin/MakeProjectCreator/config</li>
+                    </ul>
+                </li>
+                <li>Modify the build configuration to produce separate debug and release builds
+                    <ul>
+                        <li>Open %MPC_ROOT%/templates/common.mpt in a text editor</li>
+                        <li>Ensure <i>use_lib_modifier</i> and <i>use_exe_modifier</i> are set
+                            <pre>
+use_lib_modifier = 1
+use_exe_modifier = 1
+                            </pre>
+                        </li>
+                    </ul>
+                </li>
+                <li>Generate the workspace and project files
+                    <ul>
+                        <li>For Visual Studio 2015 (vc14), from the command line, run the command:
+                            <pre>
+%ACE_ROOT%/bin/mwc.pl -type vc14 -name_modifier *_vc14 -apply_project %TAO_ROOT%/TAO_ACE.mwc
+                            </pre>
+                        </li>
+                    </ul>
+                </li>
+                <li>Building ACE and TAO
+                    <ul>
+                        <li>Open the %TAO_ROOT%/TAO_ACE_vc14.sln solution file</li>
+                        <li>Choose whether to build for 32-bit (Win32/x86) or 64-bit (x64) target</li>
+                        <li>Build the release version first (otherwise you may not have access to executables required to build the debug version)</li>
+                        <li>Build the debug version</li>
+                    </ul>
+                </li>
+            </ol>
+            <h4>Build OpenDDS (Optional)</h4>
+            <ol>
+                <li>Obtain the latest OpenDDS release - <a href="http://opendds.org/downloads.html">OpenDDS download page</a></li>
+                <li>Extract the archive</li>
+                <li>Set environment variables
+                    <ul>
+                        <li><pre>DDS_ROOT = [extracted path]/OpenDDS</pre></li>
+                        <li><pre>PATH = %PATH%;[extracted path]/OpenDDS/bin;[extracted path]/OpenDDS/lib</pre></li>
+                    </ul>
+                </li>
+                <li>Generate the workspace and project files
+                    <ul>
+                        <li>For Visual Studio 2015 (vc14), from the command line, run the command:
+                            <pre>
+%ACE_ROOT%/bin/mwc.pl -type vc14 -name_modifier *_vc14 -apply_project %DDS_ROOT%/DDS_no_tests.mwc
+                            </pre>
+                        </li>
+                    </ul>
+                </li>
+                <li>Building OpenDDS
+                    <ul>
+                        <li>Open the %DDS_ROOT%/DDS_no_tests_vc14.sln solution file</li>
+                        <li>Choose whether to build for 32-bit (Win32/x86) or 64-bit (x64) target</li>
+                        <li>Build the release version first (otherwise you may not have access to executables required to build the debug version)</li>
+                        <li>Build the debug version</li>
+                    </ul>
+                </li>
+            </ol>
+            <h4>Build LASAGNE Core</h4>
+            <ol>
+                <li>Set desired features
+                    <ul>
+                        <li>Open %DAF_ROOT%/MPC/config/TAF.features in a text editor</li>
+                        <li>Setting a value to 1 turns the feature on (if a feature is missing from the list it is assumed on by default)
+                            <pre>
+// Default values for TAF.features
+java             = 0
+opendds          = 1
+ndds             = 0
+nddscorba        = 0
+coredx           = 0
+coredxcorba      = 0
+gsoap            = 0
+gsoap_openssl    = 0
+opensplice       = 0
+osplcorba        = 0
+mqtt             = 0
+taostrategies    = 1
+tafextensions    = 1
+tafdiscovery     = 1
+tafsecurity      = 0
+tafssliop        = 0
+ssl              = 0
+ldbc_sqlite      = 0
+ldbc_odbc        = 0
+amqp             = 0
+amqp_qpid        = 0
+boost            = 0
+rabbitmq         = 0
+                            </pre>
+                        </li>
+                    </ul>
+                </li>
+                <li>Generate the workspace and project files
+                    <ul>
+                        <li>For Visual Studio 2015 (vc14), from the command line, run the command:
+                            <pre>
+%ACE_ROOT%/bin/mwc.pl -type vc14 -name_modifier *_vc14 -apply_project -include %DAF_ROOT%/MPC/config -feature_file %DAF_ROOT%/MPC/config/TAF.features %TAF_ROOT%/TAF.mwc
+                            </pre>
+                        </li>
+                        <li>Alternatively, run the TAF_vc14.bat batch file</li>
+                    </ul>
+                </li>
+                <li>Build the LASAGNE core
+                    <ul>
+                        <li>Open the %TAF_ROOT%/TAF_vc14.sln solution file</li>
+                        <li>Choose whether to build for 32-bit (Win32/x86) or 64-bit (x64) target</li>
+                        <li>Build the release version first (otherwise you may not have access to executables required to build the debug version)</li>
+                        <li>Build the debug version</li>
+                    </ul>
+                </li>
+            </ol>
+        </section>
+        <footer>
+            <p>Last Updated - November 1st 2016</p>
+            <p>Copyright &copy; 2016 - DST Group, Australia</p>
+        </footer>
+    </body>
+
+</html>

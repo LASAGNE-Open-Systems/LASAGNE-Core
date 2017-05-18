@@ -1,0 +1,18 @@
+// $Id: LDBC.mwc
+
+workspace {
+  cmdline += -include $DAF_ROOT/MPC/config \
+             -feature_file $DAF_ROOT/MPC/config/TAF.features
+  static {
+    cmdline += -static
+    ./SQLite/sqlite3/sqlite3.mpc
+  }
+
+  static {
+    cmdline += -static
+    ./ODBC/odbc++/odbc++.mpc
+  }
+
+  .
+}
+

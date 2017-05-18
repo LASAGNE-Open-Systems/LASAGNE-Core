@@ -1,0 +1,54 @@
+/***************************************************************
+    Copyright 2016, 2017 Defence Science and Technology Group,
+    Department of Defence,
+    Australian Government
+
+	This file is part of LASAGNE.
+
+    LASAGNE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    LASAGNE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
+***************************************************************/
+
+#ifndef TEXTPARSER_IDL
+#define TEXTPARSER_IDL
+
+#pragma prefix "dsto.defence.gov.au"
+
+module taf_xmpl
+{
+# pragma version taf_xmpl 1.0
+
+  struct WORDType {
+    string          word_;
+    unsigned long   count_;
+  };
+
+  typedef sequence<WORDType>  WORDTypeSeq;
+
+  enum ORDER {
+      INSTANCE_SORT, ALPHABETICAL_SORT
+  };
+
+  interface SortPredicate {
+    boolean callback_op(in WORDType l, in WORDType r);
+  };
+
+  interface TextParser {
+    WORDTypeSeq parseText(in string s, in ORDER sort_order, in boolean ascending);
+    WORDTypeSeq parseTextWithPredicate(in string s, in SortPredicate sort_predicate);
+  };
+
+  const string TEXTPARSER_SERVICE_OID = "TAF_XMPL_TextParserService";
+}; // taf_xmpl
+
+#endif

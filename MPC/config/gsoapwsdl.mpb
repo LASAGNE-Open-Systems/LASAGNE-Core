@@ -1,0 +1,49 @@
+project : build_files {
+
+  requires += gsoap
+
+  specific {
+    gSoapBin    = <%quote%>$(GSOAP_HOME)/gsoap/bin/$(GSOAP_ARCH)<%quote%>
+    soap2cpp    = $(GSOAPBIN)/soapcpp2
+    wsdl2h      = $(GSOAPBIN)/wsdl2h
+  }
+
+  // SOAP2CPP code generator
+  Define_Custom(WSDH) {
+    automatic_in               = 1
+    automatic_out              = 1
+    //command                    = $(SOAP2CPP)
+//    command                   = <%quote%>$(GSOAP_HOME)/gsoap/bin/$(GSOAP_ARCH)/soapcpp2<%quote%>
+    command                   = $(GSOAP_HOME)/gsoap/bin/$(GSOAP_ARCH)/soapcpp2
+    dependent                 = $(GSOAP_HOME)/gsoap/bin/$(GSOAP_ARCH)/soapcpp2
+
+    inputext                = .wsdh
+
+    // WSDHHelper.pm handles all this
+    //source_outputext        = .cpp, .c
+    //header_outputext        = .h
+    generic_outputext       = .nsmap
+    keyword wsdh_flags      = commandflags    
+
+    
+  }
+
+  // WSDL -> SOAP2CPP Generator
+  Define_Custom(WSDL) {
+    automatic_in            = 0
+    automatic_out           = 1
+    //command                 = $(WSDL2H)
+    //dependent               = $(WSDL2H)
+//    command                 = <%quote%>$(GSOAP_HOME)/gsoap/bin/$(GSOAP_ARCH)/wsdl2h<%quote%>
+    command                 = $(GSOAP_HOME)/gsoap/bin/$(GSOAP_ARCH)/wsdl2h
+    dependent               = $(GSOAP_HOME)/gsoap/bin/$(GSOAP_ARCH)/wsdl2h
+
+    inputext                = .wsdl
+    output_option           = -o 
+    generic_outputext       = .wsdh
+    keyword wsdl_flags      = commandflags
+  }
+
+  wsdh_flags += -I$(GSOAP_HOME)/gsoap/import  
+
+}
