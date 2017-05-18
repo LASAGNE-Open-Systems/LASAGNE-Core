@@ -1,0 +1,11 @@
+project : gsoapwsdl {
+
+    Source_Files {
+        soapC.cpp
+    }
+
+    Header_Files {
+        soapH.h
+        soapStub.h
+    }
+}

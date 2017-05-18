@@ -1,0 +1,4 @@
+project : daflib {
+  libs     += GCRoute
+  after    += GCRoute
+}

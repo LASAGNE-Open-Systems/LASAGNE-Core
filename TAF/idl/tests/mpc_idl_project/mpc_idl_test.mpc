@@ -1,0 +1,32 @@
+project (mpc_idl_test) : lasagneidldefaults, ODDS_Features {
+ 
+  requires += opendds 
+  exename = *
+
+  //requires += idl_tests
+
+
+  lasagne_idl_flags += --debug -enum
+
+
+
+  LASAGNEIDL_Files {
+
+    common.idl
+
+    Test.idl
+
+  }
+
+
+  
+
+  Source_Files {
+
+    TestMain.cpp
+
+  }
+
+}
+
+

@@ -1,0 +1,37 @@
+project(TAFServer) : taflib, tafextensions {
+  exename   = *
+  exeout    = $(DAF_ROOT)/bin
+ 
+  verbatim(vc10, debug_cmd_args) {
+    "-TAFProperties LASAGNEProperties.conf -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986"
+  }
+
+  verbatim(vc12, debug_cmd_args) {
+    "-TAFProperties LASAGNEProperties.conf -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986"
+  }
+
+  verbatim(vc14, debug_cmd_args) {
+    "-TAFProperties LASAGNEProperties.conf -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986"
+  }
+
+  Source_Files {
+    TAFServer.cpp
+  }
+
+  Documentation_Files {
+    $(DAF_ROOT)/MPC/config/TAF.features
+  }
+
+  Svc_Conf_Files {
+    $(DAF_ROOT)/bin/svc.conf
+    $(DAF_ROOT)/bin/LASAGNEProperties.conf
+    $(DAF_ROOT)/bin/DSTO.conf
+    $(DAF_ROOT)/bin/DSTOCertificates.conf
+  }
+
+  Test_Files {
+    $(DAF_ROOT)/bin/TAFServer.sh
+    $(DAF_ROOT)/bin/TAFServer.bat
+    $(DAF_ROOT)/bin/TAFServerd.bat
+  }
+}

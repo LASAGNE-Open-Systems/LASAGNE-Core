@@ -1,0 +1,4 @@
+project : coredx {
+  libs  += CDDS_PubSub
+  after += CDDS_PubSub
+}

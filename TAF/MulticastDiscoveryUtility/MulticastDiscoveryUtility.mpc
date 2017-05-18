@@ -1,0 +1,5 @@
+project(MulticastDiscoveryUtility) : taflib, tafdiscovery {
+  requires += tafdiscovery
+  exename   = *
+  exeout    = $(DAF_ROOT)/bin
+}

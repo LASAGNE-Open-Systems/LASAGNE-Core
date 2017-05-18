@@ -1,0 +1,19 @@
+project : build_files {
+    requires += amqp
+    
+    
+}
+
+feature(amqp_qpid) : boost_base {
+    requires += amqp
+    
+    macros += TAF_USES_AMQP_QPID
+    
+    // TODO - rework these build paths to something sensible
+    
+    includes += $(QPID_ROOT)/cpp/include $(QPID_ROOT)/cpp/build/include
+    libpaths += $(QPID_ROOT)/cpp/build/src
+    
+    libs += qmf2 qpidclient qpidcommon qpidmessaging qpidtypes
+    
+}

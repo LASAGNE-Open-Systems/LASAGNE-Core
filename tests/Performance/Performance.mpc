@@ -1,0 +1,52 @@
+project(PerfTaskExecutor) : daflib  {
+  exename = *
+  Header_Files {
+    STATSData.h
+    TaskPerform.h
+    TaskChannelPerform_T.h
+  }
+  Source_Files {
+    STATSData.cpp
+    PerfTaskExecutor.cpp
+  }
+}
+
+project(PerfSynchronousChannel) : daflib  {
+  exename = *
+  Header_Files {
+    STATSData.h
+    TaskPerform.h
+    TaskChannelPerform_T.h
+  }
+  Source_Files {
+    STATSData.cpp
+    PerfSynchronousChannel.cpp
+  }
+}
+
+project(PerfSemaphoreControlledChannel) : daflib  {
+  exename = *
+  Header_Files {
+    STATSData.h
+    TaskPerform.h
+    TaskChannelPerform_T.h
+  }
+  Source_Files {
+    STATSData.cpp
+    PerfSemaphoreControlledChannel.cpp
+  }
+}
+
+project(PerfMonitor) : daflib  {
+  exename = *
+  Header_Files {
+    STATSData.h
+    TaskPerform.h
+    TaskChannelPerform_T.h
+  }
+  Source_Files {
+    STATSData.cpp
+    PerfMonitor.cpp
+  }
+}
+

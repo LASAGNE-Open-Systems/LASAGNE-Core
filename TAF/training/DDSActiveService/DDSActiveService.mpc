@@ -1,0 +1,21 @@
+project(DDSActiveService) : taflib, odds_pubsub {
+  sharedname    = *
+
+  idlflags      += -Wb,export_include=DDSActiveService_export.h -Wb,export_macro=DDSActiveService_Export
+  dcps_ts_flags += -Wb,export_include=DDSActiveService_export.h -Wb,export_macro=DDSActiveService_Export
+
+  libout        = $(DAF_ROOT)/lib 
+
+  dynamicflags  += DDSACTIVESERVICE_BUILD_DLL
+
+  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl DDSActiveService > DDSActiveService_export.h
+
+  Idl_Files {
+    DDSActiveService.idl
+  }
+
+  TypeSupport_Files {
+    DDSActiveService.idl
+  } 
+
+}

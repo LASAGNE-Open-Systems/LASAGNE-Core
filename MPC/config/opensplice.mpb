@@ -1,0 +1,33 @@
+//NOTE: There is a clash on the generated names of OpenSplice TypeSupport 
+// And NDDS.
+// TODO: Find a way to make opensplice and ndds mutually exclusive
+
+project : taflib, ospllib, ospl_idl {
+  requires      += opensplice
+  macros        += TAF_USES_DDS TAF_USES_OPENSPLICE
+
+  specific(prop:microsoft) {
+    DisableSpecificWarnings += 4275 // non dll-interface class 'xxx' used as base for dll-interface class
+  }
+
+  verbatim(gnuace,bottom) {
+    #Reset implicit rule of .o -> .cc to prohibit CoreDX source being used
+    $(VSHDIR)%.$(OBJEXT) : %.cc
+  }
+
+
+  IDL_Files {
+  }
+}
+
+feature(osplcorba) {
+  requires      += opensplice
+  macros        += TAF_USES_DDSCORBA
+  idlflags      += -DTAF_USES_DDSCORBA
+  splice_ts_flags += -DTAF_USES_DDSCORBA -DTAF_USES_OPENSPLICE
+  includes += $(TAF_ROOT)/dds
+}
+
+feature(!osplcorba) {
+  splice_ts_flags += -DTAF_USES_OPENSPLICE
+}

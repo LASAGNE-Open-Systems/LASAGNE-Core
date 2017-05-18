@@ -1,0 +1,27 @@
+project(TAFExtensions) : taflib, tafdiscovery {
+
+  requires += tafextensions
+
+  sharedname   = *
+  libout       = $(DAF_ROOT)/lib
+
+  dynamicflags +=  TAFEXTENSIONS_BUILD_DLL
+
+  specific(cdt6,cdt7) {
+      prebuild   =  perl ${ACE_ROOT}/bin/generate_export_file.pl TAFExtensions > TAFExtensions_export.h
+  } else {
+      prebuild   =  perl $(ACE_ROOT)/bin/generate_export_file.pl TAFExtensions > TAFExtensions_export.h
+  }
+
+  Header_Files {
+    TAFExtensions.h
+    TAFExtensions_export.h
+    !discovery
+  }
+
+  Source_Files {
+    TAFExtensions.cpp
+    !discovery
+  }
+
+}

@@ -1,0 +1,8 @@
+
+// This configures ACE features and infrastructure defaults
+// and is placed in $(ACE_ROOT)/bin/MakeProjectCreator/config/default.features
+
+
+java             = 0
+ssl              = 0
+

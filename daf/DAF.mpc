@@ -1,0 +1,86 @@
+project(DAF) : dafbasedefaults, acelib {
+  sharedname    =  *
+
+  dynamicflags  += DAF_BUILD_DLL
+
+  specific(cdt6,cdt7) {
+    prebuild      =  perl ${ACE_ROOT}/bin/generate_export_file.pl DAF > DAF_export.h
+  } else {
+    prebuild      =  perl $(ACE_ROOT)/bin/generate_export_file.pl DAF > DAF_export.h
+  }
+
+  Header_Files {
+    ARGV.h
+    Barrier.h
+    Bitset.h
+    Channel_T.h
+    Config.h
+    Configurator.h
+    Constants.h
+    ConstrainedExecutor.h
+    Conversion.h
+    CountDownSemaphore.h
+    DAF.h
+    DAFDebug.h
+    DateTime.h
+    DirectExecutor.h
+    Event_Handler.h
+    Exception.h
+    Executor.h
+    FutureResult_T.h
+    LockedExecutor.h
+    Monitor.h
+    ObjectRef_T.h
+    OS.h
+    PropertyManager.h
+    RefCount.h
+    RefCountHandler_T.h
+    Rendezvous_T.h
+    RLECompressor.h
+    Runnable.h
+    Semaphore.h
+    SemaphoreControlledChannel_T.h
+    SemaphoreControlledPriorityChannel_T.h
+    SemaphoreControlledQueue_T.h
+    ServiceAdapter.h
+    ServiceGestalt.h
+    ServiceLoader.h
+    ShutdownHandler.h
+    SignalHandler.h
+    SOCKEndpoint_T.h
+    SYNCHCondition_T.h
+    SynchronousChannel_T.h
+    SynchValue_T.h
+    TaskExecutor.h
+    Version.h
+    WaiterPreferenceSemaphore.h
+    WFMOSignalReactor.h
+  }
+
+  // Specify Source files in Alphabetical order -> consistant with Windows.
+  // NOTE: Forces Linux(GCC) to link in this order and bootstrap is consistant.
+
+  Source_Files {
+    _DAFInit.cpp
+    ARGV.cpp
+    Barrier.cpp
+    Bitset.cpp
+    Configurator.cpp
+    ConstrainedExecutor.cpp
+    Conversion.cpp
+    CountDownSemaphore.cpp
+    DAF.cpp
+    DAFDebug.cpp
+    DateTime.cpp
+    OS.cpp
+    PropertyManager.cpp
+    RefCount.cpp
+    Semaphore.cpp
+    ServiceGestalt.cpp
+    ServiceLoader.cpp
+    ShutdownHandler.cpp
+    SignalHandler.cpp
+    TaskExecutor.cpp
+    WFMOSignalReactor.cpp
+  }
+}

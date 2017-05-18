@@ -1,0 +1,20 @@
+project(MonitorTest) : daflib {
+    exename = *
+    
+    
+
+    Source_Files {
+      MonitorTest.cpp
+
+    }
+
+}
+
+project(MonitorChannelTest) : daflib {
+    exename = *
+ 
+    Source_Files {
+      MonitorChannelTest.cpp
+    }
+
+}

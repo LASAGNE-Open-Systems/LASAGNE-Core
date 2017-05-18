@@ -1,0 +1,77 @@
+/***************************************************************
+    Copyright 2016, 2017 Defence Science and Technology Group,
+    Department of Defence,
+    Australian Government
+
+	This file is part of LASAGNE.
+
+    LASAGNE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    LASAGNE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
+***************************************************************/
+#ifndef DAF_SHUTDOWNHANDLER_H
+#define DAF_SHUTDOWNHANDLER_H
+
+#include "DAF.h"
+
+#include <ace/Event_Handler.h>
+
+namespace DAF
+{
+    /**
+    * \class ShutdownHandler
+    * \brief Shutdown hook for process control
+    *
+    * This class is used to control the teardown of a process and TAF level
+    * infrastructure. It hooks the ACE_Reactor signal handler to detect Ctrl-C,
+    * kill signals (SIGINT) and supply a central point of control for DAF + TAF libraries.
+    * It also provides a single point of access to send a shutdown state to the
+    * application. Multiple threads and wait on the state of the shudown handler.
+    */
+    class DAF_Export ShutdownHandler : protected ACE_Event_Handler
+        , ACE_Copy_Disabled
+    {
+        int signal_;
+
+    public:
+
+
+        ShutdownHandler(int signal = SIGINT);
+
+        virtual ~ShutdownHandler(void);
+
+
+        /// Indicates if the shutdown state has been signaled.
+        static bool has_shutdown(void);
+
+        /// Used by a thread to block on the shutdown signal.
+        static int  wait_shutdown(const ACE_Time_Value *abs_timeout = 0); // Absolute Time (0 == INFINATE)
+        /// Send a shutdown state to the shutdown handler.
+        static int  send_shutdown(bool send_state = true);
+
+        /// Accessor operator. give you current state
+        operator const void * () const
+        {
+            return ShutdownHandler::has_shutdown() ? this : 0;
+        }
+
+    protected:
+
+        /// ACE_Reactor callback method on signal
+        virtual int handle_signal(int sig,siginfo_t *sig_info,ucontext_t *sig_cxt);
+
+        virtual int handle_shutdown(int signal = 0);
+    };
+
+} // namespace DAF
+
+#endif // DAF_SHUTDOWNHANDLER_H

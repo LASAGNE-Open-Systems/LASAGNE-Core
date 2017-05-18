@@ -1,0 +1,10 @@
+SemaphoreTest/SemaphoreTest -n 20
+BarrierTest/BarrierTest
+FutureResultTest/FutureResultTest
+RendezvousTest/RendezvousTest
+SyncValueTest/SyncValueTest
+SemaphoreChannelTest/SemaphoreChannelTest
+SemaphoreChannelTest/ChannelTest
+TaskExecutorTest/TaskExecutorTest -n 10
+MonitorTest/MonitorTest
+MonitorTest/MonitorChannelTest

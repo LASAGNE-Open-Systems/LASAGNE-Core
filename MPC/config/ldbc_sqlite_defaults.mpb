@@ -1,0 +1,12 @@
+// $Id$
+
+project : ldbc_defaults {
+  requires  += ldbc_sqlite
+  includes  += $(DAF_ROOT)/LDBC/SQLite/sqlite3
+  after     += sqlite3
+
+  verbatim(gnuace, macros, 1) { // NOTE: explicit ,1 in verbatim add = 1 means its appended
+    sqlite3 ?= 1
+  }
+}
+

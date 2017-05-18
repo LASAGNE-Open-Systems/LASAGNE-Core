@@ -1,0 +1,19 @@
+project(GCRoute) : daflib {
+  sharedname    =  *
+  libout        =  $(DAF_ROOT)/lib
+  dynamicflags  += GCROUTE_BUILD_DLL
+
+  specific(cdt6,cdt7) {
+      prebuild   =  perl ${ACE_ROOT}/bin/generate_export_file.pl GCRoute > GCRoute_export.h
+  } else {
+      prebuild   =  perl $(ACE_ROOT)/bin/generate_export_file.pl GCRoute > GCRoute_export.h
+  }
+
+  Header_Files {
+    GCLocation.h
+  }
+
+  Source_Files {
+    GCLocation.cpp
+  }
+}

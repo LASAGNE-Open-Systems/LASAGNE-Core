@@ -1,0 +1,23 @@
+project : taflib {
+  sharedname    = *
+  libout        = $(DAF_ROOT)/lib
+  dynamicflags  += DDSPUBSUB_BUILD_DLL
+
+  Header_files {
+    DDSDefs.h
+    DDSQos.h
+    DDSListener.h
+    DDSManagedType_T.h
+    DDSPubSub.h
+    DDSPubSub_export.h
+  }
+
+  IDL_Files{  
+  }
+  
+  Source_Files {
+    no_pch = 1
+    DDSPubSub.cpp
+  }
+}
+

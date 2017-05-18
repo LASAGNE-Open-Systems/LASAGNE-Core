@@ -1,0 +1,12 @@
+project(TAFNamingService) : taflib, naming_serv {
+  sharedname   = *
+  libout       = $(DAF_ROOT)/lib
+
+  dynamicflags +=  NAMINGSERVICE_BUILD_DLL
+
+  specific(cdt6,cdt7) {
+      prebuild   =  perl ${ACE_ROOT}/bin/generate_export_file.pl NamingService > NamingService_export.h
+  } else {
+      prebuild   =  perl $(ACE_ROOT)/bin/generate_export_file.pl NamingService > NamingService_export.h
+  }
+}

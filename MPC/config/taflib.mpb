@@ -1,0 +1,4 @@
+project : daflib, tafbasedefaults {
+  libs  += TAF
+  after += TAF
+}

@@ -1,0 +1,7 @@
+// $Id$
+
+project : ldbc_odbc_defaults {
+  libs      += LDBC_ODBC++
+  includes  += $(DAF_ROOT)/LDBC/odbc++
+  after     += LDBC_ODBC++
+}

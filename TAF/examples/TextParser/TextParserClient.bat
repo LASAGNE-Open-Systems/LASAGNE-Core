@@ -1,0 +1,1 @@
+%TAF_ROOT%/examples/TextParser/TextParserClient.exe -z -c 3 -w 5 -f SOA_Abstract.txt -TAFBaseContext TAF/XMPL -ORBInitRef TAF_XMPL_TextParserService=corbaloc:iiop:localhost:8989/TAF_XMPL_TextParserService

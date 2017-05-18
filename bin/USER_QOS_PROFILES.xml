@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- 
+Description
+An RTI Connext QoS Profile that provides strictly
+reliable communication. It is not tuned for maximum throughput - see
+high_throughput.xml for a more aggressive configuration - but provides a
+reasonable balance between latency and throughput for a variety of
+applications.
+
+Strict reliability depends primarily on:
+
+Data writer:
+  - reliability: RELIABLE_RELIABILITY_QOS to enable heartbeating
+  - history: KEEP_ALL_HISTORY_QOS
+             to prevent the writer from overwriting unacknowledged samples
+             with new data
+
+Data reader:
+  - reliability: RELIABLE_RELIABILITY_QOS to enable acknowledgements
+  - history: KEEP_ALL_HISTORY_QOS
+             to prevent the reader from overwriting undelivered samples
+             with new data
+
+Domain participant:
+  - Increased transport buffer sizes to efficiently send and receive many
+    large packets
+
+-->
+
+<!-- ================================================================= -->
+<!-- Strictly Reliable Profile                                         -->
+<!-- ================================================================= -->
+
+<!--
+Your XML editor may be able to provide validation and auto-completion services
+as you type. To enable these services, replace the opening tag of this
+document with the following, and update the absolute path as appropriate for
+your installation:
+ 
+<dds xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:noNamespaceSchemaLocation="C:/RTI/ndds.4.5d/scripts/../resource/rtiddsgen/../qos_profiles_4.5d/schema/rti_dds_qos_profiles.xsd"
+     version="4.5d">
+-->
+<dds>
+    <qos_library name="DefaultLibrary">
+        <qos_profile name="Reliable" is_default_qos="true">
+            <datareader_qos>
+                <reliability>
+                    <!--
+                    Enable reliability.
+                    -->
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                </reliability>
+                
+                <history>
+                    <!--
+                    To implement strict reliability, we need to set the
+                    history to KEEP_ALL. That way, undelivered samples
+                    will not be overwritten.
+                    -->
+                    <kind>KEEP_ALL_HISTORY_QOS</kind>
+                </history>
+
+                <!--
+                The following parameters tune the behavior of the reliability
+                protocol. Setting them is not required in order to achieve
+                strict reliability but is beneficial from a performance
+                standpoint. 
+                -->
+                <protocol>
+                    <rtps_reliable_reader>
+                        <!--
+                        When the DataReader receives a heartbeat from a
+                        DataWriter (indicating (a) that the DataWriter still
+                        exists on the network and (b) what sequence numbers
+                        it has published), the following parameters indicate
+                        how long it will wait before replying with a positive
+                        (assuming they aren't disabled) or negative
+                        acknowledgement.
+
+                        The time the reader waits will be a random duration
+                        in between the minimum and maximum values. Narrowing
+                        this range, and shifting it towards zero, will make
+                        the system more reactive. However, it will increase
+                        the chance of (N)ACK spikes. The higher the number of
+                        readers on the topic, and the greater the load on
+                        your network, the more you should consider specifying
+                        a range here.
+                        -->
+                        <min_heartbeat_response_delay>
+                            <sec>0</sec>
+                            <nanosec>0</nanosec>
+                        </min_heartbeat_response_delay>
+                        <max_heartbeat_response_delay>
+                            <sec>0</sec>
+                            <nanosec>0</nanosec>
+                        </max_heartbeat_response_delay>
+                    </rtps_reliable_reader>
+                </protocol>        
+            </datareader_qos>
+            
+            <datawriter_qos>      
+                <reliability>
+                    <!--
+                    Enable reliability.
+                    The writer maximum blocking time is 5 seconds.
+                    -->
+                    <kind>RELIABLE_RELIABILITY_QOS</kind>
+                    <max_blocking_time>
+                        <sec>5</sec>
+                        <nanosec>0</nanosec>
+                    </max_blocking_time>
+                </reliability>
+
+                <history>
+                    <!--
+                    To implement strict reliability, we need to set the
+                    history to KEEP_ALL. That way, unacknowledged samples
+                    will not be overwritten.
+                    -->
+                    <kind>KEEP_ALL_HISTORY_QOS</kind>
+                </history>
+
+                <resource_limits>
+                    <!--
+                    The number of data samples for which the DataWriter will
+                    allocate space. This example is configured without
+                    durability, meaning that when all DataReaders have
+                    acknowledged a sample, the DataWriter will discard it.
+                    The value below, then, effectively indicates how far
+                    ahead of the slowest reader the writer is able to get
+                    before it will block waiting for the reader(s) to catch
+                    up.
+
+                    Finite resources are not required for strict reliability.
+                    However, by limiting how far "ahead" of its readers a
+                    writer is able to get, you can make the system more
+                    robust and performant in the face of slow readers and/or
+                    dropped packets while at the same time constraining your
+                    memory growth.  This can be done by either setting 
+                    max_samples to be finite or setting 
+                    protocol.rtps_reliable_writer.[min|max]_send_window_size.
+                    -->
+                    <max_samples>32</max_samples>
+                </resource_limits>
+
+                <!--
+                The following parameters tune the behavior of the reliability
+                protocol. Setting them is not required in order to achieve
+                strict reliability but is beneficial from a performance
+                standpoint. 
+                -->
+                <protocol>
+                    <rtps_reliable_writer>
+                        <!--
+                        When the writer's cache gets down to this number of
+                        samples, it will slow the rate at which it sends
+                        heartbeats to readers.
+                        -->
+                        <low_watermark>5</low_watermark>
+                        <!--
+                        When the writer's cache is filled to this level, it
+                        will begin sending heartbeats at a faster rate in
+                        order to spur faster acknowledgement (positive or
+                        negative) of its samples to allow it to empty its
+                        cache and avoid blocking.
+                        -->
+                        <high_watermark>15</high_watermark>
+
+                        <!--
+                        If the number of samples in the writer's cache hasn't
+                        risen to high_watermark, this is the rate at which
+                        the DataWriter will send out periodic heartbeats.
+                        -->
+                        <heartbeat_period>
+                            <!-- 100 milliseconds: -->
+                            <sec>0</sec>
+                            <nanosec>100000000</nanosec>
+                        </heartbeat_period>
+                        <!--
+                        If the number of samples in the writer's cache has
+                        risen to high_watermark, and has not yet fallen to
+                        low_watermark, this is the rate at which the writer
+                        will send periodic heartbeats to its readers.
+                        -->
+                        <fast_heartbeat_period>
+                            <!-- 10 milliseconds: -->
+                            <sec>0</sec>
+                            <nanosec>10000000</nanosec>
+                        </fast_heartbeat_period>
+                        <!--
+                        If a durable reader starts up after the writer
+                        already has some samples in its cache, this is the
+                        rate at which it will heartbeat the new reader. It
+                        should generally be a shorter period of time than the
+                        normal heartbeat period in order to help the new
+                        reader catch up.
+                        -->
+                        <late_joiner_heartbeat_period>
+                            <!-- 10 milliseconds: -->
+                            <sec>0</sec>
+                            <nanosec>10000000</nanosec>
+                        </late_joiner_heartbeat_period>
+
+                        <!--
+                        The number of times a reliable writer will send a
+                        heartbeat to a reader without receiving a response
+                        before it will consider the reader to be inactive and
+                        no longer await acknowledgements before discarding
+                        sent data.
+
+                        On a non-real-time operating system like Windows or
+                        Linux, a poorly behaving process could monopolize the
+                        CPU for several seconds. Therefore, in many cases a
+                        value that yields a "grace period" of several seconds
+                        is a good choice.
+                        -->
+                        <max_heartbeat_retries>500</max_heartbeat_retries>
+
+                        <!--
+                        When a DataWriter receives a negative acknowledgement
+                        (NACK) from a DataReader for a particular data sample,
+                        it will send a repair packet to that reader.
+
+                        The amount of time the writer waits between receiving
+                        the NACK and sending the repair will be a random
+                        value in between the minimum and maximum values
+                        specified here. Narrowing the range, and shifting it
+                        towards zero, will make the writer more reactive.
+                        However, by leaving some delay, you increase the
+                        chances that the writer will learn of additional
+                        readers that missed the same data, in which case it
+                        will be able to send a single multicast repair
+                        instead of multiple unicast repairs, thereby using
+                        the available network bandwidth more efficiently. The
+                        higher the number of readers on the topic, and the
+                        greater the load on your network, the more you should
+                        consider specifying a range here.
+                        -->
+                        <min_nack_response_delay>
+                            <sec>0</sec>
+                            <nanosec>0</nanosec>
+                        </min_nack_response_delay>
+                        <max_nack_response_delay>
+                            <sec>0</sec>
+                            <nanosec>0</nanosec>
+                        </max_nack_response_delay>
+                         <!--
+                        Set the maximum number of unacknowedged samples 
+                        (batches) in the DataWriter's queue equal to the max 
+                        number of batches, to limit how far ahead a writer can 
+                        get ahead of its potentially slow readers.
+                        -->
+                        <min_send_window_size>32</min_send_window_size>
+                        <max_send_window_size>32</max_send_window_size>
+                    </rtps_reliable_writer>
+                </protocol>
+            </datawriter_qos>
+
+            <participant_qos>
+                <!--
+                The participant name, if it is set, will be displayed in the
+                RTI Analyzer tool, making it easier for you to tell one
+                application from another when you're debugging.
+                -->
+                <participant_name>
+                    <name>RTI Example (High Throughput)</name>
+                </participant_name>
+
+                <receiver_pool>
+                    <!--
+                    The maximum size of a datagram that can be deserialized,
+                    independent of the network transport. By default, this
+                    value is 9 KB, since that is a common default maximum
+                    size for UDP datagrams on some platforms. However, on
+                    platforms that support larger datagrams - up to 64 KB -
+                    it's a good idea to increase this limit for demanding
+                    applications to avoid socket read errors.
+                    -->
+                    <buffer_size>65536</buffer_size><!-- 64 KB -->
+                </receiver_pool>
+                
+                <property>
+                    <value>
+                        <!--
+                        Configure UDPv4 transport:
+                        -->
+                        <element>
+                            <!--
+                            On platforms that support it, increase the maximum
+                            size of a UDP datagram to the maximum supported by
+                            the protocol: 64 KB. That will allow you to send
+                            the large packets that can result when you batch
+                            samples.
+                            -->
+                            <name>dds.transport.UDPv4.builtin.parent.message_size_max</name>
+                            <value>65536</value><!-- 64 KB -->
+                        </element>
+                        <element>
+                            <!--
+                            If possible, increase the UDP send socket buffer
+                            size. This will allow you to send multiple large
+                            packets without UDP send errors.
+
+                            On some platforms (e.g. Linux), this value is
+                            limited by a system-wide policy. Setting it to
+                            a larger value will fail silently; the value will
+                            be set to the maximum allowed by that policy.
+                            -->
+                            <name>dds.transport.UDPv4.builtin.send_socket_buffer_size</name>
+                            <value>524288</value><!-- 512 KB -->
+                        </element>
+                        <element>
+                            <!--
+                            If possible, increase the UDP receive socket
+                            buffer size. This will allow you to receive
+                            multiple large packets without UDP receive errors.
+
+                            On some platforms (e.g. Linux), this value is
+                            limited by a system-wide policy. Setting it to
+                            a larger value will fail silently; the value will
+                            be set to the maximum allowed by that policy.
+                            -->
+                            <name>dds.transport.UDPv4.builtin.recv_socket_buffer_size</name>
+                            <value>2097152</value><!-- 2 MB -->
+                        </element>
+
+                        <!--
+                        Configure shared memory transport:
+                        -->
+                        <element>
+                            <!--
+                            Set the shared memory maximum message size to the
+                            same value that was set for UDP.
+                            -->
+                            <name>dds.transport.shmem.builtin.parent.message_size_max</name>
+                            <value>65536</value><!-- 64 KB -->
+                        </element>
+                        <element>
+                            <!--
+                            Set the size of the shared memory transport's
+                            receive buffer to some large value.
+                            -->
+                            <name>dds.transport.shmem.builtin.receive_buffer_size</name>
+                            <value>2097152</value><!-- 2 MB -->
+                        </element>
+                        <element>
+                            <!--
+                            Set the maximum number of messages that the shared
+                            memory transport can cache while waiting for them
+                            to be read and deserialized.
+                            -->
+                            <name>dds.transport.shmem.builtin.received_message_count_max</name>
+                            <value>2048</value>
+                        </element>
+
+                        <!--
+                        Increase the size of the string built-in size. This
+                        configuration is only necessary for applications that
+                        use the built-in types (such as Hello_builtin).
+                        -->
+                        <element>
+                            <name>dds.builtin_type.string.max_size</name>
+                            <value>2048</value>
+                        </element>
+                    </value>
+                </property> 
+            </participant_qos>
+        </qos_profile>
+    </qos_library>
+</dds>

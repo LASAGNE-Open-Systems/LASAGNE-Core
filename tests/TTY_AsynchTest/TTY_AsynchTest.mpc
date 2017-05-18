@@ -1,0 +1,9 @@
+project(TTYSerialTest) : daflib , tty_asynch {
+    exename = *
+
+    Source_Files {
+        TTYSerialTest.cpp
+    }
+
+
+}

@@ -1,0 +1,13 @@
+project(TAFSecurity) : daflib, taolib, security, strategies, tafssliop {
+  sharedname   = *
+  libout       = $(DAF_ROOT)/lib
+  requires    += tafsecurity
+
+  dynamicflags +=  TAFSECURITY_BUILD_DLL
+
+  specific(cdt6,cdt7) {
+      prebuild   =  perl ${ACE_ROOT}/bin/generate_export_file.pl TAFSecurity > TAFSecurity_export.h
+  } else {
+      prebuild   =  perl $(ACE_ROOT)/bin/generate_export_file.pl TAFSecurity > TAFSecurity_export.h
+  }
+}

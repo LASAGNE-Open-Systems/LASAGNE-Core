@@ -1,0 +1,6 @@
+project : build_files, mqtt {
+
+  includes += $(TAF_ROOT)
+  libs += TAF_MQTT
+  after     += TAF_MQTT
+}

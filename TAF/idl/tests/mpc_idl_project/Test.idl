@@ -1,0 +1,93 @@
+/***************************************************************
+    Copyright 2016, 2017 Defence Science and Technology Group,
+    Department of Defence,
+    Australian Government
+
+	This file is part of LASAGNE.
+
+    LASAGNE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    LASAGNE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
+***************************************************************/
+
+#ifndef DRAWDetails_idl
+#define DRAWDetails_idl
+
+#if !defined(CDDS_KEY)
+# if defined(TAF_USES_COREDX) && defined(DDS_IDL) // Define used by CoreDX
+#  define CDDS_KEY __dds_key
+# else
+#  define CDDS_KEY
+# endif
+#endif
+
+#include "common.idl"
+
+
+module dsto
+{
+
+    struct dstotester
+    {
+      common::tester thetest;
+    };
+
+# if defined(__TAO_IDL) || defined(TAF_USES_OPENDDS)
+#  pragma DCPS_DATA_TYPE  "dsto::DRAWDetails"
+#  pragma DCPS_DATA_KEY   "dsto::DRAWDetails shape_"
+# endif
+
+    enum SHAPE {
+        Triangle, Square
+    };
+
+    struct DRAWDetails
+    {
+CDDS_KEY    SHAPE               shape_;  //@key
+            long                size_;
+            unsigned long long  time_stamp_;
+    };
+
+#if defined(__TAO_IDL)
+
+    interface DRAWDetailsDataListener
+    {
+        typedef DRAWDetails               data_type;
+
+        long    task(in data_type data);
+    };
+
+    interface DRAWDetailsPlanListener : DRAWDetailsDataListener
+    {
+        typedef DRAWDetailsPlanListener   plan_stub_type;
+
+        string  get_plan_name();
+    };
+
+    interface DRAWDetailsEventListener : DRAWDetailsPlanListener
+    {
+        typedef DRAWDetailsEventListener  event_stub_type;
+
+        void    register_task(in plan_stub_type listener);
+        void    remove_task(in plan_stub_type listener);
+
+        long    post(in data_type data);
+
+        string  get_event_type();
+    };
+
+#endif
+
+    const string DRAWDetailsTopicName = "DRAWDetails";
+};
+
+#endif

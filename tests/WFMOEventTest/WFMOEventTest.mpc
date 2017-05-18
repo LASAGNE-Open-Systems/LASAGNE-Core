@@ -1,0 +1,24 @@
+project(WFMOEventTest) : daflib  {
+  exename = *
+  
+  Source_Files {
+    WFMOEventTest.cpp
+  }
+}
+
+
+project(TestWFMOReactorTimer) : daflib {
+  exename = *
+  
+  Source_Files {
+    TestWFMOReactorTimer.cpp
+  }
+}
+
+project(TestWFMOReactorSignalHandler) : daflib {
+  exename = * 
+  
+  Source_Files {
+    TestWFMOReactorSignalEvent.cpp
+  }
+}

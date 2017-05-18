@@ -1,0 +1,56 @@
+/***************************************************************
+    Copyright 2016, 2017 Defence Science and Technology Group,
+    Department of Defence,
+    Australian Government
+
+	This file is part of LASAGNE.
+
+    LASAGNE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
+
+    LASAGNE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
+***************************************************************/
+#ifndef TAF_GESTALTSERVICE_IDL
+#define TAF_GESTALTSERVICE_IDL
+
+#include "taf/BasicTypes.idl"
+#include "taf/EntityDescriptor.idl"
+
+#pragma prefix "dsto.defence.gov.au"
+
+module taf
+{
+# pragma version taf 1.0
+
+    interface GestaltService /* Deal with Component Services */
+    {
+        readonly attribute taf::SVC_NAME_TYPE svc_name;
+
+        readonly attribute EntityDescriptor entity_descriptor;
+
+        EntityDescriptor    findService(in string ident);
+        EntityDescriptorSeq listServices();
+
+        long    loadConfigFile(in string file_arg, out long count); /* "filename:<section>,<section>" */
+
+        void    loadStatic(in string ident, in string parameters);
+        void    loadDynamic(in string ident, in string libpathname, in string objectclass, in string parameters);
+        void    suspend(in string ident);
+        void    resume(in string ident);
+        void    remove(in string ident);
+
+        long    suspend_all();
+        long    resume_all();
+        long    remove_all();
+    };
+}; // taf
+
+#endif

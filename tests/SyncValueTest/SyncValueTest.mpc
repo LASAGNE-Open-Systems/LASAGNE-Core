@@ -1,0 +1,8 @@
+project(SyncValueTest) : daflib {
+    exename = *
+
+    //requires += dummy
+    Source_Files {
+        SyncValueTest.cpp
+    }
+}
