@@ -4,10 +4,11 @@ Layered Approach to Service Architectures for a Global Network Environment (LASA
 ## About LASAGNE
 LASAGNE is a pattern-based framework for parallel and distributed computing
 * Multi-threaded distributing computing platform in C++
+* Adopts service-oriented principles and behaviour supported via metaprogramming techniques
 * Extension mechanisms supported on a loadable, configurable infrastructure
 * Provides hardware and operating system abstraction for native code execution
   * No explicit need for virtualisation
-  * Uses the concept of a container for hosting components to applications
+  * Uses the concept of a container (gestalt) for hosting components to applications
 * "Don't need LASAGNE to talk to LASAGNE"
   * Core inclusions in LASAGNE are only permitted if they are based on openly published material
   * Uses open standard middleware technology (doesn't lock components into using them though)
