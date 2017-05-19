@@ -8,11 +8,6 @@ workspace {
     ./SQLite/sqlite3/sqlite3.mpc
   }
 
-  static {
-    cmdline += -static
-    ./ODBC/odbc++/odbc++.mpc
-  }
-
   .
 }
 
