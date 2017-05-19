@@ -54,6 +54,13 @@ namespace DAF_OS
 {
     using namespace ACE_OS;
 
+    /** Remap some windows error messages as appropriate */
+    DAF_Export int                  last_error(void);
+    inline int                      last_error(int error)
+    {
+        ACE_OS::last_error(error); return error;
+    }
+
     inline ACE_Time_Value           gettimeofday(void)
     {
         return ACE_OS::gettimeofday();
