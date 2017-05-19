@@ -42,8 +42,8 @@
 #include <ace/Singleton.h>
 
 namespace {  // Stop Unused warnings
-    DAF_UNUSED_ARG(TAO_Requires_POA_Initializer);
-    DAF_UNUSED_ARG(TAO_Requires_IORTable_Initializer);
+    DAF_UNUSED_STATIC(TAO_Requires_POA_Initializer);
+    DAF_UNUSED_STATIC(TAO_Requires_IORTable_Initializer);
 }
 
 namespace TAF

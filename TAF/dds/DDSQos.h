@@ -180,13 +180,13 @@ namespace TAFDDS
         EntityFactoryQosPolicy(DDS::Boolean autoenable_created_entities) {
             this->autoenable_created_entities = autoenable_created_entities;
         }
-    } ENTITYFACTORY_QOS_DEFAULT(true); DAF_UNUSED_ARG(ENTITYFACTORY_QOS_DEFAULT)
+    } ENTITYFACTORY_QOS_DEFAULT(true); DAF_UNUSED_STATIC(ENTITYFACTORY_QOS_DEFAULT)
 
     const struct PresentationQosPolicy : DDS::PresentationQosPolicy {
         PresentationQosPolicy(const DDS::PresentationQosPolicyAccessScopeKind &access_scope, DDS::Boolean coherent_access = false, DDS::Boolean ordered_access = false) {
             this->access_scope = access_scope; this->coherent_access = coherent_access; this->ordered_access = ordered_access;
         }
-    } PRESENTATION_QOS_DEFAULT(DDS::INSTANCE_PRESENTATION_QOS, false, false); DAF_UNUSED_ARG(PRESENTATION_QOS_DEFAULT)
+    } PRESENTATION_QOS_DEFAULT(DDS::INSTANCE_PRESENTATION_QOS, false, false); DAF_UNUSED_STATIC(PRESENTATION_QOS_DEFAULT)
 
     const struct HistoryQosPolicy : DDS::HistoryQosPolicy {
         HistoryQosPolicy(const DDS::HistoryQosPolicyKind &kind, DDS::Long depth = 1) {
@@ -195,19 +195,19 @@ namespace TAFDDS
             this->refilter = DDS::NONE_REFILTER_QOS;
 #endif
         }
-    } HISTORY_QOS_DEFAULT(DDS::KEEP_LAST_HISTORY_QOS, 1L); DAF_UNUSED_ARG(HISTORY_QOS_DEFAULT)
+    } HISTORY_QOS_DEFAULT(DDS::KEEP_LAST_HISTORY_QOS, 1L); DAF_UNUSED_STATIC(HISTORY_QOS_DEFAULT)
 
     const struct ReliabilityQosPolicy : DDS::ReliabilityQosPolicy {
         ReliabilityQosPolicy(const DDS::ReliabilityQosPolicyKind &kind, const DDS::Duration_t &max_blocking_time = ::TAFDDS::Duration_ZERO) {
             this->kind = kind; this->max_blocking_time = max_blocking_time;
         }
-    } RELIABILITY_QOS_DEFAULT(DDS::BEST_EFFORT_RELIABILITY_QOS, TAFDDS::Duration_t(0L, 100000000UL)); DAF_UNUSED_ARG(RELIABILITY_QOS_DEFAULT)
+    } RELIABILITY_QOS_DEFAULT(DDS::BEST_EFFORT_RELIABILITY_QOS, TAFDDS::Duration_t(0L, 100000000UL)); DAF_UNUSED_STATIC(RELIABILITY_QOS_DEFAULT)
 
     const struct LivelinessQosPolicy : DDS::LivelinessQosPolicy {
         LivelinessQosPolicy(const DDS::LivelinessQosPolicyKind &kind, const DDS::Duration_t &lease_duration = ::TAFDDS::Duration_INFINITE) {
             this->kind = kind; this->lease_duration = lease_duration;
         }
-    } LIVELINESS_QOS_DEFAULT(DDS::AUTOMATIC_LIVELINESS_QOS, Duration_INFINITE); DAF_UNUSED_ARG(LIVELINESS_QOS_DEFAULT)
+    } LIVELINESS_QOS_DEFAULT(DDS::AUTOMATIC_LIVELINESS_QOS, Duration_INFINITE); DAF_UNUSED_STATIC(LIVELINESS_QOS_DEFAULT)
 
     const struct DurabilityQosPolicy : DDS::DurabilityQosPolicy {
         DurabilityQosPolicy(const DDS::DurabilityQosPolicyKind &kind, DDS::Boolean direct_communication = true) {
@@ -218,21 +218,21 @@ namespace TAFDDS
             ACE_UNUSED_ARG(direct_communication);
 #endif
         }
-    } DURABILITY_QOS_DEFAULT(DDS::VOLATILE_DURABILITY_QOS); DAF_UNUSED_ARG(DURABILITY_QOS_DEFAULT)
+    } DURABILITY_QOS_DEFAULT(DDS::VOLATILE_DURABILITY_QOS); DAF_UNUSED_STATIC(DURABILITY_QOS_DEFAULT)
 
     const struct DeadlineQosPolicy : DDS::DeadlineQosPolicy {
         DeadlineQosPolicy(const DDS::Duration_t &period) {
             this->period = period;
         }
-    } DEADLINE_QOS_DEFAULT(TAFDDS::Duration_INFINITE); DAF_UNUSED_ARG(DEADLINE_QOS_DEFAULT)
+    } DEADLINE_QOS_DEFAULT(TAFDDS::Duration_INFINITE); DAF_UNUSED_STATIC(DEADLINE_QOS_DEFAULT)
 
     const struct LatencyBudgetQosPolicy : DDS::LatencyBudgetQosPolicy {
         LatencyBudgetQosPolicy(const DDS::Duration_t &duration) {
             this->duration = duration;
         }
-    } LATENCY_BUDGET_QOS_DEFAULT(TAFDDS::Duration_ZERO); DAF_UNUSED_ARG(LATENCY_BUDGET_QOS_DEFAULT)
+    } LATENCY_BUDGET_QOS_DEFAULT(TAFDDS::Duration_ZERO); DAF_UNUSED_STATIC(LATENCY_BUDGET_QOS_DEFAULT)
 
-    const DDS::OwnershipQosPolicyKind     OWNERSHIP_QOS_DEFAULT(DDS::SHARED_OWNERSHIP_QOS); DAF_UNUSED_ARG(OWNERSHIP_QOS_DEFAULT)
+    const DDS::OwnershipQosPolicyKind     OWNERSHIP_QOS_DEFAULT(DDS::SHARED_OWNERSHIP_QOS); DAF_UNUSED_STATIC(OWNERSHIP_QOS_DEFAULT)
 }//namespace TAFDDS
 
 TAF_END_DDS_NAMESPACE_DECL
