@@ -37,6 +37,8 @@
 #include <sstream>
 #include <iostream>
 
+#include "DAF_export.h"
+
 #if defined(_MSC_VER)
 # pragma hdrstop
 #endif
