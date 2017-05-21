@@ -56,7 +56,10 @@ namespace PERF
             os << s.ident() << ":Count=" << s.timeCount_ << std::endl;
 
             for (size_t i = 0; i < s.timeCount_; i++) {
-                if (i) os << ','; os << s.timeData_[i];
+                if (i) {
+                    os << ',';
+                }
+                os << s.timeData_[i];
             }
 
             return os << std::endl;
