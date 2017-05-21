@@ -68,8 +68,7 @@ namespace DAF
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
             this->do_at_exit(); // Do the thread at exit logics
 #endif
-
-            if (DAF_OS::thr_cancel(thr_id)) do {
+            if (DAF_OS::thr_cancel(thr_id)) {
 
                 int error = DAF_OS::last_error();
 
@@ -118,12 +117,11 @@ namespace DAF
                 }
 
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->terminate(); break;
+                this->terminate();
+#else
+                TaskExecutor::cleanup(this->taskBase(), this); return -1; // This may leave TSS leaking (Fixed with terminate() access)
 #endif
-                TaskExecutor::cleanup(this->taskBase(), this); // This leaves TSS leaking (Fixed with terminate() access)
-                return -1;
-
-            } while (false);
+            }
 
             // NOTE: The following terminate() may not be needed under pthread implementations (Linux)
             //
