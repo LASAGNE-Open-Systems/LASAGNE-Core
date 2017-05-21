@@ -47,7 +47,6 @@
 #include "DAFDebug.h"
 #include "Exception.h"
 
-
 #include <ace/OS_main.h>
 
 /**
