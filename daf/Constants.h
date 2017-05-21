@@ -141,7 +141,7 @@
 #define TAF_ORBINITARGS             ACE_TEXT("TAFOrbInitArgs")
 #define TAF_EXTENSIONARGS           ACE_TEXT("TAFExtensionArgs")
 #define TAF_RESOLVETIMEOUT          ACE_TEXT("TAFResolveTimeout")
-#define TAF_DISCOVERYDISABLE        ACE_TEXT("TAFDiscoveryDisable")
+#define TAF_DISCOVERYENABLE         ACE_TEXT("TAFDiscoveryEnable")
 #define TAF_DISCOVERYENDPOINT       ACE_TEXT("TAFDiscoveryEndpoint")
 
 #define TAF_SERVERNAME              ACE_TEXT("TAFServerName")

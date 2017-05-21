@@ -31,7 +31,7 @@ namespace TAF
     namespace {
         const ACE_TCHAR * property_options[] = { // Only valid command line argument overrides
             TAF_RESOLVETIMEOUT,
-            TAF_DISCOVERYDISABLE,
+            TAF_DISCOVERYENABLE,
             TAF_DISCOVERYENDPOINT,
 #if defined(TAF_HAS_SECURITY)
             TAF_SECURITYDISABLE,
