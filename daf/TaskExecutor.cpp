@@ -69,7 +69,7 @@ namespace DAF
             this->do_at_exit(); // Do the thread at exit logics
 #endif
 
-            if (ACE_OS::thr_cancel(thr_id)) {
+            if (DAF_OS::thr_cancel(thr_id)) {
 
                 int error = DAF_OS::last_error();
 
@@ -79,7 +79,7 @@ namespace DAF
 
                 ACE_SET_BITS(this->threadFlags(), THR_DETACHED);
 
-                // ACE_OS::thr_cancel() is a NO-OP on windows and will always drop back with
+                // DAF_OS::thr_cancel() is a NO-OP on windows and will always drop back with
                 // Error Not Supported (ENOTSUP).
 
                 switch (error) {
@@ -144,17 +144,13 @@ namespace DAF
         */
         struct Thread_Manager : ACE_Thread_Manager
         {
-            Thread_Manager(bool do_exit_wait = true) : ACE_Thread_Manager()
-            {
-                this->wait_on_exit(do_exit_wait);
-            }
-
             using ACE_Thread_Manager::thread_desc_self;
             using ACE_Thread_Manager::remove_thr_all;
 
             int terminate_task(ACE_Task_Base * task, int async_cancel);
             int terminate_thr(Thread_Descriptor *td, int async_cancel);
-        } threadManager_(true);
+
+        } threadManager_;
 
         int
         Thread_Manager::terminate_task(ACE_Task_Base * task, int async_cancel)
@@ -175,8 +171,8 @@ namespace DAF
 
             for (ACE_Thread_Descriptor * ace_td = 0; this->thr_to_be_removed_.dequeue_head(ace_td) != -1;) {
                 Thread_Descriptor * td = static_cast<Thread_Descriptor *>(ace_td);
-                if (td && td->threadTerminate()) {
-                    this->wait_on_exit(false);
+                if (td) {
+                    td->threadTerminate();
                 }
             }
 
@@ -472,12 +468,12 @@ namespace DAF
                 }
 
 #if defined(ACE_TANDEM_T1248_PTHREADS)
-                ACE_OS::memcpy(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
+                DAF_OS::memcpy(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
 #else
                 this->last_thread_id_ = 0;    // Reset to prevent inadvertant match on ID
 #endif /* defined (ACE_TANDEM_T1248_PTHREADS) */
 
-                ACE_OS::thr_yield(); return 0; // Let The Thread(s) start up (Still Locked though)
+                DAF_OS::thr_yield(); return 0; // Let The Thread(s) start up (Still Locked though)
 
             } while (false);
         }
@@ -521,11 +517,11 @@ namespace DAF
                 break;
             }
 
-            ACE_OS::thr_setprio(ACE_Sched_Priority(cmd->runPriority())); // Set the requested priority
+            DAF_OS::thr_setprio(ACE_Sched_Priority(cmd->runPriority())); // Set the requested priority
 
-            ACE_OS::last_error(0); this->svc(cmd._retn()); // Dispatch The Command
+            DAF_OS::last_error(0); this->svc(cmd._retn()); // Dispatch The Command
 
-            ACE_OS::thr_setprio(default_prio);  // Reset Priority
+            DAF_OS::thr_setprio(default_prio);  // Reset Priority
         }
 
         cmd = DAF::Runnable::_nil(); return 0;
@@ -558,14 +554,14 @@ namespace DAF
                     }
 
 #if defined(ACE_TANDEM_T1248_PTHREADS)
-                    ACE_OS::memset(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
+                    DAF_OS::memset(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
 #else
                     this->last_thread_id_ = 0;    // Reset to prevent inadvertant match on ID
 #endif /* defined (ACE_TANDEM_T1248_PTHREADS) */
                 }
             }
 
-            ACE_OS::thr_yield(); return 0; // Let The Thread start up
+            DAF_OS::thr_yield(); return 0; // Let The Thread start up
 
         } while (false);
 
