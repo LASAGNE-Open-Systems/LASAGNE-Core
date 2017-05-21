@@ -277,18 +277,6 @@ namespace DAF
         */
         virtual int task_dispatch(DAF::Runnable_ref = DAF::Runnable::_nil());
 
-    protected: // Default service interface
-
-        virtual int suspend(void)
-        {
-            ACE_NOTSUP_RETURN(-1);
-        }
-
-        virtual int resume(void)
-        {
-            ACE_NOTSUP_RETURN(-1);
-        }
-
     protected:
 
         /// Thread pool condition - used to notify the eviction process as threads become removed.
