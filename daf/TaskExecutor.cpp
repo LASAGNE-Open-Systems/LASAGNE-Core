@@ -69,7 +69,7 @@ namespace DAF
             this->do_at_exit(); // Do the thread at exit logics
 #endif
 
-            if (DAF_OS::thr_cancel(thr_id)) {
+            if (DAF_OS::thr_cancel(thr_id)) do {
 
                 int error = DAF_OS::last_error();
 
@@ -98,7 +98,8 @@ namespace DAF
                     if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) {
                         // Mark thread as terminated to stop possible unwind through cleanup
                         // See TaskExecutor::execute_run() and TaskExecutor::execute_svc()
-                        ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); break;
+                        ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED);
+                        break;
                     }
 
                     error = DAF_OS::last_error(); // Update error to that from TerminateThread
@@ -117,12 +118,12 @@ namespace DAF
                 }
 
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->terminate();
-#else
-                TaskExecutor::cleanup(this->taskBase(), this); // This leaves TSS leaking (Fixed with terminate() access)
+                this->terminate(); break;
 #endif
+                TaskExecutor::cleanup(this->taskBase(), this); // This leaves TSS leaking (Fixed with terminate() access)
                 return -1;
-            }
+
+            } while (false);
 
             // NOTE: The following terminate() may not be needed under pthread implementations (Linux)
             //
@@ -171,8 +172,8 @@ namespace DAF
 
             for (ACE_Thread_Descriptor * ace_td = 0; this->thr_to_be_removed_.dequeue_head(ace_td) != -1;) {
                 Thread_Descriptor * td = static_cast<Thread_Descriptor *>(ace_td);
-                if (td) {
-                    td->threadTerminate();
+                if (td && td->threadTerminate() == -1) {
+                    this->remove_thr(td, true);
                 }
             }
 
