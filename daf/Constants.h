@@ -21,7 +21,7 @@
 #ifndef DAF_CONSTANTS_H
 #define DAF_CONSTANTS_H
 
-#include <ace/config.h>
+#include <daf/Config.h>
 
 /**
 * @file    Constants.h
@@ -31,22 +31,6 @@
 * @version  $Revision$
 * @ingroup  \todo{what group?}
 */
-
-/*************** ACE Conditional Support Checks ***************/
-
-#include <ace/Version.h>
-
-#if !defined(ACE_GTEQ_VERSION)
-# define ACE_GTEQ_VERSION(MAJOR,MINOR,BETA) \
-    ((ACE_MAJOR_VERSION >  MAJOR) || \
-    ((ACE_MAJOR_VERSION == MAJOR) && (ACE_MINOR_VERSION >  MINOR)) || \
-    ((ACE_MAJOR_VERSION == MAJOR) && (ACE_MINOR_VERSION == MINOR)  && (ACE_BETA_VERSION >= BETA)))
-#endif
-
-// Used by DAF::ServiceGestalt for iteration lock access to ACE_Service_Repository
-#if !defined(ACE_HAS_SERVICE_REPOSITORY_LOCK_ACCESS) && ACE_GTEQ_VERSION(6, 3, 4)
-# define ACE_HAS_SERVICE_REPOSITORY_LOCK_ACCESS 1
-#endif
 
 /******************* ACE CONSTANTS ****************************/
 

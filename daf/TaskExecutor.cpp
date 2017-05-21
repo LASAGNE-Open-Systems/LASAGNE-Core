@@ -42,14 +42,156 @@ namespace DAF
             return int(reinterpret_cast<size_t>(p) & (size_t(-1) >> 1));
         }
 
-        struct DAF_Thread_Descriptor : ACE_Thread_Descriptor // Allow Access to thread descriptor bits
+        struct Thread_Descriptor : ACE_Thread_Descriptor // Allow Access to thread descriptor bits
         {
+            int threadTerminate(void);
+
             ACE_hthread_t   threadHandle(void)  const   { return this->thr_handle_; }
-            long            threadFlags(void)   const   { return this->flags_; }
+            long          & threadFlags(void)           { return this->flags_; }
             ACE_thread_t    threadID(void)      const   { return this->thr_id_; }
             ACE_Task_Base * taskBase(void)      const   { return this->task_; }
-            ACE_UINT32 &    threadState(void)           { return this->thr_state_; }
+            ACE_UINT32    & threadState(void)           { return this->thr_state_; }
         };
+
+        int Thread_Descriptor::threadTerminate(void)
+        {
+            const ACE_thread_t thr_id = this->threadID(); // Save Thread ID for reporting
+
+            // ACE_Thread::cancel under pthread will result in a pthread_cancel being
+            // called. (See 'man pthread_cancel') which results in an async
+            // roll back through the thread's stack via the abi::__forced_unwind
+            // C++ exception (GCC/G++ special!!). During this process the pthread/ACE structures
+            // correctly unwinds and deallocates the Thread Specific Storage (TSS/TLS)
+            // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
+            // etc.
+
+#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
+            this->do_at_exit(); // Do the thread at exit logics
+#endif
+
+            if (ACE_OS::thr_cancel(thr_id)) {
+
+                int error = DAF_OS::last_error();
+
+                // Set the thread flags to be THR_DETACHED to stop it being
+                // added to the 'register_as_terminated' list in the thread_manager
+                // through terminate() below.
+
+                ACE_SET_BITS(this->threadFlags(), THR_DETACHED);
+
+                // ACE_OS::thr_cancel() is a NO-OP on windows and will always drop back with
+                // Error Not Supported (ENOTSUP).
+
+                switch (error) {
+#if defined(ACE_WIN32)
+                case ENOTSUP:
+
+                    this->at_exit(this->taskBase(), 0, 0); // Ensure we don't fo the at_exit()
+
+                    // Windows Direct API call to TerminateThread. (See MSDN TerminateThread).
+                    // This is a rather large sledgehammer on the thread. It results in
+                    // an unknown condition in the ACE Thread Specific Storage
+                    // (ie will most likely leak).
+                    //
+                    // There are still some outstanding issues with this current approach!!
+                    //
+                    if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) {
+                        // Mark thread as terminated to stop possible unwind through cleanup
+                        // See TaskExecutor::execute_run() and TaskExecutor::execute_svc()
+                        ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); break;
+                    }
+
+                    error = DAF_OS::last_error(); // Update error to that from TerminateThread
+
+                    // Fall through to signal error
+#endif
+                default:
+                    if (DAF::debug() > 1) {
+                        ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF (%P | %t) ERROR - Thread_Descriptor:\n")
+                            ACE_TEXT("\t - Failed to cancel thread; id=%d[0x%X],error=%d[%s]\n")
+                            , unsigned(thr_id)
+                            , unsigned(thr_id)
+                            , error
+                            , DAF::last_error_text(error).c_str()));
+                    }
+                }
+
+#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
+                this->terminate();
+#else
+                TaskExecutor::cleanup(this->taskBase(), this); // This leaves TSS leaking (Fixed with terminate() access)
+#endif
+                return -1;
+            }
+
+            // NOTE: The following terminate() may not be needed under pthread implementations (Linux)
+            //
+            // this->terminate(); Do NOT put this in -> It causes a leak of TSS related elements
+            //
+            // The log_msg is correctly handled by the pthread unwinding of
+            // Thread Specific Storage. See above comments (ACE_Thread::cancel)
+            //
+            // This could result in a race condition between the internal TaskExecutor
+            // Thread_Manager destroying  and the Thread's TSS unwind which
+            // deletes the ACE_Log_Msg. It will either race and clear (but leak).
+            // or give a pthread_mutex_lock error, or seg fault.
+
+            return 0;
+        }
+
+        /**
+        * Trickery with inheritance to allow access to protected elements.
+        */
+        struct Thread_Manager : ACE_Thread_Manager
+        {
+            Thread_Manager(bool do_exit_wait = true) : ACE_Thread_Manager()
+            {
+                this->wait_on_exit(do_exit_wait);
+            }
+
+            using ACE_Thread_Manager::thread_desc_self;
+            using ACE_Thread_Manager::remove_thr_all;
+
+            int terminate_task(ACE_Task_Base * task, int async_cancel);
+            int terminate_thr(Thread_Descriptor *td, int async_cancel);
+        } threadManager_(true);
+
+        int
+        Thread_Manager::terminate_task(ACE_Task_Base * task, int async_cancel)
+        {
+            ACE_MT(ACE_GUARD_RETURN(ACE_Thread_Mutex, ace_mon, this->lock_, -1));
+            ACE_ASSERT(this->thr_to_be_removed_.is_empty());
+
+            int result = 0;
+
+            if (task) for (ACE_Double_Linked_List_Iterator<ACE_Thread_Descriptor> iter(this->thr_list_); !iter.done(); iter.advance()) {
+                Thread_Descriptor * td(static_cast<Thread_Descriptor *>(iter.next()));
+                if (td && td->taskBase() == task && this->terminate_thr(td, async_cancel)) {
+                    result = -1;
+                }
+            }
+
+            // Must terminate threads after we have traversed the thr_list_ to prevent clobber thr_list_'s integrity.
+
+            for (ACE_Thread_Descriptor * ace_td = 0; this->thr_to_be_removed_.dequeue_head(ace_td) != -1;) {
+                Thread_Descriptor * td = static_cast<Thread_Descriptor *>(ace_td);
+                if (td && td->threadTerminate()) {
+                    this->wait_on_exit(false);
+                }
+            }
+
+            return result;
+        }
+
+        int
+        Thread_Manager::terminate_thr(Thread_Descriptor * td, int /* async_cancel */)
+        {
+            if (ACE_BIT_DISABLED(td->threadState(), (ACE_THR_JOINING | ACE_THR_TERMINATED))) {
+                return this->thr_to_be_removed_.enqueue_tail(td);
+            }
+            return -1;
+        }
+
 
     } // Ananomous
 
@@ -77,7 +219,7 @@ namespace DAF
 
         if (worker) for (ACE_Task_Base * task(worker->task_base()); task;) {
 
-            ACE_Thread_Descriptor * td = static_cast<TaskExecutor::ThreadManager *>(task->thr_mgr())->thread_desc_self();
+            ACE_Thread_Descriptor * td = static_cast<Thread_Manager *>(task->thr_mgr())->thread_desc_self();
 
             // Register ourself with our <Thread_Manager>'s thread exit hook
             // mechanism so that our close() hook will be sure to get invoked
@@ -107,8 +249,10 @@ namespace DAF
                 }
             }
 
-#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP == 1)
-            td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
+#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
+            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
+                td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
+            }
 #endif
             return status;
         }
@@ -123,7 +267,7 @@ namespace DAF
 
         for (ACE_Task_Base * task(reinterpret_cast<ACE_Task_Base *>(args)); task;) {
 
-            ACE_Thread_Descriptor * td = static_cast<TaskExecutor::ThreadManager *>(task->thr_mgr())->thread_desc_self();
+            ACE_Thread_Descriptor * td = static_cast<Thread_Manager *>(task->thr_mgr())->thread_desc_self();
 
             // Register ourself with our <Thread_Manager>'s thread exit hook
             // mechanism so that our close() hook will be sure to get invoked
@@ -154,8 +298,10 @@ namespace DAF
                 }
             }
 
-#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP == 1)
-            td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
+#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
+            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
+                td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
+            }
 #endif
             return status;
         }
@@ -175,7 +321,7 @@ namespace DAF
             {
                 ACE_GUARD_REACTION(ACE_Thread_Mutex, ace_mon, task->lock_, break);
 
-                if (args) for (DAF_Thread_Descriptor * td = reinterpret_cast<DAF_Thread_Descriptor*>(args); td;) {
+                if (args) for (Thread_Descriptor * td = reinterpret_cast<Thread_Descriptor*>(args); td;) {
                     thr_self = td->self();
                     if (DAF::debug() > 2) {
                         ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %t) TaskExecutor::cleanup; ")
@@ -200,23 +346,14 @@ namespace DAF
 
     /*********************************************************************************/
 
-    TaskExecutor::ThreadManager TaskExecutor::threadManager_;
-
-    TaskExecutor::TaskExecutor(ACE_Thread_Manager * tmgr) : ACE_Task_Base(tmgr)
+    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(&threadManager_)
         , zero_condition_   (this->lock_)
         , decay_timeout_    (THREAD_DECAY_TIMEOUT)
         , evict_timeout_    (THREAD_EVICT_TIMEOUT)
         , handoff_timeout_  (THREAD_HANDOFF_TIMEOUT)
         , executorAvailable_(true)
-        , executorClosing_  (false)
         , executorClosed_   (false)
     {
-        // Use the ACE_Thread_Manager singleton if we're running as an
-        // active object and the caller didn't supply us with a Thread_Manager.
-        if (this->thr_mgr_ == 0) {
-            this->thr_mgr_ = &threadManager_;
-        }
-
         this->grp_id(make_grp_id(this));
 
         time_t decay_timeout(DAF::get_numeric_property<time_t>(DAF_TASKDECAYTIMEOUT, THREAD_DECAY_TIMEOUT / DAF_MSECS_ONE_SECOND, true));
@@ -229,7 +366,7 @@ namespace DAF
 
     TaskExecutor::~TaskExecutor(void)
     {
-        this->module_closed();
+        this->module_closed(); this->wait();
     }
 
     int
@@ -438,75 +575,31 @@ namespace DAF
     int
     TaskExecutor::module_closed(void)
     {
-        const int TASK_EVICT_RETRY_MAXIMUM = 2;
-
         this->executorAvailable_ = false; // Say we are no longer available
 
-        if (this->isClosed()) {
-            return 0;  // Already Done
-        }
+        if (this->executorClosed_ ? false : this->executorClosed_ = true) {
 
-        if (this->executorClosing_ ? false : this->executorClosing_ = true) {
+            ACE_Task_Base::module_closed(); this->taskChannel_.interrupt();
 
-            if (DAF::debug()) {
-                ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF (%P | %t) TaskExecutor[%@]; ")
-                    ACE_TEXT("Signalled to close; grp_id=%d, thr_count=%d.\n")
-                    , this, this->grp_id(), this->thr_count()));
-            }
-
-            ACE_Task_Base::module_closed(); this->taskChannel_.interrupt(); // Interrupt the dispatching channel
-        }
-
-        /*
-        * Pass 1: (evict_retry == 2):
-        Wait for upto getEvictTimeout() miliseconds for threads contained
-        within this TaskExecutor to autonomously exit.
-
-        * Pass 2: (evict_retry == 1):
-        Force cancel all non-cooperating threads and wait for upto
-        (getEvictTimeout() / 2) miliseconds for threads contained
-        within this TaskExecutor to exit.
-
-        * Pass 3: (evict_retry == 0): with
-        Force cancel any non-cooperating threads that were in the process of
-        starting in step above and now wait for (upto getEvictTimeout() / 4)
-        miliseconds for any remaining threads contained within this TaskExecutor
-        to exit.
-
-        * Otherwise: give up and return -1;
-        */
-
-        time_t evictTimeout = this->getEvictTimeout(); // Start with the full evict timeout value.
-
-        for (int evict_retry = TASK_EVICT_RETRY_MAXIMUM; (ACE_OS::thr_yield(), this->isActive()); evictTimeout /= 2) {
+            const ACE_Time_Value tv(DAF_OS::gettimeofday(this->getEvictTimeout()));
 
             try {
 
-                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, break);
+                ACE_GUARD_RETURN(ACE_Thread_Mutex, mon, this->lock_, (DAF_OS::last_error(ENOLCK), -1));
 
-                for (const ACE_Time_Value tv(DAF_OS::gettimeofday(evictTimeout)); this->isActive();) {
-                    if (this->zero_condition_.wait(&tv) && errno == ETIME) {
-                        if (this->isActive()) { // Are we still active?
-                            if (evict_retry--) {
-                                throw "Threads-Not-Exiting";  // Throw to terminate_grp (release locks)
-                            }
-                            this->executorClosing_ = false; // No longer closing
-                            ACE_ERROR_RETURN((LM_WARNING, ACE_TEXT("DAF (%P | %t) TaskExecutor[%@]: ")
-                                ACE_TEXT("Unable to terminate pool threads - grp_id=%d,thr_count=%d.\n")
-                                , this, this->grp_id(), this->thr_count()), -1); // We have a problem
-                        }
+                while (this->thr_count()) {
+                    if (this->zero_condition_.wait(&tv) && this->thr_count()) { // DCL
+                        throw "Threads-Not-Exiting";  // Throw to terminate_task(release locks)
                     }
                 }
 
-                this->zero_condition_.broadcast(); break; // Incase we have > 0 module_closed instances (unlikely?)
-
             } DAF_CATCH_ALL { // Must be called without locks held
-                static_cast<ThreadManager *>(this->thr_mgr())->terminate_grp(this->grp_id());
+                if (static_cast<Thread_Manager *>(this->thr_mgr())->terminate_task(this, true) == 0) {
+                    DAF_OS::thr_yield(); // Wait a little for threads to respond
+                }
             }
         }
 
-        this->executorClosed_  = true;
-        this->executorClosing_ = false;
         return 0;
     }
 
@@ -520,69 +613,6 @@ namespace DAF
         }
 
         this->cmd_ = DAF::Runnable::_nil(); return -1;
-    }
-
-    /*********************************************************************************/
-
-    int
-    TaskExecutor::ThreadManager::terminate_grp(int grp_id, int arg)
-    {
-        if (DAF::debug() > 1) {
-            ACE_DEBUG((LM_DEBUG,
-                ACE_TEXT("DAF (%P | %t) DEBUG: Force therminate threads in group[%d].\n")
-                , grp_id));
-        }
-
-        return this->apply_grp(grp_id, ACE_THR_MEMBER_FUNC(&ThreadManager::terminate_thr), arg);
-    }
-
-    int
-    TaskExecutor::ThreadManager::terminate_thr(ACE_Thread_Descriptor *ace_td, int)
-    {
-        DAF_Thread_Descriptor * td = static_cast<DAF_Thread_Descriptor *>(ace_td);
-
-        if (td) {
-
-            ACE_thread_t thr_id = td->threadID(); td->at_exit(td->taskBase(), 0, 0);
-
-            try {
-
-                if (this->cancel_thr(td, true)) { // Cancel the thread
-                    int error = ACE_OS::last_error();
-                    switch (error) {
-                    case 0: break;
-#if defined(ACE_WIN32)
-# if 1
-                    case ENOTSUP: break; // Just go with *thr_to_be_removed*.
-# else
-                    case ENOTSUP: // Original code to terminate thread - BIG Sledge hammer!!
-                        if (::TerminateThread(td->threadHandle(), DWORD(0xDEAD))) {
-                            break;
-                        }
-                        error = ACE_OS::last_error(); // Fall though with terminate error
-# endif
-#endif
-                    default:
-                        if (DAF::debug() > 1) {
-                            ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF (%P | %t) ERROR - TaskExecutor::ThreadManager:\n")
-                                ACE_TEXT("\t - Failed to cancel thread; id=%d[0x%X],error=%d[%s]\n")
-                                , unsigned(thr_id)
-                                , unsigned(thr_id)
-                                , error
-                                , DAF::last_error_text(error).c_str()));
-                        } break;
-                    }
-                }
-
-            } DAF_CATCH_ALL {
-                /* Ignore any Errors - We Are Terminating */
-            }
-
-            this->thr_to_be_removed_.enqueue_tail(td);
-            TaskExecutor::cleanup(td->taskBase(), td);
-        }
-
-        return 0;
     }
 
     /*********************************************************************************/

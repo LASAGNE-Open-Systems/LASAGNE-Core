@@ -73,12 +73,19 @@ namespace DAF
     * accessible from a number of classes.
     * --> Doug Lee
     */
+
+    namespace {
+        struct Thread_Descriptor;   // Forward Declaration
+    }
+
     class DAF_Export TaskExecutor : public ACE_Task_Base
         , public DAF::Executor // Ensure we extend DAF::Executor abstract base
     {
         using ACE_Task_Base::activate;  // make this private - Use this->execute()
         using ACE_Task_Base::thr_count; // make this private - Use this->size() const
         using ACE_Task_Base::grp_id;    // make this private - Use this->grp_id() const
+
+        friend struct Thread_Descriptor;
 
     public:
 
@@ -92,7 +99,7 @@ namespace DAF
         /** Constructor
         * \param thr_mgr: if 0 then the Singleton thread manager is used
         */
-        TaskExecutor(ACE_Thread_Manager * thr_mgr = 0);
+        TaskExecutor(void);
 
         virtual ~TaskExecutor(void);
 
@@ -171,9 +178,6 @@ namespace DAF
 
         /// Return the thread count is greater than zero
         bool    isActive(void) const        { return this->size() > 0;  }
-
-        /// Return the closed state
-        bool    isClosed(void) const        { return this->executorClosed_; }
 
         /**
         * Return the availability status of the TaskExecutor to accept further active
@@ -273,6 +277,18 @@ namespace DAF
         */
         virtual int task_dispatch(DAF::Runnable_ref = DAF::Runnable::_nil());
 
+    protected: // Default service interface
+
+        virtual int suspend(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
+
+        virtual int resume(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
+
     protected:
 
         /// Thread pool condition - used to notify the eviction process as threads become removed.
@@ -310,16 +326,6 @@ namespace DAF
 
     private:
 
-        /**
-        * Trickery with inheritance to allow access to enable the force termination of
-        * un-cooperative threads when closing the pool.
-        */
-        static struct ThreadManager : ACE_Thread_Manager {
-            using ACE_Thread_Manager::thread_desc_self;
-            int terminate_thr(ACE_Thread_Descriptor *td, int terminate_index = 0);
-            int terminate_grp(int grp_id, int terminate_index = 0);
-        } threadManager_;
-
         /// Routine that runs the service execute routine as a daemon thread.
         static  ACE_THR_FUNC_RETURN execute_run(void *workerExTask);
         static  ACE_THR_FUNC_RETURN execute_svc(void *aceTaskBase);
@@ -340,7 +346,6 @@ namespace DAF
 
         mutable volatile bool executorAvailable_;
 
-        bool executorClosing_;
         bool executorClosed_;
     };
 
