@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+  This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -124,7 +124,7 @@ namespace TAF_XMPL
     {
         out_struct = new taf_xmpl::Structure(in_struct);  out_struct->i += (x + 100);
 
-        ACE_DEBUG ((LM_DEBUG,"(%04P|%04t) SERVER::test_method():-> x = %d, i = %d, name = <%s>\n", x, in_struct.i, name));
+        ACE_DEBUG ((LM_DEBUG,"(%04P|%04t) SERVER::test_method():-> x = %d, i = %d, name = <%C>\n", x, in_struct.i, name));
 
         name = CORBA::string_dup(std::string(name).append(" - Yes it is!!").c_str());
 
@@ -140,7 +140,7 @@ namespace TAF_XMPL
     void
     CORBAService::test_oneway(const char *name)
     {
-        ACE_DEBUG ((LM_DEBUG, "(%04P|%04t) SERVER::test_oneway():-> name = <%s>\n", name));
+        ACE_DEBUG ((LM_DEBUG, "(%04P|%04t) SERVER::test_oneway():-> name = <%C>\n", name));
     }
 
     CORBA::Long
