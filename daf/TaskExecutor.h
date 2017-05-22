@@ -242,6 +242,18 @@ namespace DAF
         */
         virtual int module_closed(void);
 
+    protected:  // Default Service Interface to Not Supported
+
+        virtual int suspend(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
+
+        virtual int resume(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
+
     protected:
 
         /**
