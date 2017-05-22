@@ -124,21 +124,30 @@ namespace TAF
         ORB(void); // Managed by friendly singleton
 
         /* This ensures the ORB Singleton is statefull before the extension framework is bootstrapped */
-        static struct ORBInitializer : virtual PortableInterceptor::ORBInitializer, virtual CORBA::LocalObject
+        static class ORBInitializer : virtual public PortableInterceptor::ORBInitializer
+            , virtual public CORBA::LocalObject
         {
-            ORBInitializer(void)
+            bool pre_init_, post_init_;
+
+        public:
+
+            ORBInitializer(void) : pre_init_(false), post_init_(false)
             {
                 PortableInterceptor::register_orb_initializer(this);
             }
 
             virtual void pre_init(PortableInterceptor::ORBInitInfo_ptr info)
             {
-                TAF::ORBSingleton_type::instance()->pre_init(info);
+                if (this->pre_init_ ? false : this->pre_init_ = true)   {
+                    TAF::ORBSingleton_type::instance()->pre_init(info);
+                }
             }
 
             virtual void post_init(PortableInterceptor::ORBInitInfo_ptr info)
             {
-                TAF::ORBSingleton_type::instance()->post_init(info);
+                if (this->post_init_ ? false : this->post_init_ = true) {
+                    TAF::ORBSingleton_type::instance()->post_init(info);
+                }
             }
 
         } orbInitializer_;
