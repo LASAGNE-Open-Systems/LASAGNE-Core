@@ -23,6 +23,7 @@
 
 #include "TAF.h"
 
+#include "ORBManager.h"
 #include "NamingContext.h"
 
 #include <daf/RefCount.h>
@@ -132,7 +133,7 @@ namespace TAF
     {
         const TAF::NamingContext context_;
     public:
-        NamingServiceBinder(const TAF::NamingContext &context);
+        NamingServiceBinder(const TAF::NamingContext &context = TheTAFBaseContext());
         virtual int init_bind(const std::string &name, CORBA::Object_ptr);
         virtual int fini_bind(const std::string &name);
     };
