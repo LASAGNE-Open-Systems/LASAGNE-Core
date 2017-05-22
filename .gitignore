@@ -37,9 +37,11 @@
 *.vcxproj.filters
 *.VC.db
 
-# Visual C++ intermediate build files
+# Visual C++ build files
 *.iobj
 *.ipdb
 *.tlog
 *.buildstate
 *.exp
+*.res
+*.config
