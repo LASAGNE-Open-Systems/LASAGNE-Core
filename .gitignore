@@ -30,16 +30,3 @@
 *.exe
 *.out
 *.app
-
-# Visual Studio projects and solutions
-*.sln
-*.vcxproj
-*.vcxproj.filters
-*.VC.db
-
-# Visual C++ intermediate build files
-*.iobj
-*.ipdb
-*.tlog
-*.buildstate
-*.exp
