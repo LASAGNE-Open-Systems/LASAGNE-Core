@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -43,7 +43,7 @@ namespace TAFDDS
             return DDS::RETCODE_ERROR;
         }
         else if ((this->out() = participant->create_topic(topic_name, new T_SUPPORT(type_name))._retn()) == 0) {
-            ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("ERROR: DDS_Topic - Unable to create Topic [%s]\n"), topic_name), DDS::RETCODE_ERROR);
+            ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("ERROR: DDS_Topic - Unable to create Topic [%C]\n"), topic_name), DDS::RETCODE_ERROR);
         }
 
         this->topic_name_.assign(DDS::String_ref((**this)->get_name()));

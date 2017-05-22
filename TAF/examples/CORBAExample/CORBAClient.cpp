@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -74,7 +74,7 @@ struct SimpleCallback_impl : POA_taf_xmpl::SimpleCallback
 {
     virtual void  callback_op(const char *text)
     {
-         ACE_DEBUG ((LM_DEBUG, "(%04P|%04t)<-- CLIENT::callback_op(%s):\n", text));
+         ACE_DEBUG ((LM_DEBUG, "(%04P|%04t)<-- CLIENT::callback_op(%C):\n", text));
     }
 };
 
@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 
         CORBA::String_var   cb_ref_ior(orb->object_to_string(callback));
 
-        ACE_DEBUG((LM_DEBUG, "CLIENT:Callback Activated as:\n  <%s>\n", cb_ref_ior.in()));
+        ACE_DEBUG((LM_DEBUG, "CLIENT:Callback Activated as:\n  <%C>\n", cb_ref_ior.in()));
 
         taf_xmpl::SimpleServer_var server_objRef(taf_xmpl::SimpleServer::_nil());
 
@@ -149,7 +149,7 @@ int main(int argc, char *argv[])
 
                 CORBA::Long r = server_objRef->test_method(i, in_struct, out_struct.out(), name.inout());
 
-                ACE_DEBUG ((LM_DEBUG,"(%04P|%04t)<-> %d == CLIENT::test_method():<- out_struct->i = %d, name = <%s>\n", r, out_struct->i, name.in()));
+                ACE_DEBUG ((LM_DEBUG,"(%04P|%04t)<-> %d == CLIENT::test_method():<- out_struct->i = %d, name = <%C>\n", r, out_struct->i, name.in()));
 
                 ACE_DEBUG ((LM_DEBUG,"(%04P|%04t)--> CLIENT::test_callback():\n"));
                 server_objRef->test_callback(callback, "Derek Rocks!");
