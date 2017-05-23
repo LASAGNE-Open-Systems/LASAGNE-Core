@@ -24,6 +24,8 @@
 #include "ShutdownHandler.h"
 #include "PropertyManager.h"
 
+#include <ace/Singleton.h>
+
 #if defined (ACE_HAS_SIG_C_FUNC)
 extern "C" void DAF_TaskExecutor_cleanup(void *obj, void *args)
 {
@@ -141,15 +143,27 @@ namespace DAF
         /**
         * Trickery with inheritance to allow access to protected elements.
         */
-        struct Thread_Manager : ACE_Thread_Manager
+        typedef struct Thread_Manager : ACE_Thread_Manager
         {
             using ACE_Thread_Manager::thread_desc_self;
             using ACE_Thread_Manager::remove_thr_all;
 
+            /** \todo{Fill this in} */
+            const ACE_TCHAR *dll_name(void) const
+            {
+                return DAF_DLL_NAME;
+            }
+
+            /** \todo{Fill this in} */
+            const ACE_TCHAR *name(void) const
+            {
+                return typeid(*this).name();
+            }
+
             int terminate_task(ACE_Task_Base * task, int async_cancel);
             int terminate_thr(Thread_Descriptor *td, int async_cancel);
 
-        } threadManager_;
+        } DAF_Thread_Manager;
 
         int
         Thread_Manager::terminate_task(ACE_Task_Base * task, int async_cancel)
@@ -187,8 +201,9 @@ namespace DAF
             return -1;
         }
 
-
     } // Ananomous
+
+    typedef ACE_DLL_Singleton_T<DAF_Thread_Manager, ACE_SYNCH_MUTEX>    DAFSingletonThreadManager;
 
     template <> inline DAF::Runnable_ref
     SynchronousChannel<DAF::Runnable_ref>::extract(void) throw (DAF::InternalException)
@@ -341,7 +356,7 @@ namespace DAF
 
     /*********************************************************************************/
 
-    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(&threadManager_)
+    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(DAFSingletonThreadManager::instance())
         , zero_condition_   (this->lock_)
         , decay_timeout_    (THREAD_DECAY_TIMEOUT)
         , evict_timeout_    (THREAD_EVICT_TIMEOUT)
