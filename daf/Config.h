@@ -44,7 +44,7 @@
 # define DAF_HAS_EVENTFD 1
 #endif
 
-#define DAF_UNUSED_ARG(ID) \
+#define DAF_UNUSED_STATIC(ID) \
 template <typename T> inline void ID ## _UNUSED(const T& = (ID)) {}
 
 // Exception catching for abi (linux)

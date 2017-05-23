@@ -24,6 +24,35 @@
 
 namespace DAF_OS
 {
+    int     last_error(void)
+    {
+        int error = ACE_OS::last_error();
+
+#if defined (ACE_WIN32)
+
+        if (error) do {
+
+            // Remap some windows error messages as appropriate
+
+            switch (error) {
+            case ERROR_NOT_ENOUGH_MEMORY:   error = ENOMEM; break;
+            case ERROR_FILE_EXISTS:         error = EEXIST; break;
+            case ERROR_SHARING_VIOLATION:   error = EACCES; break;
+            case ERROR_PATH_NOT_FOUND:      error = ENOENT; break;
+            case ERROR_ACCESS_DENIED:       error = EPERM;  break;
+            case ERROR_SEM_TIMEOUT:         error = ETIME;  break;
+            case ERROR_TIMEOUT:             error = ETIME;  break;
+            default: continue;
+            }
+
+            ACE_OS::last_error(error);
+
+        } while (false);
+#endif
+
+        return error;
+    }
+
     ACE_hthread_t   thread_HANDLE(void)
     {
         ACE_hthread_t thread_h; ACE_OS::thr_self(thread_h); return thread_h;

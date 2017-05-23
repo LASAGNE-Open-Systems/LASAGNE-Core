@@ -29,7 +29,7 @@ namespace TAF {
 
 #if !defined(TAF_EXTENSIONS_CPP)
 namespace {  // Stop Warnings
-    static int tafExtensionsInitialize = TAF::ExtensionsInitializer(); DAF_UNUSED_ARG(tafExtensionsInitialize);
+    static int tafExtensionsInitialize = TAF::ExtensionsInitializer(); DAF_UNUSED_STATIC(tafExtensionsInitialize);
 }
 #endif
 

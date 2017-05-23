@@ -96,14 +96,20 @@ namespace DAF
     typename ObjectRef<T>::_in_type
     ObjectRef<T>::operator -> (void) const throw (DAF::INV_OBJREF)
     {
-        if (this->ptr_) return this->ptr_; throw DAF::INV_OBJREF();
+        if (this->ptr_) {
+            return this->ptr_;
+        }
+        throw DAF::INV_OBJREF();
     }
 
     template <typename T> inline
     typename ObjectRef<T>::_ref_type
     ObjectRef<T>::operator * (void) const throw (DAF::INV_OBJREF)
     {
-        if (this->ptr_) return *this->ptr_; throw DAF::INV_OBJREF();
+        if (this->ptr_) {
+            return *this->ptr_;
+        }
+        throw DAF::INV_OBJREF();
     }
 
     template <typename T> inline
@@ -252,7 +258,10 @@ namespace DAF
     T *
     ObjectRefOut<T>::operator -> (void) const throw (DAF::INV_OBJREF)
     {
-        if (this->ptr_) return this->ptr_; throw DAF::INV_OBJREF();
+        if (this->ptr_) {
+            return this->ptr_;
+        }
+        throw DAF::INV_OBJREF();
     }
 } // namespace DAF
 

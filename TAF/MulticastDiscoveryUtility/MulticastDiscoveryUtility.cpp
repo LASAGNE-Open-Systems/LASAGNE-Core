@@ -199,7 +199,7 @@ namespace {
 
                         const IOP::MultipleComponentProfile &mcp(profile->tagged_components().components());
 
-                        if (ior_tags_ || verbose_ > 2) for (CORBA::ULong j = 0; j < mcp.length(); j++) {
+                        if (ior_tags_ || verbose() > 2) for (CORBA::ULong j = 0; j < mcp.length(); j++) {
                             const IOP::TaggedComponent &tc(mcp[j]);
                             char tags[16]; ACE_OS::sprintf(tags, "-Tag[%03x]:", int(tc.tag));
                             *this << '\t' << std::setw(10) << tags;
@@ -288,7 +288,7 @@ namespace {
 
         this->insert_descriptor(taf::EntityDescriptor_var(taf_server->entity_descriptor()), index);
 
-        if (properties_ || verbose_ > 1) try {
+        if (properties_ || verbose() > 1) try {
             this->insert_properties(taf_server->list_properties());
         } DAF_CATCH_ALL {}
 

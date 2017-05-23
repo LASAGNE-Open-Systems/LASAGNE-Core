@@ -87,7 +87,7 @@
 
 namespace OpenDDS {
     namespace DCPS {
-        DAF_UNUSED_ARG(OpenDDS_Requires_MonitorFactory_Initializer) /* Stops Warnings */
+        DAF_UNUSED_STATIC(OpenDDS_Requires_MonitorFactory_Initializer) /* Stops Warnings */
     }
 }
 

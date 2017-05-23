@@ -29,7 +29,7 @@
 #endif
 
 namespace { // Ensure We Register a shutdown Handler for this exe
-    const DAF::ShutdownHandler shutdown_handler; DAF_UNUSED_ARG(shutdown_handler); // Stop Warning
+    const DAF::ShutdownHandler shutdown_handler; DAF_UNUSED_STATIC(shutdown_handler); // Stop Warning
 }
 
 int main(int argc, char *argv[])

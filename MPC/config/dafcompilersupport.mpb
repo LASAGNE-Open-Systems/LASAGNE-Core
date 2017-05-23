@@ -35,6 +35,12 @@ feature(!warn_unused_variable){
   }
 }
 
+feature(no_deprecated_declarations){
+  verbatim(gnuace,top,1) { // NOTE: explicit ,1 in verbatim add = 1 means its appended
+        CCFLAGS += -Wno-deprecated-declarations
+  }
+}
+
 feature(vc_avoid_throw_warning) {
   specific(prop:microsoft) {
     DisableSpecificWarnings += 4290 // Ignore vc warnings from declarations that contain the throw clause

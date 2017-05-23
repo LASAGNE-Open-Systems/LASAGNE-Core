@@ -56,7 +56,15 @@ namespace TAF
         {
         }
 
-        using _string_type::operator =;
+        StringManager_T<T> & operator = (const StringManager_T<T> &s)
+        {
+            this->assign(s); return *this;
+        }
+
+        StringManager_T<T> & operator = (const _string_type &s)
+        {
+            this->assign(s); return *this;
+        }
 
         operator _var_type () const
         {

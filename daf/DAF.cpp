@@ -132,7 +132,10 @@ namespace DAF
                 do {
                     if (i) {
                         if (i % width) {
-                            if ((i % 8) == 0) ss << ' '; continue;
+                            if ((i % 8) == 0) {
+                                ss << ' ';
+                            }
+                            continue;
                         }
                     }
 

@@ -30,7 +30,7 @@ namespace TAF
 
     bool    isDiscoveryEnabled(void)
     {
-        return DAF::get_numeric_property<bool>(TAF_DISCOVERYDISABLE, false, true) ? false : true;
+        return DAF::get_numeric_property<bool>(TAF_DISCOVERYENABLE, true, true);
     }
 
     /***********************************************************************************************/
