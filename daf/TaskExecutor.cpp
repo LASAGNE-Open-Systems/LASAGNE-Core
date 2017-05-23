@@ -87,7 +87,7 @@ namespace DAF
 #if defined(ACE_WIN32)
                 case ENOTSUP:
 
-                    this->at_exit(this->taskBase(), 0, 0); // Ensure we don't fo the at_exit()
+                    this->at_exit(this->taskBase(), 0, 0); // Ensure we don't do the at_exit()
 
                     // Windows Direct API call to TerminateThread. (See MSDN TerminateThread).
                     // This is a rather large sledgehammer on the thread. It results in
