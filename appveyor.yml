@@ -11,7 +11,7 @@ install:
   - mkdir ext
   - cd ext
   - git clone --depth 1 git://github.com/DOCGroup/MPC.git
-  - git clone --depth 1 git://github.com/DOCGroup/ACE_TAO.git
+  - git clone -b Latest_Micro --depth 1 git://github.com/DOCGroup/ACE_TAO.git
   - git clone --depth 1 git://github.com/objectcomputing/OpenDDS.git
   - cd ..
   - set MPC_ROOT=%CD%\ext\MPC
@@ -27,8 +27,8 @@ install:
   - set PATH=%DAF_ROOT%\lib:%PATH%
   - set PATH=%DAF_ROOT%\bin:%PATH%
   - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
-  - copy %PENGUIN_ROOT%\build\config.h %ACE_ROOT%\ace
-  - copy %PENGUIN_ROOT%\build\default.features %ACE_ROOT%\bin\MakeProjectCreator\config
+  - copy %DAF_ROOT%\bin\build\ace\config.h %ACE_ROOT%\ace
+  - copy %DAF_ROOT%\bin\build\ace\default.features %ACE_ROOT%\bin\MakeProjectCreator\config
   - perl %ACE_ROOT%\bin\mwc.pl -type vc14 %TAO_ROOT%\TAO_ACE.mwc
   - perl %ACE_ROOT%\bin\mwc.pl -type vc14 %DDS_ROOT%\DDS_no_tests.mwc
   - perl %ACE_ROOT%\bin\mwc.pl -type vc14 %TAF_ROOT%\TAF.mwc

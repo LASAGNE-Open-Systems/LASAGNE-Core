@@ -28,7 +28,7 @@ before_install:
   - mkdir ext
   - cd ext
   - git clone --depth 1 git://github.com/DOCGroup/MPC.git
-  - git clone --depth 1 git://github.com/DOCGroup/ACE_TAO.git
+  - git clone -b Latest_Micro --depth 1 git://github.com/DOCGroup/ACE_TAO.git
   - git clone --depth 1 git://github.com/objectcomputing/OpenDDS.git
   - cd ..
 
@@ -41,9 +41,9 @@ install:
 
 before_script:
   # Copy additional build files into the correct locations
-  - cp build/config.h $ACE_ROOT/ace/config.h
-  - cp build/default.features $ACE_ROOT/bin/MakeProjectCreator/config/default.features
-  - cp build/platform_macros.GNU $ACE_ROOT/include/makeinclude/platform_macros.GNU
+  - cp bin/build/ace/config.h $ACE_ROOT/ace/config.h
+  - cp bin/build/ace/default.features $ACE_ROOT/bin/MakeProjectCreator/config/default.features
+  - cp bin/build/ace/platform_macros.GNU $ACE_ROOT/include/makeinclude/platform_macros.GNU
   # Build dependencies
   - cd $TAO_ROOT
   - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAO_ACE.mwc
