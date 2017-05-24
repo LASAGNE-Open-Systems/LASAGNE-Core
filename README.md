@@ -40,3 +40,10 @@ The LASAGNE Core is licensed under the terms of the LGPL-3.0 license. See the [L
 
 ### Exceptions
 * LDBC/SQLite/sqlite3 is provided copyright free from [SQLite.org](http://sqlite.org/)
+
+## Status
+
+master:
+[![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=master)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core)
+develop:
+[![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=develop)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core)

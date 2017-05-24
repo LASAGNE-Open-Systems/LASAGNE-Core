@@ -1,0 +1,50 @@
+branches:
+  only:
+  - master
+  - develop
+
+os: Visual Studio 2015
+
+clone_depth: 10
+
+install:
+  - mkdir ext
+  - cd ext
+  - git clone --depth 1 git://github.com/DOCGroup/MPC.git
+  - git clone --depth 1 git://github.com/DOCGroup/ACE_TAO.git
+  - git clone --depth 1 git://github.com/objectcomputing/OpenDDS.git
+  - cd ..
+  - set MPC_ROOT=%CD%\ext\MPC
+  - set ACE_ROOT=%CD%\ext\ACE_TAO\ACE
+  - set TAO_ROOT=%CD%\ext\ACE_TAO\TAO
+  - set DDS_ROOT=%CD%\ext\OpenDDS
+  - set DAF_ROOT=%CD%
+  - set TAF_ROOT=%CD%\TAF
+  - set PATH=%ACE_ROOT%\lib:%PATH%
+  - set PATH=%ACE_ROOT%\bin:%PATH%
+  - set PATH=%DDS_ROOT%\lib:%PATH%
+  - set PATH=%DDS_ROOT%\bin:%PATH%
+  - set PATH=%DAF_ROOT%\lib:%PATH%
+  - set PATH=%DAF_ROOT%\bin:%PATH%
+  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+  - copy %PENGUIN_ROOT%\build\config.h %ACE_ROOT%\ace
+  - copy %PENGUIN_ROOT%\build\default.features %ACE_ROOT%\bin\MakeProjectCreator\config
+  - perl %ACE_ROOT%\bin\mwc.pl -type vc14 %TAO_ROOT%\TAO_ACE.mwc
+  - perl %ACE_ROOT%\bin\mwc.pl -type vc14 %DDS_ROOT%\DDS_no_tests.mwc
+  - perl %ACE_ROOT%\bin\mwc.pl -type vc14 %TAF_ROOT%\TAF.mwc
+
+platform:
+  - x64
+
+configuration:
+  - Debug
+
+build:
+  parallel: true
+
+build_script:
+  - msbuild "%TAO_ROOT%\TAO_ACE.sln" /maxcpucount /verbosity:minimal /p:Configuration=Debug;Platform=x64
+  - msbuild "%DDS_ROOT%\DDS_no_tests.sln" /maxcpucount /verbosity:minimal /p:Configuration=Debug;Platform=x64
+  - msbuild "%TAF_ROOT%\TAF.sln" /maxcpucount /verbosity:minimal /p:Configuration=Debug;Platform=x64 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+test: off

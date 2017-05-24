@@ -10,6 +10,7 @@ workspace {
   TTY_Asynch
 
   exclude {
+    ext
     mvn
   }
 }

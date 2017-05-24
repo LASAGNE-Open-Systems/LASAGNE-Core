@@ -1,0 +1,59 @@
+sudo: false
+
+language: cpp
+
+os:
+  - linux
+
+compiler:
+  - gcc
+
+env:
+  global:
+    # MPC settings
+    - MPC_ROOT=$TRAVIS_BUILD_DIR/ext/MPC
+    # ACE/TAO settings
+    - ACE_ROOT=$TRAVIS_BUILD_DIR/ext/ACE_TAO/ACE
+    - TAO_ROOT=$TRAVIS_BUILD_DIR/ext/ACE_TAO/TAO
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ACE_ROOT/lib
+    # OpenDDS settings
+    - DDS_ROOT=$TRAVIS_BUILD_DIR/ext/OpenDDS
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DDS_ROOT/lib
+    # LASAGNE settings
+    - DAF_ROOT=$TRAVIS_BUILD_DIR
+    - TAF_ROOT=$DAF_ROOT/TAF
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DAF_ROOT/lib
+
+before_install:
+  - mkdir ext
+  - cd ext
+  - git clone --depth 1 git://github.com/DOCGroup/MPC.git
+  - git clone --depth 1 git://github.com/DOCGroup/ACE_TAO.git
+  - git clone --depth 1 git://github.com/objectcomputing/OpenDDS.git
+  - cd ..
+
+branches:
+  only:
+    - develop
+    - master
+
+install:
+
+before_script:
+  # Copy additional build files into the correct locations
+  - cp build/config.h $ACE_ROOT/ace/config.h
+  - cp build/default.features $ACE_ROOT/bin/MakeProjectCreator/config/default.features
+  - cp build/platform_macros.GNU $ACE_ROOT/include/makeinclude/platform_macros.GNU
+  # Build dependencies
+  - cd $TAO_ROOT
+  - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAO_ACE.mwc
+  - make -j 2
+  - cd $DDS_ROOT
+  - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 DDS_no_tests.mwc
+  - make -j 2
+  - cd $TRAVIS_BUILD_DIR
+
+script:
+  - cd $TAF_ROOT
+  - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAF.mwc
+  - make -j 2
