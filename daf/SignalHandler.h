@@ -67,7 +67,6 @@ namespace DAF
      */
     class DAF_Export SignalHandler : protected DAF::Event_Handler
         , ACE_Auto_Event
-        , ACE_Copy_Disabled
     {
         /// Windows ACE_Auto_Event handler
         virtual int handle_signal(int sig, siginfo_t *siginfo, ucontext_t *sigcxt = 0);
@@ -239,6 +238,12 @@ namespace DAF
         * was passed in when <schedule_timer> was invoked.
         */
         virtual int handle_timeout(const ACE_Time_Value &current_time, const void *act);
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(SignalHandler & operator = (const SignalHandler &))
+        ACE_UNIMPLEMENTED_FUNC(SignalHandler(const SignalHandler &))
     };
 
     template <> inline void

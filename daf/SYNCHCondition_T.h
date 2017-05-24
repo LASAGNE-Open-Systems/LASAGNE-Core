@@ -37,7 +37,6 @@
 #include <ace/Guard_T.h>
 #include <ace/Atomic_Op.h>
 #include <ace/Synch_Traits.h>
-#include <ace/Copy_Disabled.h>
 #include <ace/Condition_Thread_Mutex.h>
 
 typedef ACE_SYNCH_MUTEX                 DAF_SYNCH_MUTEX;
@@ -55,7 +54,7 @@ namespace DAF
     * state.  If interrupted, a broadcast is sent to all waiters with the
     * indication that they have been interrupted.
     */
-    template <typename T> class SYNCHCondition : ACE_Copy_Disabled
+    template <typename T> class SYNCHCondition
     {
         ACE_Condition<T> condition_mutex_; // Use underlying condition variable emulation
 
@@ -107,6 +106,12 @@ namespace DAF
 
         _waiters_type waiters_;
         volatile bool interrupted_;
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const SYNCHCondition<T> &))
+        ACE_UNIMPLEMENTED_FUNC(SYNCHCondition(const SYNCHCondition<T> &))
     };
 
     template <typename T> int

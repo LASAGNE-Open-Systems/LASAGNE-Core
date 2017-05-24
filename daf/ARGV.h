@@ -24,7 +24,6 @@
 #include "DAF_export.h"
 
 #include <ace/ARGV.h>
-#include <ace/Copy_Disabled.h>
 
 #include <string>
 #include <list>
@@ -51,7 +50,7 @@ namespace DAF
     * For example, @c $HOME/file will not substitute the value of the HOME
     * environment variable.
     */
-    class DAF_Export ARGV : ACE_Copy_Disabled
+    class DAF_Export ARGV
     {
         mutable ACE_ARGV args_;
 
@@ -221,6 +220,12 @@ namespace DAF
         bool substitute_env_args_;
 
         std::list<std::string> args_list_;
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(ARGV & operator = (const ARGV &))
+        ACE_UNIMPLEMENTED_FUNC(ARGV(const ARGV &))
     };
 
     inline ARGV::ARGV(bool substitute_env_args) : args_(substitute_env_args)

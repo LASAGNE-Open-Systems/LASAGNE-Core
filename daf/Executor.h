@@ -41,7 +41,7 @@ namespace DAF
     *           Executor interfacing strategies
     * \ingroup executor
     */
-    class DAF_Export Executor : ACE_Copy_Disabled
+    class DAF_Export Executor
     {
     public:
 
@@ -71,6 +71,7 @@ namespace DAF
             return size_t(0);
         }
     };
+
 } // namespace DAF
 
 #endif

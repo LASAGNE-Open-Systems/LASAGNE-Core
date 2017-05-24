@@ -38,7 +38,6 @@ namespace DAF
     * application. Multiple threads and wait on the state of the shudown handler.
     */
     class DAF_Export ShutdownHandler : protected ACE_Event_Handler
-        , ACE_Copy_Disabled
     {
         int signal_;
 
@@ -70,6 +69,12 @@ namespace DAF
         virtual int handle_signal(int sig,siginfo_t *sig_info,ucontext_t *sig_cxt);
 
         virtual int handle_shutdown(int signal = 0);
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(ShutdownHandler & operator = (const ShutdownHandler &))
+        ACE_UNIMPLEMENTED_FUNC(ShutdownHandler(const ShutdownHandler &))
     };
 
 } // namespace DAF

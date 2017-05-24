@@ -86,7 +86,7 @@ namespace DAF
     *
     * ATTRIBUTION: Based on the CORBA::Object specification and TAO implementation of proxy's
     */
-    class DAF_Export RefCount : ACE_Copy_Disabled
+    class DAF_Export RefCount
     {
         volatile size_t refCount_;
 
@@ -124,6 +124,12 @@ namespace DAF
     protected:
 
         ACE_SYNCH_MUTEX refLock_;  // Allow Protected Access
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(RefCount & operator = (const RefCount &))
+        ACE_UNIMPLEMENTED_FUNC(RefCount(const RefCount &))
     };
 
     DAF_DECLARE_REFCOUNTABLE( RefCount );
