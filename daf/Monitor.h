@@ -131,7 +131,7 @@ namespace DAF
     private:
 
         // = Prevent assignment and initialization.
-        ACE_UNIMPLEMENTED_FUNC(Monitor & operator = (const Monitor &))
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const Monitor &))
         ACE_UNIMPLEMENTED_FUNC(Monitor(const Monitor &))
 
     };

@@ -162,7 +162,7 @@ namespace DAF
     private:
 
         // = Prevent assignment and initialization.
-        ACE_UNIMPLEMENTED_FUNC(Configurator & operator = (const Configurator &))
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const Configurator &))
         ACE_UNIMPLEMENTED_FUNC(Configurator(const Configurator &))
     };
 

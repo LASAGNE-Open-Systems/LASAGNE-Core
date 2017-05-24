@@ -242,7 +242,7 @@ namespace DAF
     private:
 
         // = Prevent assignment and initialization.
-        ACE_UNIMPLEMENTED_FUNC(SignalHandler & operator = (const SignalHandler &))
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const SignalHandler &))
         ACE_UNIMPLEMENTED_FUNC(SignalHandler(const SignalHandler &))
     };
 

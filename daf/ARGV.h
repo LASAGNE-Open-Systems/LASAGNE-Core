@@ -224,7 +224,7 @@ namespace DAF
     private:
 
         // = Prevent assignment and initialization.
-        ACE_UNIMPLEMENTED_FUNC(ARGV & operator = (const ARGV &))
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const ARGV &))
         ACE_UNIMPLEMENTED_FUNC(ARGV(const ARGV &))
     };
 

@@ -73,7 +73,7 @@ namespace DAF
     private:
 
         // = Prevent assignment and initialization.
-        ACE_UNIMPLEMENTED_FUNC(ShutdownHandler & operator = (const ShutdownHandler &))
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const ShutdownHandler &))
         ACE_UNIMPLEMENTED_FUNC(ShutdownHandler(const ShutdownHandler &))
     };
 
