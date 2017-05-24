@@ -74,18 +74,12 @@ namespace DAF
     * --> Doug Lee
     */
 
-    namespace {
-        struct Thread_Descriptor;   // Forward Declaration
-    }
-
     class DAF_Export TaskExecutor : public ACE_Task_Base
         , public DAF::Executor // Ensure we extend DAF::Executor abstract base
     {
         using ACE_Task_Base::activate;  // make this private - Use this->execute()
         using ACE_Task_Base::thr_count; // make this private - Use this->size() const
         using ACE_Task_Base::grp_id;    // make this private - Use this->grp_id() const
-
-        friend struct Thread_Descriptor;
 
     public:
 
@@ -325,6 +319,42 @@ namespace DAF
 
         /// Positive (coupled) handoff channel for DAF::Runnable to a waiting pool thread.
         DAF::SynchronousChannel<DAF::Runnable_ref>   taskChannel_;
+
+    private:
+
+        struct Thread_Descriptor : ACE_Thread_Descriptor
+        {
+            int threadTerminate(void);
+
+            ACE_hthread_t   threadHandle(void)  const   { return this->thr_handle_; }
+            long          & threadFlags(void)           { return this->flags_; }
+            ACE_thread_t    threadID(void)      const   { return this->thr_id_; }
+            ACE_Task_Base * taskBase(void)      const   { return this->task_; }
+            ACE_UINT32    & threadState(void)           { return this->thr_state_; }
+        };
+
+        struct Thread_Manager : ACE_Thread_Manager
+        {
+            using ACE_Thread_Manager::thread_desc_self;
+            using ACE_Thread_Manager::remove_thr_all;
+
+            /** \todo{Fill this in} */
+            const ACE_TCHAR *dll_name(void) const
+            {
+                return DAF_DLL_NAME;
+            }
+
+            /** \todo{Fill this in} */
+            const ACE_TCHAR *name(void) const
+            {
+                return typeid(*this).name();
+            }
+
+            int terminate_task(ACE_Task_Base * task, int async_cancel);
+            int terminate_thr(Thread_Descriptor *td, int async_cancel);
+        };
+
+        typedef ACE_DLL_Singleton_T<Thread_Manager, ACE_SYNCH_MUTEX>    DAFSingletonThreadManager;
 
     private:
 

@@ -33,178 +33,18 @@ extern "C" void DAF_TaskExecutor_cleanup(void *obj, void *args)
 }
 #endif /* ACE_HAS_SIG_C_FUNC */
 
-//#define DAF_USES_TERMINATE_THREAD  /* Breaks ACE_Object_Manager Singleton */
+namespace
+{ // Ananomous
+
+    int make_grp_id(void *p)
+    {
+        return int(reinterpret_cast<size_t>(p) & (size_t(-1) >> 1));
+    }
+
+} // Ananomous
 
 namespace DAF
 {
-    namespace { // Ananomous
-
-        int make_grp_id(void *p)
-        {
-            return int(reinterpret_cast<size_t>(p) & (size_t(-1) >> 1));
-        }
-
-        struct Thread_Descriptor : ACE_Thread_Descriptor // Allow Access to thread descriptor bits
-        {
-            int threadTerminate(void);
-
-            ACE_hthread_t   threadHandle(void)  const   { return this->thr_handle_; }
-            long          & threadFlags(void)           { return this->flags_; }
-            ACE_thread_t    threadID(void)      const   { return this->thr_id_; }
-            ACE_Task_Base * taskBase(void)      const   { return this->task_; }
-            ACE_UINT32    & threadState(void)           { return this->thr_state_; }
-        };
-
-        int Thread_Descriptor::threadTerminate(void)
-        {
-            const ACE_thread_t thr_id = this->threadID(); // Save Thread ID for reporting
-
-            // ACE_Thread::cancel under pthread will result in a pthread_cancel being
-            // called. (See 'man pthread_cancel') which results in an async
-            // roll back through the thread's stack via the abi::__forced_unwind
-            // C++ exception (GCC/G++ special!!). During this process the pthread/ACE structures
-            // correctly unwinds and deallocates the Thread Specific Storage (TSS/TLS)
-            // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
-            // etc.
-
-#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-            this->do_at_exit(); // Do the thread at exit logics
-#endif
-            if (DAF_OS::thr_cancel(thr_id)) {
-
-                int error = DAF_OS::last_error();
-
-                // Set the thread flags to be THR_DETACHED to stop it being
-                // added to the 'register_as_terminated' list in the thread_manager
-                // through terminate() below.
-
-                ACE_SET_BITS(this->threadFlags(), THR_DETACHED);
-
-                // DAF_OS::thr_cancel() is a NO-OP on windows and will always drop back with
-                // Error Not Supported (ENOTSUP).
-
-                switch (error) {
-#if defined(ACE_WIN32)
-                case ENOTSUP:
-
-                    this->at_exit(this->taskBase(), 0, 0); // Ensure we don't do the at_exit()
-
-                    // Windows Direct API call to TerminateThread. (See MSDN TerminateThread).
-                    // This is a rather large sledgehammer on the thread. It results in
-                    // an unknown condition in the ACE Thread Specific Storage
-                    // (ie will most likely leak).
-                    //
-                    // There are still some outstanding issues with this current approach!!
-                    //
-                    if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) {
-                        // Mark thread as terminated to stop possible unwind through cleanup
-                        // See TaskExecutor::execute_run() and TaskExecutor::execute_svc()
-                        ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED);
-                        break;
-                    }
-
-                    error = DAF_OS::last_error(); // Update error to that from TerminateThread
-
-                    // Fall through to signal error
-#endif
-                default:
-                    if (DAF::debug() > 1) {
-                        ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF (%P | %t) ERROR - Thread_Descriptor:\n")
-                            ACE_TEXT("\t - Failed to cancel thread; id=%d[0x%X],error=%d[%s]\n")
-                            , unsigned(thr_id)
-                            , unsigned(thr_id)
-                            , error
-                            , DAF::last_error_text(error).c_str()));
-                    }
-                }
-
-#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->terminate();
-#else
-                TaskExecutor::cleanup(this->taskBase(), this); return -1; // This may leave TSS leaking (Fixed with terminate() access)
-#endif
-            }
-
-            // NOTE: The following terminate() may not be needed under pthread implementations (Linux)
-            //
-            // this->terminate(); Do NOT put this in -> It causes a leak of TSS related elements
-            //
-            // The log_msg is correctly handled by the pthread unwinding of
-            // Thread Specific Storage. See above comments (ACE_Thread::cancel)
-            //
-            // This could result in a race condition between the internal TaskExecutor
-            // Thread_Manager destroying  and the Thread's TSS unwind which
-            // deletes the ACE_Log_Msg. It will either race and clear (but leak).
-            // or give a pthread_mutex_lock error, or seg fault.
-
-            return 0;
-        }
-
-        /**
-        * Trickery with inheritance to allow access to protected elements.
-        */
-        typedef struct Thread_Manager : ACE_Thread_Manager
-        {
-            using ACE_Thread_Manager::thread_desc_self;
-            using ACE_Thread_Manager::remove_thr_all;
-
-            /** \todo{Fill this in} */
-            const ACE_TCHAR *dll_name(void) const
-            {
-                return DAF_DLL_NAME;
-            }
-
-            /** \todo{Fill this in} */
-            const ACE_TCHAR *name(void) const
-            {
-                return typeid(*this).name();
-            }
-
-            int terminate_task(ACE_Task_Base * task, int async_cancel);
-            int terminate_thr(Thread_Descriptor *td, int async_cancel);
-
-        } DAF_Thread_Manager;
-
-        int
-        Thread_Manager::terminate_task(ACE_Task_Base * task, int async_cancel)
-        {
-            ACE_MT(ACE_GUARD_RETURN(ACE_Thread_Mutex, ace_mon, this->lock_, -1));
-            ACE_ASSERT(this->thr_to_be_removed_.is_empty());
-
-            int result = 0;
-
-            if (task) for (ACE_Double_Linked_List_Iterator<ACE_Thread_Descriptor> iter(this->thr_list_); !iter.done(); iter.advance()) {
-                Thread_Descriptor * td(static_cast<Thread_Descriptor *>(iter.next()));
-                if (td && td->taskBase() == task && this->terminate_thr(td, async_cancel)) {
-                    result = -1;
-                }
-            }
-
-            // Must terminate threads after we have traversed the thr_list_ to prevent clobber thr_list_'s integrity.
-
-            for (ACE_Thread_Descriptor * ace_td = 0; this->thr_to_be_removed_.dequeue_head(ace_td) != -1;) {
-                Thread_Descriptor * td = static_cast<Thread_Descriptor *>(ace_td);
-                if (td && td->threadTerminate() == -1) {
-                    this->remove_thr(td, true);
-                }
-            }
-
-            return result;
-        }
-
-        int
-        Thread_Manager::terminate_thr(Thread_Descriptor * td, int /* async_cancel */)
-        {
-            if (ACE_BIT_DISABLED(td->threadState(), (ACE_THR_JOINING | ACE_THR_TERMINATED))) {
-                return this->thr_to_be_removed_.enqueue_tail(td);
-            }
-            return -1;
-        }
-
-    } // Ananomous
-
-    typedef ACE_DLL_Singleton_T<DAF_Thread_Manager, ACE_SYNCH_MUTEX>    DAFSingletonThreadManager;
-
     template <> inline DAF::Runnable_ref
     SynchronousChannel<DAF::Runnable_ref>::extract(void) throw (DAF::InternalException)
     {
@@ -623,6 +463,132 @@ namespace DAF
         }
 
         this->cmd_ = DAF::Runnable::_nil(); return -1;
+    }
+
+    /*********************************************************************************/
+
+    int
+    TaskExecutor::Thread_Descriptor::threadTerminate(void)
+    {
+        const ACE_thread_t thr_id = this->threadID(); // Save Thread ID for reporting
+
+                                                      // ACE_Thread::cancel under pthread will result in a pthread_cancel being
+                                                      // called. (See 'man pthread_cancel') which results in an async
+                                                      // roll back through the thread's stack via the abi::__forced_unwind
+                                                      // C++ exception (GCC/G++ special!!). During this process the pthread/ACE structures
+                                                      // correctly unwinds and deallocates the Thread Specific Storage (TSS/TLS)
+                                                      // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
+                                                      // etc.
+
+#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
+        this->do_at_exit(); // Do the thread at exit logics
+#endif
+        if (DAF_OS::thr_cancel(thr_id)) {
+
+            int error = DAF_OS::last_error();
+
+            // Set the thread flags to be THR_DETACHED to stop it being
+            // added to the 'register_as_terminated' list in the thread_manager
+            // through terminate() below.
+
+            ACE_SET_BITS(this->threadFlags(), THR_DETACHED);
+
+            // DAF_OS::thr_cancel() is a NO-OP on windows and will always drop back with
+            // Error Not Supported (ENOTSUP).
+
+            switch (error) {
+#if defined(ACE_WIN32)
+            case ENOTSUP:
+
+                this->at_exit(this->taskBase(), 0, 0); // Ensure we don't do the at_exit()
+
+                                                       // Windows Direct API call to TerminateThread. (See MSDN TerminateThread).
+                                                       // This is a rather large sledgehammer on the thread. It results in
+                                                       // an unknown condition in the ACE Thread Specific Storage
+                                                       // (ie will most likely leak).
+                                                       //
+                                                       // There are still some outstanding issues with this current approach!!
+                                                       //
+                if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) {
+                    // Mark thread as terminated to stop possible unwind through cleanup
+                    // See TaskExecutor::execute_run() and TaskExecutor::execute_svc()
+                    ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED);
+                    break;
+                }
+
+                error = DAF_OS::last_error(); // Update error to that from TerminateThread
+
+                                              // Fall through to signal error
+#endif
+            default:
+                if (DAF::debug() > 1) {
+                    ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF (%P | %t) ERROR - Thread_Descriptor:\n")
+                        ACE_TEXT("\t - Failed to cancel thread; id=%d[0x%X],error=%d[%s]\n")
+                        , unsigned(thr_id)
+                        , unsigned(thr_id)
+                        , error
+                        , DAF::last_error_text(error).c_str()));
+                }
+            }
+
+#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
+            this->terminate();
+#else
+            TaskExecutor::cleanup(this->taskBase(), this); return -1; // This may leave TSS leaking (Fixed with terminate() access)
+#endif
+        }
+
+        // NOTE: The following terminate() may not be needed under pthread implementations (Linux)
+        //
+        // this->terminate(); Do NOT put this in -> It causes a leak of TSS related elements
+        //
+        // The log_msg is correctly handled by the pthread unwinding of
+        // Thread Specific Storage. See above comments (ACE_Thread::cancel)
+        //
+        // This could result in a race condition between the internal TaskExecutor
+        // Thread_Manager destroying  and the Thread's TSS unwind which
+        // deletes the ACE_Log_Msg. It will either race and clear (but leak).
+        // or give a pthread_mutex_lock error, or seg fault.
+
+        return 0;
+    }
+
+    /*********************************************************************************/
+
+    int
+    TaskExecutor::Thread_Manager::terminate_task(ACE_Task_Base * task, int async_cancel)
+    {
+        ACE_MT(ACE_GUARD_RETURN(ACE_Thread_Mutex, ace_mon, this->lock_, -1));
+        ACE_ASSERT(this->thr_to_be_removed_.is_empty());
+
+        int result = 0;
+
+        if (task) for (ACE_Double_Linked_List_Iterator<ACE_Thread_Descriptor> iter(this->thr_list_); !iter.done(); iter.advance()) {
+            Thread_Descriptor * td(static_cast<Thread_Descriptor *>(iter.next()));
+            if (td && td->taskBase() == task && this->terminate_thr(td, async_cancel)) {
+                result = -1;
+            }
+        }
+
+        // Must terminate threads after we have traversed the thr_list_ to prevent clobber thr_list_'s integrity.
+
+        for (ACE_Thread_Descriptor * ace_td = 0; this->thr_to_be_removed_.dequeue_head(ace_td) != -1;) {
+            Thread_Descriptor * td = static_cast<Thread_Descriptor *>(ace_td);
+            if (td && td->threadTerminate() == -1) {
+                this->remove_thr(td, true);
+            }
+        }
+
+        return result;
+    }
+
+    int
+    TaskExecutor::Thread_Manager::terminate_thr(Thread_Descriptor * td, int /* async_cancel */)
+    {
+        if (ACE_BIT_DISABLED(td->threadState(), (ACE_THR_JOINING | ACE_THR_TERMINATED))) {
+            return this->thr_to_be_removed_.enqueue_tail(td);
+        }
+        return -1;
     }
 
     /*********************************************************************************/
