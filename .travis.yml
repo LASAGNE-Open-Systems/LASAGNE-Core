@@ -52,7 +52,7 @@ branches:
 install:
 
 before_script:
-  # Print out the compiler version
+  # Print out the compiler version (useful to track)
   - $COMPILER --version
   # Copy additional build files into the correct locations
   - cp bin/build/ace/config.h $ACE_ROOT/ace/config.h
