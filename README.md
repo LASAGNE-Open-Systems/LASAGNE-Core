@@ -35,6 +35,10 @@ Submissions will only be considered for review and possible inclusion if they me
 * Approach is based upon openly available and published material
 The intent is to follow a branching and release strategy along the lines of the established [GitFlow](http://nvie.com/posts/a-successful-git-branching-model/).
 
+### Important Note on Workflow ###
+Please make sure to target 'develop' as the default target for pull requests to fit in with this approach.
+There may be times where bug fixes are applied to staged release branches but the majority of the time, 'develop' is the target.
+
 ## License
 The LASAGNE Core is licensed under the terms of the LGPL-3.0 license. See the [LICENSE](LICENSE) file for details.
 
