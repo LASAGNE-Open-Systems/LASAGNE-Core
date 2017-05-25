@@ -1,3 +1,4 @@
+
 ###############################################################################
 # Set default behavior to automatically normalize line endings.
 ###############################################################################
@@ -61,3 +62,9 @@
 #*.PDF   diff=astextplain
 #*.rtf   diff=astextplain
 #*.RTF   diff=astextplain
+
+# Mark files as vendored so they don't count towards code statistics
+LDBC/SQLite/sqlite3/* linguist-vendored
+
+# Mark files as documentation
+docs/* linguist-documentation
