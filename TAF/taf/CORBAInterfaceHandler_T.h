@@ -42,7 +42,7 @@ namespace TAF
 {
     template < typename INTERFACE_TYPE, typename DEFAULTPOA_TYPE = TAF_DEFAULT_POA >
     class CORBAInterfaceHandler_T : virtual public INTERFACE_TYPE
-        , protected DEFAULTPOA_TYPE, ACE_Copy_Disabled
+        , protected DEFAULTPOA_TYPE
     {
         IORBinderSequence   ior_binder_;
 
@@ -83,6 +83,12 @@ namespace TAF
         virtual int init_bind_i(const std::string &name);
 
         _interface_stub_var_type stub_reference_;
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const CORBAInterfaceHandler_T<INTERFACE_TYPE,DEFAULTPOA_TYPE> &))
+        ACE_UNIMPLEMENTED_FUNC(CORBAInterfaceHandler_T(const CORBAInterfaceHandler_T<INTERFACE_TYPE, DEFAULTPOA_TYPE> &))
     };
 
 } // namespace TAF
