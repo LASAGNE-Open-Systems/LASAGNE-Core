@@ -1,0 +1,10 @@
+feature(ndds) : DDSActiveService, ndds {
+  specific(prop:windows) {
+    macros += NDDS_USER_DLL_EXPORT
+  }
+}
+
+feature(nddscorba) {
+  requires      += ndds
+  ndds_ts_flags += -corba LTMTopicDetailsC.h
+}
