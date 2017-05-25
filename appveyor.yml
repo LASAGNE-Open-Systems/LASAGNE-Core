@@ -5,10 +5,10 @@ branches:
 
 environment:
   matrix:
-    - os: Visual Studio 2015
+    - image: Visual Studio 2015
       MPC_TYPE: vc14
 
-    - os: Visual Studio 2017
+    - image: Visual Studio 2017
       MPC_TYPE: vs2017
 
 
@@ -41,10 +41,12 @@ install:
   - copy %DAF_ROOT%\bin\build\ace\config.h %ACE_ROOT%\ace
   - copy %DAF_ROOT%\bin\build\ace\default.features %ACE_ROOT%\bin\MakeProjectCreator\config
   # Create solutions and projects
-  - if %MPC_TYPE%=="vc14" (
+  - if %MPC_TYPE%==vc14 (
+      echo Using Visual Studio 2015 (vc14)
       call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
     ) else (
-        if %MPC_TYPE%=="vs2017" (
+        if %MPC_TYPE%==vs2017 (
+          echo Using Visual Studio 2017 (vs2017)
           call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
         ) else (
             echo Unknown compiler type for MPC
