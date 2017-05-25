@@ -1,53 +1,13 @@
 #ifndef LTM_CORBACTIVESERVICE_IDL
 #define LTM_CORBACTIVESERVICE_IDL
 
+#include "LTMTopicDetails.idl"
+
 #if defined(__TAO_IDL)
-# pragma prefix "dsto.defence.gov.au"
-#endif
 
-#if !defined(CDDS_KEY)
-# if defined(TAF_USES_COREDX) && defined(DDS_IDL) // Define used by CoreDX
-#  define CDDS_KEY __dds_key
-#  else
-#  define CDDS_KEY
-# endif
-#endif
+# pragma prefix "dst.defence.gov.au"
 
-#if defined(__TAO_IDL) || defined(TAF_USES_DDSCORBA)
 module ltm {
-    const string LTMTopicDetailsName = "LTMTopicDetails";
-#else
-module ltm_dds {  // RTI seems to need '{' on the same line as 'module' ???
-#endif
-
-# if defined(__TAO_IDL)
-#  pragma version ltm 1.0
-# endif
-
-// Pragmas used by OpenDDS
-# if defined(__TAO_IDL) || defined(TAF_USES_OPENDDS)
-#  pragma DCPS_DATA_TYPE  "ltm::LTMTopicDetails"
-#  pragma DCPS_DATA_KEY   "ltm::LTMTopicDetails topicID_"
-# endif
-
-    struct LTMTimestamp {
-        unsigned long long sec_; unsigned long usec_;
-    };
-
-    struct LTMTopicDetails
-    {
-                LTMTimestamp        topicTime_;     // GMT Time
-    CDDS_KEY    unsigned long       topicID_;       //@key
-                string              topicData_;
-    };
-
-#ifdef TAF_USES_OPENSPLICE
-# pragma keylist LTMTopicDetails topicID_
-#endif // TAF_USES_OPENSPLICE
-
-    typedef sequence<LTMTopicDetails, 10>  LTMTopicDetailsList;
-
-# if defined(__TAO_IDL)
 
     const string CORBActiveService_OID = "LTM_CORBActiveService";
 
@@ -56,8 +16,8 @@ module ltm_dds {  // RTI seems to need '{' on the same line as 'module' ???
         long    pushTopic(in LTMTopicDetails td);
     };
 
-# endif
+}; // ltm
 
-}; // tlm/tlm_dds
+# endif
 
 #endif // LTM_CORBACTIVESERVICE_IDL

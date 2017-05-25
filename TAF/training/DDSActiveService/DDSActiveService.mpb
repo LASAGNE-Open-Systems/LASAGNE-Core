@@ -1,7 +1,8 @@
 project : taflib {
   sharedname    = *
 
-  idlflags      += -Wb,export_include=DDSActiveService_export.h -Wb,export_macro=DDSActiveService_Export
+  idlflags      += -Wb,export_include=DDSActiveService_export.h \
+                   -Wb,export_macro=DDSActiveService_Export
 
   libout        = $(DAF_ROOT)/lib 
 
