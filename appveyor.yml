@@ -3,12 +3,13 @@ branches:
   - master
   - develop
 
-matrix:
-  - os: Visual Studio 2015
-    env: MPC_TYPE=vc14
+environment:
+  matrix:
+    - os: Visual Studio 2015
+      MPC_TYPE: vc14
 
-  - os: Visual Studio 2017
-    env: MPC_TYPE=vs2017
+    - os: Visual Studio 2017
+      MPC_TYPE: vs2017
 
 
 clone_depth: 10
