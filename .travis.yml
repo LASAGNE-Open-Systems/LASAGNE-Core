@@ -1,12 +1,24 @@
 sudo: false
-
 language: cpp
 
-os:
-  - linux
+matrix:
+  include:
 
-compiler:
-  - gcc
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-4.8']
+      env: COMPILER=g++-4.8
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-6.2']
+      env: COMPILER=g++-6.2
 
 env:
   global:
@@ -40,6 +52,8 @@ branches:
 install:
 
 before_script:
+  # Print out the compiler version
+  - $COMPILER --version
   # Copy additional build files into the correct locations
   - cp bin/build/ace/config.h $ACE_ROOT/ace/config.h
   - cp bin/build/ace/default.features $ACE_ROOT/bin/MakeProjectCreator/config/default.features
@@ -47,13 +61,12 @@ before_script:
   # Build dependencies
   - cd $TAO_ROOT
   - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAO_ACE.mwc
-  - make -j 2
+  - make CXX=$COMPILER -j 2
   - cd $DDS_ROOT
   - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 DDS_no_tests.mwc
-  - make -j 2
-  - cd $TRAVIS_BUILD_DIR
+  - make CXX=$COMPILER -j 2
 
 script:
   - cd $TAF_ROOT
   - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAF.mwc
-  - make -j 2
+  - make CXX=$COMPILER -j 2
