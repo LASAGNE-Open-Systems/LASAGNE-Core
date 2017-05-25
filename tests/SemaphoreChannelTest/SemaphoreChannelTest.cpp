@@ -64,7 +64,7 @@ namespace test
             for(int i = 0; i < 10; i++) {
                 this->testChannel().put(TestValue(i));
             }
-            ACE_OS::sleep(2); return 0;
+            DAF_OS::sleep(2); return 0;
         }
 
     protected:

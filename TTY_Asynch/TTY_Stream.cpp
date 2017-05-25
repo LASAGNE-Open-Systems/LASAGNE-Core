@@ -134,7 +134,7 @@ namespace DEV
                 } else if (io_len > 0 || (io_len += int(this->size_)) > 0) {
                     io_len = ace_min(iov_len, io_len, blen);
 
-                    ACE_OS::memcpy(this->ptr(head), &iov_buf[put_len], io_len);
+                    DAF_OS::memcpy(this->ptr(head), &iov_buf[put_len], io_len);
                     {
                         head = ((head + io_len) % this->size_); // Same as put_bump()
                     }
@@ -164,7 +164,7 @@ namespace DEV
                 } else if (io_len > 0 || (io_len += int(this->size_)) > 0) {
                     io_len = ace_min(iov_len, io_len, blen);
 
-                    ACE_OS::memcpy(&iov_buf[get_len], this->ptr(tail), io_len);
+                    DAF_OS::memcpy(&iov_buf[get_len], this->ptr(tail), io_len);
                     {
                         tail = ((tail + io_len) % this->size_); // Same as get_bump()
                     }
@@ -215,7 +215,7 @@ namespace DEV
             size_t len = ace_min(size_t(io_len), blen, this->size() / 2);
 
              // Used to debug troublesome circular buffer arithmetic (smiley)
-             //char s[128]; ACE_OS::sprintf(s, "Writer: len=%04d;io_len=%04d;head=%04d;tail=%04d;blen=%04d"
+             //char s[128]; DAF_OS::sprintf(s, "Writer: len=%04d;io_len=%04d;head=%04d;tail=%04d;blen=%04d"
              //       , len, io_len, head, tail, blen); std::cout << s << std::endl;
 
             ACE_Message_Block mb_data(this->ptr(tail), len); mb_data.wr_ptr(len);
@@ -223,7 +223,7 @@ namespace DEV
 //          ACE_DEBUG((LM_DEBUG, ACE_TEXT(">>TX-Send Length=%d\n"), len));
 
             if (len && this->send_stream(mb_data) == 0) {
-                ACE_OS::thr_yield(); return 0;
+                DAF_OS::thr_yield(); return 0;
             }
 
             DAF::print_last_error();
@@ -249,7 +249,7 @@ namespace DEV
             size_t len = ace_min(size_t(io_len), blen, this->size() / 2);
 
              // Used to debug troublesome circular buffer arithmetic (smiley)
-             //char s[128]; ACE_OS::sprintf(s, "Reader: len=%04d;io_len=%04d;head=%04d;tail=%04d;blen=%04d"
+             //char s[128]; DAF_OS::sprintf(s, "Reader: len=%04d;io_len=%04d;head=%04d;tail=%04d;blen=%04d"
              //       , len, io_len, head, tail, blen); std::cout << s << std::endl;
 
             ACE_Message_Block mb_data(this->ptr(head), len);
@@ -257,7 +257,7 @@ namespace DEV
 //          ACE_DEBUG((LM_DEBUG, ACE_TEXT(">>RX-Read Length=%d\n"), len));
 
             if (len && this->recv_stream(mb_data) == 0) {  // Start Next Read.
-                ACE_OS::thr_yield(); return 0;
+                DAF_OS::thr_yield(); return 0;
             }
 
             DAF::print_last_error();

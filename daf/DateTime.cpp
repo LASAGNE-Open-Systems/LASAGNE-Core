@@ -64,7 +64,7 @@
 namespace {
 
     const struct _DateInitTime {
-        _DateInitTime(void) { ACE_OS::tzset(); }
+        _DateInitTime(void) { DAF_OS::tzset(); }
     } _tzTime;
 
     const int daysInCalanderMonth[] = { 0,

@@ -60,7 +60,7 @@ namespace {
 
         case 'c':
             for (const ACE_TCHAR *max_columns = get_opts.opt_arg(); max_columns;) {
-                _max_columns = unsigned(ace_range(1, 10, ACE_OS::atoi(max_columns))); break;
+                _max_columns = unsigned(ace_range(1, 10, DAF_OS::atoi(max_columns))); break;
             } break;
 
         case 'f':
@@ -68,18 +68,18 @@ namespace {
 
         case 'w':
             for (const ACE_TCHAR *loop_delay = get_opts.opt_arg(); loop_delay;) {
-                _loop_delay = unsigned(ace_range(1, 30, ACE_OS::atoi(loop_delay))); break;
+                _loop_delay = unsigned(ace_range(1, 30, DAF_OS::atoi(loop_delay))); break;
             } break;
 
         case 'n': _use_naming = true;
             for (const ACE_TCHAR *naming = get_opts.opt_arg(); naming;) {
-                _use_naming = (ace_range(0, 1, ACE_OS::atoi(naming)) ? true : false); break;
+                _use_naming = (ace_range(0, 1, DAF_OS::atoi(naming)) ? true : false); break;
             } break; // Turn on Naming optionally.
 
         case 'z': _debug = 1;
             for (const ACE_TCHAR *debug_lvl = get_opts.opt_arg(); debug_lvl;) {
                 if (::isdigit(int(*debug_lvl))) {
-                    _debug = ace_range(1, 10, ACE_OS::atoi(debug_lvl));
+                    _debug = ace_range(1, 10, DAF_OS::atoi(debug_lvl));
                 } break;
             } break; // Turn on Debug optionally at a level
 
@@ -102,7 +102,7 @@ namespace {
     {
         static size_t retry(1);
 
-        for (taf_xmpl::TextParser_var objRef; !_shutdown; ACE_OS::sleep(2)) {
+        for (taf_xmpl::TextParser_var objRef; !_shutdown; DAF_OS::sleep(2)) {
             try {
                 CORBA::Object_var server_proxy;
                 do {
@@ -167,7 +167,7 @@ namespace {
     CORBA::Boolean
     AlphabeticalPredicate_impl::callback_op(const taf_xmpl::WORDType &l, const taf_xmpl::WORDType &r)
     {
-        callbacks_++; return ACE_OS::strcmp(r.word_, l.word_) > 0 ? this->ascending_ : !this->ascending_;
+        callbacks_++; return DAF_OS::strcmp(r.word_, l.word_) > 0 ? this->ascending_ : !this->ascending_;
     }
 
     typedef TAF::ObjectStubRef<AlphabeticalPredicate_impl>  AlphabeticalPredicateStub_ref;
@@ -186,11 +186,11 @@ namespace {
     WordLengthPredicate_impl::callback_op(const taf_xmpl::WORDType &l, const taf_xmpl::WORDType &r)
     {
         callbacks_++;
-        int r_len = int(r.word_ ? ACE_OS::strlen(r.word_) : 0U);
-        int l_len = int(l.word_ ? ACE_OS::strlen(l.word_) : 0U);
+        int r_len = int(r.word_ ? DAF_OS::strlen(r.word_) : 0U);
+        int l_len = int(l.word_ ? DAF_OS::strlen(l.word_) : 0U);
         if (r_len == l_len) {
             if (r.count_ == l.count_) {
-                return ACE_OS::strcmp(r.word_, l.word_) > 0 ? this->ascending_ : !this->ascending_;
+                return DAF_OS::strcmp(r.word_, l.word_) > 0 ? this->ascending_ : !this->ascending_;
             }
             return (r.count_ > l.count_) ? this->ascending_ : !this->ascending_;
         }
@@ -225,7 +225,7 @@ int main(int argc, char *argv[])
 
         size_t iov_len = read_textfile(_TXT_FILENAME, io_buff.out());
 
-        if (iov_len == size_t(-1) || ACE_OS::strlen(io_buff.in()) != iov_len) {
+        if (iov_len == size_t(-1) || DAF_OS::strlen(io_buff.in()) != iov_len) {
             return -1;
         }
 
@@ -247,7 +247,7 @@ int main(int argc, char *argv[])
                     case 0: ascending = false;
                     case 1:
                         {
-                            ACE_OS::sprintf(timerMsg, ACE_TEXT("\n%04d - TextClient->InstanceRequest - Instance %s :")
+                            DAF_OS::sprintf(timerMsg, ACE_TEXT("\n%04d - TextClient->InstanceRequest - Instance %s :")
                                 , j, (ascending ? "Ascending" : "Decending"));
                             {
                                 DAF::HighResTimer _(timerMsg);
@@ -260,7 +260,7 @@ int main(int argc, char *argv[])
                         {
                             const AlphabeticalPredicateStub_ref predicate(new AlphabeticalPredicate_impl(ascending));
 
-                            ACE_OS::sprintf(timerMsg, ACE_TEXT("\n%04d - TextClient->PredicateRequest - Alphabetical %s :")
+                            DAF_OS::sprintf(timerMsg, ACE_TEXT("\n%04d - TextClient->PredicateRequest - Alphabetical %s :")
                                 , j, (ascending ? "Ascending" : "Decending"));
                             {
                                 DAF::HighResTimer _(timerMsg);
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
                         {
                             const WordLengthPredicateStub_ref predicate(new WordLengthPredicate_impl(ascending));
 
-                            ACE_OS::sprintf(timerMsg, ACE_TEXT("\n%04d - TextClient->PredicateRequest - WordLength %s :")
+                            DAF_OS::sprintf(timerMsg, ACE_TEXT("\n%04d - TextClient->PredicateRequest - WordLength %s :")
                                 , j, (ascending ? "Ascending" : "Decending"));
                             {
                                 DAF::HighResTimer _(timerMsg);
@@ -322,7 +322,7 @@ int main(int argc, char *argv[])
                 server_objRef = taf_xmpl::TextParser::_nil();
             }
 
-            ACE_OS::sleep(_loop_delay);
+            DAF_OS::sleep(_loop_delay);
         }
     } catch (const CORBA::Exception& ex) {
         ex._tao_print_exception ("TextParser CLIENT: UNEXPECTED exception caught - "); return -1;

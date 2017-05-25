@@ -112,7 +112,7 @@ namespace TAF
 
                     for (ACE_SOCK_Dgram dgram; dgram.open(ACE_Addr::sap_any) != -1;) {
 
-                        ACE_OS::sleep(ACE_Time_Value(0, suseconds_t(DAF_OS::rand(500, 5000))));  // Stagger replies
+                        DAF_OS::sleep(ACE_Time_Value(0, suseconds_t(DAF_OS::rand(500, 5000))));  // Stagger replies
 
                         const ACE_Time_Value send_timeout(3);
 

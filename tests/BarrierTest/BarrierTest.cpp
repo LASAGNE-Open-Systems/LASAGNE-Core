@@ -126,7 +126,7 @@ int test_NoBarrierCommand(int threadCount )
         const int barrierResult = barrier.barrier();
         ACE_UNUSED_ARG(barrierResult);
 
-        ACE_OS::thr_yield();
+        DAF_OS::thr_yield();
 
         value = count;
     }
@@ -165,7 +165,7 @@ int test_BarrierCommand(int threadCount)
         const int barrierResult = barrier.barrier();
         ACE_UNUSED_ARG(barrierResult);
 
-        ACE_OS::thr_yield();
+        DAF_OS::thr_yield();
 
         value = count ;
     }
@@ -208,7 +208,7 @@ int test_BarrierBrokenException(int threadCount)
             value++;
         }
 
-        ACE_OS::sleep(1);
+        DAF_OS::sleep(1);
         // Not sure why this value is not correct ? -> 0 ? coz the exception is thrown
         //value = reinterpret_cast<TestBarrier*>(broken.ptr())->broken_ ;
         //if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Broken Count %d\n", broken.ptr(), value));
@@ -249,10 +249,10 @@ int test_BarrierIllegalStateException(int threadCount)
         executor.execute(illegal);
 
         blocker.acquire();
-        ACE_OS::sleep(1);
+        DAF_OS::sleep(1);
 
         delete barrier;
-        ACE_OS::sleep(1);
+        DAF_OS::sleep(1);
     }
 
     value = reinterpret_cast<TestBarrier*>(illegal.ptr())->illegal_;
@@ -285,7 +285,7 @@ int test_BarrierTimeoutException(int threadCount )
         for (int i = 0 ; i < threadCount; ++i)
         {
             executor.execute(timeout);
-            ACE_OS::sleep(ACE_Time_Value(0, 500000));
+            DAF_OS::sleep(ACE_Time_Value(0, 500000));
         }
 
         value = reinterpret_cast<TestBarrier*>(timeout.ptr())->timeout_;
@@ -324,7 +324,7 @@ int test_BarrierWaitResetClean(int threadCount)
             blocker.acquire();
             blocker.acquire();
 
-            ACE_OS::sleep(ACE_Time_Value(0, 5000));
+            DAF_OS::sleep(ACE_Time_Value(0, 5000));
 
             bool clean = barrier.waitReset();
             result &= !barrier.broken() && clean;
@@ -378,7 +378,7 @@ int test_BarrierWaitResetTimeout(int threadCount)
         result &= barrier.broken() && !clean;
 
         if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s %d\n", (clean ? "YES" : "NO"), result));
-        ACE_OS::sleep(ACE_Time_Value(1));
+        DAF_OS::sleep(ACE_Time_Value(1));
     }
 
     value = tester->broken_  + tester->unknown_ + tester->illegal_  ;
@@ -472,12 +472,12 @@ int test_BarrierThreadKill(int threadCount)
         if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Killing the TaskExecutor\n"));
         delete kill_executor;
 
-        ACE_OS::sleep(ACE_Time_Value(1,0));
+        DAF_OS::sleep(ACE_Time_Value(1,0));
 
         //result &= barrier.broken();
 
         if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s %d\n", (clean ? "YES" : "NO"), result));
-        ACE_OS::sleep(ACE_Time_Value(1));
+        DAF_OS::sleep(ACE_Time_Value(1));
     }
 
     value = tester->broken_  + tester->unknown_ + tester->illegal_  ;
@@ -515,7 +515,7 @@ int main(int argc, char *argv[])
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
         case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = ACE_OS::atoi(cli_opt.opt_arg());
+        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
     }
 
     std::cout << test::TEST_NAME << std::endl;

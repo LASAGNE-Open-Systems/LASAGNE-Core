@@ -29,7 +29,7 @@ namespace PERF
     STATSData::STATSData(const std::string &ident)
         : ACE_Semaphore(0), timeCount_(0), ident_(ident)
     {
-        ACE_OS::memset(&this->timeData_, 0, sizeof(this->timeData_));
+        DAF_OS::memset(&this->timeData_, 0, sizeof(this->timeData_));
     }
 
     double &
@@ -44,7 +44,7 @@ namespace PERF
     const std::string
     STATSData::calculate_stats(void) const
     {
-        char s[128]; ACE_OS::sprintf(s, "count=%u,mean=%4.4f,sd=%4.4f",
+        char s[128]; DAF_OS::sprintf(s, "count=%u,mean=%4.4f,sd=%4.4f",
             unsigned(this->timeCount_),
             this->calculate_mean(),
             this->calculate_sd());

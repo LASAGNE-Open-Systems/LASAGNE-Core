@@ -131,7 +131,7 @@ namespace //anonymous
                 }
             } catch (const CORBA::Exception& ) {
                 ACE_DEBUG((LM_ERROR, "CLIENT SVC: SimpleServer Object reference is invalid - Retry(%d).\n", i));
-                ACE_OS::sleep(2);
+                DAF_OS::sleep(2);
             }
 
             ACE_DEBUG((LM_INFO, "\n\t*****CLIENT SERVICE (%04t) %T*****\n"));
@@ -147,7 +147,7 @@ namespace //anonymous
                 server = taf_xmpl::SimpleServer::_nil();
             }
 
-            ACE_OS::sleep(2);
+            DAF_OS::sleep(2);
         }
 
         return 0;
