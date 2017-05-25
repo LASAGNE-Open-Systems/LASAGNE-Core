@@ -366,17 +366,25 @@ namespace TAFDDS
 
     class DDSPubSub_Export TypeSupportOperations
 #if defined(TAF_USES_OPENDDS)
-        : virtual public OpenDDS::DCPS::TypeSupport, ACE_Copy_Disabled
+        : virtual public OpenDDS::DCPS::TypeSupport
 #else
         : virtual public DAF::RefCount
 #endif
     {
     public:
+
         DAF_DEFINE_REFCOUNTABLE(TypeSupportOperations);
+        TypeSupportOperations(void) {}
         virtual ~TypeSupportOperations(void) { /* force propper distruction */ }
         virtual DDS::ReturnCode_t   registerTypename(DDS::DomainParticipant_ptr) = 0;
         virtual DDS::ReturnCode_t   unregisterTypename(DDS::DomainParticipant_ptr) = 0;
         virtual DDS::String_ptr     getTypename(void) const = 0;
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const TypeSupportOperations &))
+        ACE_UNIMPLEMENTED_FUNC(TypeSupportOperations(const TypeSupportOperations &))
     };
     DAF_DECLARE_REFCOUNTABLE(TypeSupportOperations);
 } // namespace TAFDDS
