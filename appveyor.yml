@@ -3,7 +3,14 @@ branches:
   - master
   - develop
 
-os: Visual Studio 2015
+matrix:
+  include:
+    - os: Visual Studio 2015
+      env: MPC_TYPE=vc14
+
+    - os: Visual Studio 2017
+      env: MPC_TYPE=vs2017
+
 
 clone_depth: 10
 
@@ -34,10 +41,18 @@ install:
   - copy %DAF_ROOT%\bin\build\ace\config.h %ACE_ROOT%\ace
   - copy %DAF_ROOT%\bin\build\ace\default.features %ACE_ROOT%\bin\MakeProjectCreator\config
   # Create solutions and projects
-  - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
-  - perl %ACE_ROOT%\bin\mwc.pl -type vc14 %TAO_ROOT%\TAO_ACE.mwc
-  - perl %ACE_ROOT%\bin\mwc.pl -type vc14 %DDS_ROOT%\DDS_no_tests.mwc
-  - perl %ACE_ROOT%\bin\mwc.pl -type vc14 %TAF_ROOT%\TAF.mwc
+  - if %MPC_TYPE%=="vc14" (
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+    ) else (
+        if %MPC_TYPE%=="vs2017" (
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
+        ) else (
+            echo Unknown compiler type for MPC
+        )
+    )
+  - perl %ACE_ROOT%\bin\mwc.pl -type %MPC_TYPE% %TAO_ROOT%\TAO_ACE.mwc
+  - perl %ACE_ROOT%\bin\mwc.pl -type %MPC_TYPE% %DDS_ROOT%\DDS_no_tests.mwc
+  - perl %ACE_ROOT%\bin\mwc.pl -type %MPC_TYPE% %TAF_ROOT%\TAF.mwc
 
 platform:
   - x64
@@ -49,8 +64,8 @@ build:
   parallel: true
 
 build_script:
-  - msbuild "%TAO_ROOT%\TAO_ACE.sln" /maxcpucount /verbosity:minimal /p:Configuration=Debug;Platform=x64
-  - msbuild "%DDS_ROOT%\DDS_no_tests.sln" /maxcpucount /verbosity:minimal /p:Configuration=Debug;Platform=x64
+  - msbuild "%TAO_ROOT%\TAO_ACE.sln" /maxcpucount /verbosity:quiet /p:Configuration=Debug;Platform=x64
+  - msbuild "%DDS_ROOT%\DDS_no_tests.sln" /maxcpucount /verbosity:quiet /p:Configuration=Debug;Platform=x64
   - msbuild "%TAF_ROOT%\TAF.sln" /maxcpucount /verbosity:minimal /p:Configuration=Debug;Platform=x64 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 test: off
