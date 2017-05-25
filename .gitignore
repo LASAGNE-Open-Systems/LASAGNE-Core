@@ -45,3 +45,18 @@
 *.exp
 *.res
 *.config
+
+# CORBA and DDS generated files
+*C.h
+*C.cpp
+*C.inl
+*S.h
+*S.cpp
+*TypeSupport.idl
+*TypeSupportImpl.h
+*TypeSupportImpl.cpp
+*TypeSupportC.h
+*TypeSupportC.cpp
+*TypeSupportC.inl
+*TypeSupportS.h
+*TypeSupportS.cpp
