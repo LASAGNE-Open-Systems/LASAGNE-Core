@@ -1,0 +1,6 @@
+# Mark files as vendored so they don't count towards code statistics
+LDBC/SQLite/sqlite3/* linguist-vendored
+
+# Mark files as documentation
+docs/* linguist-documentation
+
