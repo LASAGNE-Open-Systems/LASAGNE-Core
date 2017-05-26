@@ -77,7 +77,7 @@ namespace DAF
     }
 
     template <typename T, typename F> bool
-    Rendezvous<T,F>::waitReset(time_t msecs) throw (IllegalThreadStateException,InternalException)
+    Rendezvous<T,F>::waitReset(time_t msecs)
     {
         ACE_Guard<ACE_SYNCH_MUTEX> ace_mon( *this );
 
