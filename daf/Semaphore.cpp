@@ -85,7 +85,7 @@ namespace DAF
         ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
 
         if (this->interrupted()) {
-            ACE_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
+            DAF_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
         } else if (this->permits_ > this->waiters()) {
             --this->permits_; return 0;
         }
@@ -105,7 +105,7 @@ namespace DAF
         ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
 
         if (this->interrupted()) {
-            ACE_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
+            DAF_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
         } else if (this->permits_ > this->waiters()) {
             --this->permits_; return 0;
         }
@@ -122,7 +122,7 @@ namespace DAF
             } while (end_time > DAF_OS::gettimeofday());
         }
 
-        ACE_OS::last_error(ETIME); return -1;
+        DAF_OS::last_error(ETIME); return -1;
     }
 
     int Semaphore::release(void)
