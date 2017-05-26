@@ -1,52 +1,52 @@
 #ifndef LTM_CORBACTIVEDATASUPPORT_H
 #define LTM_CORBACTIVEDATASUPPORT_H
 
-#include "CORBActiveServiceC.h"
+#include "LTMTopicDetailsC.h"
 
 #if defined(TAF_USES_DDSCORBA)
 
-# include "CORBActiveServiceS.h"
+# include "LTMTopicDetailsS.h"
 
 #elif defined(TAF_USES_NDDS)
 
-# include "CORBActiveService.h"
+# include "LTMTopicDetails.h"
 
 #elif defined(TAF_USES_COREDX)
 
-# include "CORBActiveService.hh"
+# include "LTMTopicDetails.hh"
 
 #elif defined(TAF_USES_OPENSPLICE)
 
-# include "ccpp_CORBActiveService.h"
+# include "ccpp_LTMTopicDetails.h"
 
 #endif
 
 #if defined(TAF_USES_OPENDDS)
 
-# include "CORBActiveServiceTypeSupportC.h"
-# include "CORBActiveServiceTypeSupportS.h"
-# include "CORBActiveServiceTypeSupportImpl.h"
+# include "LTMTopicDetailsTypeSupportC.h"
+# include "LTMTopicDetailsTypeSupportS.h"
+# include "LTMTopicDetailsTypeSupportImpl.h"
 
 #elif defined(TAF_USES_NDDS)
 
-# include "CORBActiveServiceSupport.h"
-# include "CORBActiveServicePlugin.h"
+# include "LTMTopicDetailsSupport.h"
+# include "LTMTopicDetailsPlugin.h"
 
 #elif defined(TAF_USES_COREDX)
 
-# include "CORBActiveServiceTypeSupport.hh"
-# include "CORBActiveServiceDataReader.hh"
-# include "CORBActiveServiceDataWriter.hh"
+# include "LTMTopicDetailsTypeSupport.hh"
+# include "LTMTopicDetailsDataReader.hh"
+# include "LTMTopicDetailsDataWriter.hh"
 
 #elif defined(TAF_USES_OPENSPLICE)
 
 #if defined(TAF_USES_DDSCORBA)
-# include "CORBActiveServiceDcpsC.h"
+# include "LTMTopicDetailsDcpsC.h"
 #else
-# include "CORBActiveServiceDcps.h"
+# include "LTMTopicDetailsDcps.h"
 #endif
 
-# include "CORBActiveServiceDcps_impl.h"
+# include LTMTopicDetailsDcps_impl.h"
 
 #endif
 
@@ -56,28 +56,28 @@ namespace LTM
 {
 #if !defined(DEFINE_DDS_TYPESUPPORT_ltm_LTMTopicDetails)
 #   define  DEFINE_DDS_TYPESUPPORT_ltm_LTMTopicDetails
+    typedef ltm::LTMTopicDetails                                LTMTopicDetailsCORBAType;
 # if defined(TAF_USES_DDSCORBA)
     typedef DEFINE_DDS_TYPESUPPORT(ltm, LTMTopicDetails)        LTMTopicDetailsDataSupport;
     typedef LTMTopicDetailsDataSupport::_data_holder_type       LTMTopicDetailsHolderType;
     typedef LTMTopicDetailsDataSupport::_data_type              LTMTopicDetailsTopicType;
-    typedef LTMTopicDetailsDataSupport::_data_type              LTMTopicDetailsCORBAType;
     typedef LTMTopicDetailsTopicType                            LTMTopicDetailsTopicAdapter;
     typedef LTMTopicDetailsCORBAType                            LTMTopicDetailsCORBAdapter;
 # else
     typedef DEFINE_DDS_TYPESUPPORT(ltm_dds, LTMTopicDetails)    LTMTopicDetailsDataSupport;
     typedef LTMTopicDetailsDataSupport::_data_holder_type       LTMTopicDetailsHolderType;
     typedef LTMTopicDetailsDataSupport::_data_type              LTMTopicDetailsTopicType;
-    typedef ltm::LTMTopicDetails                                LTMTopicDetailsCORBAType;
     struct CORBActiveService_Export LTMTopicDetailsTopicAdapter : LTMTopicDetailsHolderType {
-        LTMTopicDetailsTopicAdapter(void)  {}
+        LTMTopicDetailsTopicAdapter(void) {}
         LTMTopicDetailsTopicAdapter(const LTMTopicDetailsCORBAType &);
     };
-    struct CORBActiveService_Export LTMTopicDetailsCORBAdapter  : LTMTopicDetailsCORBAType  {
-        LTMTopicDetailsCORBAdapter(void)   {}
+    struct CORBActiveService_Export LTMTopicDetailsCORBAdapter : LTMTopicDetailsCORBAType {
+        LTMTopicDetailsCORBAdapter(void) {}
         LTMTopicDetailsCORBAdapter(const LTMTopicDetailsTopicType &);
     };
 # endif
 #endif
 }
+
 
 #endif // LTM_CORBACTIVEDATASUPPORT_H

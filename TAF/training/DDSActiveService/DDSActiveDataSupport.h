@@ -1,52 +1,52 @@
 #ifndef LTM_DDSACTIVEDATASUPPORT_H
 #define LTM_DDSACTIVEDATASUPPORT_H
 
-#include "DDSActiveServiceC.h"
+#include "LTMTopicDetailsC.h"
 
 #if defined(TAF_USES_DDSCORBA)
 
-# include "DDSActiveServiceS.h"
+# include "LTMTopicDetailsS.h"
 
 #elif defined(TAF_USES_NDDS)
 
-# include "DDSActiveService.h"
+# include "LTMTopicDetails.h"
 
 #elif defined(TAF_USES_COREDX)
 
-# include "DDSActiveService.hh"
+# include "LTMTopicDetails.hh"
 
 #elif defined(TAF_USES_OPENSPLICE)
 
-# include "ccpp_DDSActiveService.h"
+# include "ccpp_LTMTopicDetails.h"
 
 #endif
 
 #if defined(TAF_USES_OPENDDS)
 
-# include "DDSActiveServiceTypeSupportC.h"
-# include "DDSActiveServiceTypeSupportS.h"
-# include "DDSActiveServiceTypeSupportImpl.h"
+# include "LTMTopicDetailsTypeSupportC.h"
+# include "LTMTopicDetailsTypeSupportS.h"
+# include "LTMTopicDetailsTypeSupportImpl.h"
 
 #elif defined(TAF_USES_NDDS)
 
-# include "DDSActiveServiceSupport.h"
-# include "DDSActiveServicePlugin.h"
+# include "LTMTopicDetailsSupport.h"
+# include "LTMTopicDetailsPlugin.h"
 
 #elif defined(TAF_USES_COREDX)
 
-# include "DDSActiveServiceTypeSupport.hh"
-# include "DDSActiveServiceDataReader.hh"
-# include "DDSActiveServiceDataWriter.hh"
+# include "LTMTopicDetailsTypeSupport.hh"
+# include "LTMTopicDetailsDataReader.hh"
+# include "LTMTopicDetailsDataWriter.hh"
 
 #elif defined(TAF_USES_OPENSPLICE)
 
 #if defined(TAF_USES_DDSCORBA)
-# include "DDSActiveServiceDcpsC.h"
+# include "LTMTopicDetailsDcpsC.h"
 #else
-# include "DDSActiveServiceDcps.h"
+# include "LTMTopicDetailsDcps.h"
 #endif
 
-# include "DDSActiveServiceDcps_impl.h"
+# include LTMTopicDetailsDcps_impl.h"
 
 #endif
 
@@ -56,23 +56,22 @@ namespace LTM
 {
 #if !defined(DEFINE_DDS_TYPESUPPORT_ltm_LTMTopicDetails)
 #   define  DEFINE_DDS_TYPESUPPORT_ltm_LTMTopicDetails
+    typedef ltm::LTMTopicDetails                                LTMTopicDetailsCORBAType;
 # if defined(TAF_USES_DDSCORBA)
     typedef DEFINE_DDS_TYPESUPPORT(ltm, LTMTopicDetails)        LTMTopicDetailsDataSupport;
     typedef LTMTopicDetailsDataSupport::_data_holder_type       LTMTopicDetailsHolderType;
     typedef LTMTopicDetailsDataSupport::_data_type              LTMTopicDetailsTopicType;
-    typedef LTMTopicDetailsDataSupport::_data_type              LTMTopicDetailsCORBAType;
     typedef LTMTopicDetailsTopicType                            LTMTopicDetailsTopicAdapter;
     typedef LTMTopicDetailsCORBAType                            LTMTopicDetailsCORBAdapter;
 # else
     typedef DEFINE_DDS_TYPESUPPORT(ltm_dds, LTMTopicDetails)    LTMTopicDetailsDataSupport;
     typedef LTMTopicDetailsDataSupport::_data_holder_type       LTMTopicDetailsHolderType;
     typedef LTMTopicDetailsDataSupport::_data_type              LTMTopicDetailsTopicType;
-    typedef ltm::LTMTopicDetails                                LTMTopicDetailsCORBAType;
     struct DDSActiveService_Export LTMTopicDetailsTopicAdapter : LTMTopicDetailsHolderType {
         LTMTopicDetailsTopicAdapter(void)  {}
         LTMTopicDetailsTopicAdapter(const LTMTopicDetailsCORBAType &);
     };
-    struct DDSActiveService_Export LTMTopicDetailsCORBAdapter  : LTMTopicDetailsCORBAType  {
+    struct DDSActiveService_Export LTMTopicDetailsCORBAdapter  : LTMTopicDetailsCORBAType {
         LTMTopicDetailsCORBAdapter(void)   {}
         LTMTopicDetailsCORBAdapter(const LTMTopicDetailsTopicType &);
     };
