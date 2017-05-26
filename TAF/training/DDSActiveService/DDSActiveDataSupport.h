@@ -67,7 +67,7 @@ namespace LTM
     typedef DEFINE_DDS_TYPESUPPORT(ltm_dds, LTMTopicDetails)    LTMTopicDetailsDataSupport;
     typedef LTMTopicDetailsDataSupport::_data_holder_type       LTMTopicDetailsHolderType;
     typedef LTMTopicDetailsDataSupport::_data_type              LTMTopicDetailsTopicType;
-    struct DDSActiveService_Export LTMTopicDetailsTopicAdapter : LTMTopicDetailsTopicType {
+    struct DDSActiveService_Export LTMTopicDetailsTopicAdapter : LTMTopicDetailsHolderType {
         LTMTopicDetailsTopicAdapter(void)  {}
         LTMTopicDetailsTopicAdapter(const LTMTopicDetailsCORBAType &);
     };
