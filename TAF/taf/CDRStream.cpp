@@ -38,7 +38,7 @@ namespace TAF
     }
 
     size_t
-    OutputCDR::copy_buffer(char *buf_ptr, size_t buf_length) const throw (DAF::IndexOutOfRange)
+    OutputCDR::copy_buffer(char *buf_ptr, size_t buf_length) const
     {
         if (buf_ptr && buf_length) {
 

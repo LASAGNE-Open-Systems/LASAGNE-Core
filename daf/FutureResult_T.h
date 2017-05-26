@@ -115,12 +115,11 @@ namespace DAF
         const T&    peek(void) const;
 
         /** \todo{Fill this in} */
-        T           get(void) const throw (DAF::InvocationTargetException);
+        T           get(void) const;
 
 
         /// Wait at most msecs to access the reference.
-        T           get(time_t msecs) const
-                        throw (DAF::InvocationTargetException, DAF::TimeoutException);
+        T           get(time_t msecs) const;
 
         /// Reset the value and error and set to not-ready, allowing this FutureResult to be reused. This is not particularly recommended and must be done only when you know that no other object is depending on the properties of this FutureResult.
         void        reset(void);

@@ -116,7 +116,7 @@ namespace DAF
 #endif
 
     std::string
-    locateServiceIdent(const ACE_Service_Object *svc_obj, const ACE_Service_Gestalt *sg) throw (DAF::NotFoundException)
+    locateServiceIdent(const ACE_Service_Object *svc_obj, const ACE_Service_Gestalt *sg)
     {
         ACE_Service_Repository *repo = (sg ? const_cast<ACE_Service_Gestalt*>(sg)->current_service_repository() : 0);
 

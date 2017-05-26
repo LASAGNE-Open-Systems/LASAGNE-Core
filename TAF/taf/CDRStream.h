@@ -38,7 +38,7 @@ namespace TAF {
             return this->total_length();
         }
 
-        size_t  copy_buffer(char *buf_ptr, size_t buf_length) const throw (DAF::IndexOutOfRange);
+        size_t  copy_buffer(char *buf_ptr, size_t buf_length) const;
 
         // TODO: Need further specializations here (i.e. const char * etc)
     };

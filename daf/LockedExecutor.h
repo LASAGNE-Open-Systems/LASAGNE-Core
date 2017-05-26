@@ -49,7 +49,7 @@ namespace DAF
                 : lock_(lock)
             {}
 
-            virtual int execute(const DAF::Runnable_ref &cmd) throw (DAF::InternalException)
+            virtual int execute(const DAF::Runnable_ref &cmd)
             {
                 if (!is_nil(cmd)) {
                     ACE_GUARD_RETURN( LOCK, ace_mon, this->lock_, -1 );

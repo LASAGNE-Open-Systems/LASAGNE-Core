@@ -47,7 +47,7 @@ namespace TAF
 
         const std::string & ident(void) const { return this->ident_; }
 
-        int is_ident(const std::string &ident) const throw (CORBA::Exception);
+        int is_ident(const std::string &ident) const;
 
     private:
 

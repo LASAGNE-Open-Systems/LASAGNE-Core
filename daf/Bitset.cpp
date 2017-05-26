@@ -50,7 +50,7 @@ namespace {
 
 namespace DAF
 {
-    Bitset::Bitset(size_t bits, bool val) throw (std::invalid_argument)
+    Bitset::Bitset(size_t bits, bool val)
         : bits_(bits), bit_buffer_(0)
     {
         if (ace_range(0, INT_MAX, int(bits)) == int(bits)) {
@@ -70,7 +70,7 @@ namespace DAF
         DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);
     }
 
-    Bitset::Bitset(const Bitset &bitset) throw (std::runtime_error)
+    Bitset::Bitset(const Bitset &bitset)
         : bits_(bitset.bits()), bit_buffer_(0)
     {
         size_t len = this->size();
@@ -84,7 +84,7 @@ namespace DAF
     }
 
     Bitset::BIT_BYTE_ptr
-    Bitset::bit_buffer(size_t off) const throw (std::out_of_range)
+    Bitset::bit_buffer(size_t off) const
     {
         if (this->bits()) for (Bitset::BIT_BYTE_ptr p = this->bit_buffer_.get(); p;) {
 
@@ -126,7 +126,7 @@ namespace DAF
     }
 
     Bitset &
-    Bitset::operator = (const Bitset &bitset) throw (std::runtime_error)
+    Bitset::operator = (const Bitset &bitset)
     {
         if (this != &bitset) do { // Doing it to ourselves?
 
@@ -148,7 +148,7 @@ namespace DAF
     }
 
     Bitset &
-    Bitset::operator += (const Bitset &bitset) throw (std::runtime_error)
+    Bitset::operator += (const Bitset &bitset)
     {
         size_t pos = this->bits();
 
@@ -257,7 +257,7 @@ namespace DAF
     }
 
     Bitset
-    Bitset::subits(int pos, int len) const throw (std::out_of_range)
+    Bitset::subits(int pos, int len) const
     {
         if (*this && ace_range(0, int(this->bits() - 1), pos) == pos) {
             size_t bits = ace_min(this->bits() - pos, size_t(len));
@@ -270,7 +270,7 @@ namespace DAF
     }
 
     Bitset &
-    Bitset::erase(int pos, int len) throw (std::out_of_range)
+    Bitset::erase(int pos, int len)
     {
         if (*this && ace_range(0, int(this->bits() - 1), pos) == pos) {
             size_t bits = ace_min(this->bits() - pos, size_t(len));
@@ -292,7 +292,7 @@ namespace DAF
     }
 
     Bitset::bitraits
-    Bitset::operator [] (size_t bit) throw (std::out_of_range)
+    Bitset::operator [] (size_t bit)
     {
         if (*this && ace_range(size_t(0), this->bits() - 1, bit) == bit) {
             return bitraits(this->bit_buffer_[int(bit / BIT_BYTE_bits)], bit_mask(bit));
@@ -301,7 +301,7 @@ namespace DAF
     }
 
     bool
-    Bitset::operator [] (size_t bit) const throw (std::out_of_range)
+    Bitset::operator [] (size_t bit) const
     {
         if (*this && ace_range(size_t(0), this->bits() - 1, bit) == bit) {
             return (this->bit_buffer_[int(bit / BIT_BYTE_bits)] & bit_mask(bit)) ? true : false;
@@ -310,7 +310,7 @@ namespace DAF
     }
 
     Bitset &
-    Bitset::reset(size_t bits, bool val)  throw (std::invalid_argument)
+    Bitset::reset(size_t bits, bool val)
     {
         if (ace_range(0, INT_MAX, int(bits)) == int(bits)) {
             size_t len = bit_bytes(bits); this->bits_ = 0; // Clear out existing

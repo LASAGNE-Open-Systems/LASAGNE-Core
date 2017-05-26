@@ -80,7 +80,7 @@ namespace DAF
     DAF_Export std::string  parse_args(const std::string &args, bool substitute_env_args = true, bool quote_args = true);
     DAF_Export std::string  parse_args(int argc, ACE_TCHAR *argv[], bool substitute_env_args = true, bool quote_args = true);
 
-    DAF_Export std::string  format_args(const std::string &args, bool substitute_env_args = true, bool quote_args = true) throw (DAF::IllegalArgumentException);
+    DAF_Export std::string  format_args(const std::string &args, bool substitute_env_args = true, bool quote_args = true);
 
     DAF_Export void         print_argv(const ACE_ARGV &);
     DAF_Export void         print_args(const std::string &args, bool substitute_env_args = false);
@@ -90,7 +90,7 @@ namespace DAF
 
     DAF_Export void         print_gestalt(const ACE_Service_Gestalt * sg = ACE_Service_Config::current());
 
-    DAF_Export std::string  locateServiceIdent(const ACE_Service_Object * svc_obj, const ACE_Service_Gestalt * sg = ACE_Service_Config::current()) throw (DAF::NotFoundException);
+    DAF_Export std::string  locateServiceIdent(const ACE_Service_Object * svc_obj, const ACE_Service_Gestalt * sg = ACE_Service_Config::current());
 
 
     /**

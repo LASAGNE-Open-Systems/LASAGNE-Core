@@ -127,13 +127,13 @@ namespace DAF
         ObjectRef<T> &operator = (const ObjectRef<T> &);
 
         /** \todo{Fill this in} */
-        _in_type    operator -> (void) const throw (DAF::INV_OBJREF);
+        _in_type    operator -> (void) const;
         /** \todo{Fill this in} */
-        _ref_type   operator *  (void) const throw (DAF::INV_OBJREF); // Not Part of the CORBA Standard
+        _ref_type   operator *  (void) const; // Not Part of the CORBA Standard
 
         /** \todo{Fill this in} */
         template <typename A>  // Support widening (C++11 Standard - Section 6.6.3)
-            operator ObjectRef<A> () const throw (DAF::INV_OBJREF);
+            operator ObjectRef<A> () const;
 
         /// Cast operators.
         /** \todo{Fill this in} */
@@ -215,7 +215,7 @@ namespace DAF
         T *& ptr(void);
 
         /** \todo{Fill this in} */
-        T *  operator -> (void) const throw (DAF::INV_OBJREF);
+        T *  operator -> (void) const;
 
     private:
 

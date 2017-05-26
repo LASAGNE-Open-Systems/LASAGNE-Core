@@ -70,7 +70,7 @@ namespace DAF
         the corresponding environment variable is not specified.
         \return property value
          */
-        std::string get_property(const property_key_type &ident, bool use_env = true) const throw (DAF::IllegalArgumentException);
+        std::string get_property(const property_key_type &ident, bool use_env = true) const;
 
         /**
         Access the property within the property map with a key value.
@@ -125,7 +125,7 @@ namespace DAF
         \sa #get_property
         */
         template <typename T>
-        T get_numeric_property(const property_key_type &ident, bool use_env = true) const throw (DAF::IllegalArgumentException);
+        T get_numeric_property(const property_key_type &ident, bool use_env = true) const;
 
         /**
         Templated variants to perform numeric conversion of the map's key value
@@ -146,7 +146,7 @@ namespace DAF
 
 
     template <typename T> inline T
-    PropertyManager::get_numeric_property(const property_key_type &ident, bool use_env) const throw (DAF::IllegalArgumentException)
+    PropertyManager::get_numeric_property(const property_key_type &ident, bool use_env) const
     {
         return static_cast<T>(DAF_OS::atof(this->get_property(ident, use_env).c_str()));
     }
@@ -166,7 +166,7 @@ namespace DAF
 
 
     template <> inline bool  /* Sepecialization for bool type property */
-    PropertyManager::get_numeric_property<bool>(const property_key_type &ident, bool use_env) const throw (DAF::IllegalArgumentException)
+    PropertyManager::get_numeric_property<bool>(const property_key_type &ident, bool use_env) const
     {
         const property_val_type val(this->get_property(ident, use_env));
         if (DAF_OS::strncasecmp(val.c_str(), ACE_TEXT("true"), 4) == 0) {
@@ -249,7 +249,7 @@ namespace DAF
 namespace DAF
 {
     template <typename T> inline T
-    get_numeric_property(const PropertyManager::property_key_type &ident, bool use_env = true) throw (DAF::IllegalArgumentException)
+    get_numeric_property(const PropertyManager::property_key_type &ident, bool use_env = true)
     {
         return ThePropertyRepository()->get_numeric_property<T>(ident, use_env);
     }
@@ -261,7 +261,7 @@ namespace DAF
     }
 
     inline std::string
-    get_property(const PropertyManager::property_key_type &ident, bool use_env = true) throw (DAF::IllegalArgumentException)
+    get_property(const PropertyManager::property_key_type &ident, bool use_env = true)
     {
         return ThePropertyRepository()->get_property(ident, use_env);
     }

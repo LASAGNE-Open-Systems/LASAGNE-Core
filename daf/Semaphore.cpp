@@ -80,7 +80,7 @@ namespace DAF
     {
     }
 
-    int Semaphore::acquire(void) throw (DAF::InternalException)
+    int Semaphore::acquire(void)
     {
         ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
 
@@ -100,7 +100,7 @@ namespace DAF
         return 0;
     }
 
-    int Semaphore::attempt(time_t msecs) throw (DAF::InternalException)
+    int Semaphore::attempt(time_t msecs)
     {
         ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
 

@@ -54,7 +54,7 @@ namespace DAF
     } // Ananomous
 
     template <> inline DAF::Runnable_ref
-    SynchronousChannel<DAF::Runnable_ref>::extract(void) throw (DAF::InternalException)
+    SynchronousChannel<DAF::Runnable_ref>::extract(void)
     {
         ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException));
         DAF::Runnable_ref t(this->item_._retn()); this->itemTaken_.release();
@@ -349,7 +349,7 @@ namespace DAF
     }
 
     int
-    TaskExecutor::execute(const DAF::Runnable_ref &cmd) throw (DAF::InternalException)
+    TaskExecutor::execute(const DAF::Runnable_ref &cmd)
     {
         if (this->isAvailable()) try {
 
@@ -395,7 +395,7 @@ namespace DAF
     }
 
     int
-    TaskExecutor::task_handOff(const DAF::Runnable_ref &cmd) throw (DAF::InternalException)
+    TaskExecutor::task_handOff(const DAF::Runnable_ref &cmd)
     {
         if (this->isAvailable()) do {
             {
