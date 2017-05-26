@@ -89,7 +89,7 @@ namespace DAF
     template<typename T> T
     SemaphoreControlledChannel<T>::poll(time_t msecs) throw (DAF::InternalException, DAF::TimeoutException)
     {
-        if (this->takeGuard_.attempt(msecs)) switch (ACE_OS::last_error()) {
+        if (this->takeGuard_.attempt(msecs)) switch (DAF_OS::last_error()) {
             case ETIME: DAF_THROW_EXCEPTION(DAF::TimeoutException); // Reverse the fact that we have been here and exit with error
             default:    DAF_THROW_EXCEPTION(DAF::InternalException);
         }

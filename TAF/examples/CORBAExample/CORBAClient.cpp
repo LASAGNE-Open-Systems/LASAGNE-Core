@@ -94,7 +94,7 @@ static taf_xmpl::SimpleServer_ptr locate_SimpleServer(::CORBA::ORB_ptr orb)
             throw CORBA::TRANSIENT();
         } else break;
     } catch (const CORBA::Exception&) {
-        ACE_DEBUG((LM_ERROR, "CLIENT: SimpleServer Object reference is invalid - Retry(%d).\n",retry++)); ACE_OS::sleep(2);
+        ACE_DEBUG((LM_ERROR, "CLIENT: SimpleServer Object reference is invalid - Retry(%d).\n",retry++)); DAF_OS::sleep(2);
     }
 
     return objRef._retn();
@@ -172,7 +172,7 @@ int main(int argc, char *argv[])
                 server_objRef = taf_xmpl::SimpleServer::_nil();
             }
 
-            ACE_OS::sleep(1);
+            DAF_OS::sleep(1);
         }
     } catch (const CORBA::Exception& ex) {
         ex._tao_print_exception ("CLIENT: UNEXPECTED exception caught - "); return -1;
