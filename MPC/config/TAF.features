@@ -1,12 +1,12 @@
-java             = 1
+java             = 0
 
 opendds          = 1
 
-ndds             = 1
+ndds             = 0
 
 nddscorba        = 0
 
-coredx           = 1
+coredx           = 0
 
 coredxcorba      = 0
 
