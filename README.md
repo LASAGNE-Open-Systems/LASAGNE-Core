@@ -30,6 +30,8 @@ develop:
 * Required
   * Perl
   * ACE-TAO 6.4.2+  [Vanderbilt](http://download.dre.vanderbilt.edu) | [GitHub](https://github.com/DOCGroup/ACE_TAO)
+    * Note ACE-TAO 6.4.3+ is required for Visual Studio 2017 support
+  * MPC [GitHub](https://github.com/DOCGroup/MPC) (if ACE-TAO is retrieved from GitHub)
 * Optional
   * OpenDDS 3.10+      [OpenDDS](http://opendds.org/downloads.html) | [GitHub](https://github.com/objectcomputing/OpenDDS)
 
