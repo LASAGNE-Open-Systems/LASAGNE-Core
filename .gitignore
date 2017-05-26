@@ -1,0 +1,62 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Visual Studio projects and solutions
+*.sln
+*.vcxproj
+*.vcxproj.filters
+*.VC.db
+
+# Visual C++ build files
+*.iobj
+*.ipdb
+*.tlog
+*.buildstate
+*.exp
+*.res
+*.config
+
+# CORBA and DDS generated files
+*C.h
+*C.cpp
+*C.inl
+*S.h
+*S.cpp
+*TypeSupport.idl
+*TypeSupportImpl.h
+*TypeSupportImpl.cpp
+*TypeSupportC.h
+*TypeSupportC.cpp
+*TypeSupportC.inl
+*TypeSupportS.h
+*TypeSupportS.cpp
