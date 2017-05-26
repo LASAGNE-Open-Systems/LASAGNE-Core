@@ -1,0 +1,73 @@
+branches:
+  only:
+  - master
+  - develop
+
+environment:
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      MPC_TYPE: vs2017
+
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
+      MPC_TYPE: vc14
+
+    
+
+
+clone_depth: 10
+
+install:
+  # Gather dependencies
+  - mkdir ext
+  - cd ext
+  - git clone --depth 1 git://github.com/DOCGroup/MPC.git
+  - git clone -b Latest_Micro --depth 1 git://github.com/DOCGroup/ACE_TAO.git
+  - git clone --depth 1 git://github.com/objectcomputing/OpenDDS.git
+  - cd ..
+  # MPC configuration
+  - set MPC_ROOT=%CD%\ext\MPC
+  # ACE-TAO configuration
+  - set ACE_ROOT=%CD%\ext\ACE_TAO\ACE
+  - set TAO_ROOT=%CD%\ext\ACE_TAO\TAO
+  - set PATH=%ACE_ROOT%\lib:%PATH%
+  - set PATH=%ACE_ROOT%\bin:%PATH%
+  # OpenDDS configuration
+  - set DDS_ROOT=%CD%\ext\OpenDDS
+  - set PATH=%DDS_ROOT%\lib:%PATH%
+  - set PATH=%DDS_ROOT%\bin:%PATH%
+  # LASAGNE-Core configuration
+  - set DAF_ROOT=%CD%
+  - set TAF_ROOT=%CD%\TAF
+  - set PATH=%DAF_ROOT%\lib:%PATH%
+  - set PATH=%DAF_ROOT%\bin:%PATH%
+  - copy %DAF_ROOT%\bin\build\ace\config.h %ACE_ROOT%\ace
+  - copy %DAF_ROOT%\bin\build\ace\default.features %ACE_ROOT%\bin\MakeProjectCreator\config
+  # Create solutions and projects
+  - if %MPC_TYPE%==vc14 (
+      call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" amd64
+    ) else (
+        if %MPC_TYPE%==vs2017 (
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" amd64
+        ) else (
+            echo Unknown compiler type for MPC
+        )
+    )
+  #- perl %ACE_ROOT%\bin\mwc.pl -type %MPC_TYPE% %TAO_ROOT%\TAO_ACE.mwc
+  #- perl %ACE_ROOT%\bin\mwc.pl -type %MPC_TYPE% %DDS_ROOT%\DDS_no_tests.mwc
+  - perl %ACE_ROOT%\bin\mwc.pl -type %MPC_TYPE% %TAF_ROOT%\TAF_CI.mwc
+
+platform:
+  - x64
+
+configuration:
+  - Debug
+
+build:
+  parallel: true
+
+build_script:
+  #- msbuild "%TAO_ROOT%\TAO_ACE.sln" /maxcpucount /verbosity:quiet /p:Configuration=Debug;Platform=x64
+  #- msbuild "%DDS_ROOT%\DDS_no_tests.sln" /maxcpucount /verbosity:quiet /p:Configuration=Debug;Platform=x64
+  - msbuild "%TAF_ROOT%\TAF_CI.sln" /maxcpucount /verbosity:quiet /p:Configuration=Debug;Platform=x64 /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+
+test: off
