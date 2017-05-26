@@ -37,7 +37,7 @@ namespace DAF
     }
 
     std::string
-    PropertyManager::get_property(const property_key_type &ident, bool use_env) const throw (DAF::IllegalArgumentException)
+    PropertyManager::get_property(const property_key_type &ident, bool use_env) const
     {
         for (const property_key_type key(DAF::trim_string(ident)); key.length();) {
 

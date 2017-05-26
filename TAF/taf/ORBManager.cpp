@@ -202,7 +202,7 @@ namespace TAF {
     }
 
     const TAF::NamingContext &
-    ORB::rootContext(ACE_Time_Value *timeout) const throw (CORBA::UserException)
+    ORB::rootContext(ACE_Time_Value *timeout) const
     {
         static ACE_SYNCH_MUTEX rootLock_;
 
@@ -241,7 +241,7 @@ namespace TAF {
     }
 
     const TAF::NamingContext &
-    ORB::baseContext(ACE_Time_Value *timeout) const throw (CORBA::UserException)
+    ORB::baseContext(ACE_Time_Value *timeout) const
     {
         static ACE_SYNCH_MUTEX baseLock_;
 

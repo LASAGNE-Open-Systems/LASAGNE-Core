@@ -225,7 +225,7 @@ namespace TAFDDS
     }
 
     template <typename T_TOPIC, typename T_LISTENER> void
-    DDS_Reader<T_TOPIC,T_LISTENER>::on_data_available(DDS::DataReader_ptr rdr) throw()
+    DDS_Reader<T_TOPIC,T_LISTENER>::on_data_available(DDS::DataReader_ptr rdr)
     {
         ACE_Guard<ACE_SYNCH_MUTEX> read_guard(this->reader_lock_, false);
         if (read_guard.locked()) {
@@ -242,7 +242,7 @@ namespace TAFDDS
     }
 
     template <typename T_SUPPORT> void
-    TOPICReaderListener<T_SUPPORT>::on_data_available(DDS::DataReader_ptr rdr) throw()
+    TOPICReaderListener<T_SUPPORT>::on_data_available(DDS::DataReader_ptr rdr)
     {
         _data_reader_stub_type_ref d_rdr(rdr ? _support_type::narrow(rdr) : 0);
 
