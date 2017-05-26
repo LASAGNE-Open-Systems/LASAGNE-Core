@@ -60,7 +60,7 @@ namespace DAF
                 this->bit_buffer_.reset(p); if (p == 0) {
                     DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
                 }
-                ACE_OS::memset(p, (val ? -1 : 0), len);
+                DAF_OS::memset(p, (val ? -1 : 0), len);
 
                 if (val) this->trim_bits();
             }
@@ -79,7 +79,7 @@ namespace DAF
             this->bit_buffer_.reset(p); if (p == 0) {
                 DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
             }
-            ACE_OS::memcpy(p, bitset, len);
+            DAF_OS::memcpy(p, bitset, len);
         }
     }
 
@@ -116,7 +116,7 @@ namespace DAF
                     }
                 }
                 else if ((i = (bit / BIT_BYTE_bits)) > 0) {
-                    return ACE_OS::memcmp(*this, bitset, size_t(i)) == 0;
+                    return DAF_OS::memcmp(*this, bitset, size_t(i)) == 0;
                 }
                 else break; // Should never happen
             }
@@ -137,7 +137,7 @@ namespace DAF
                 this->bit_buffer_.reset(p); if (p == 0) {
                     DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
                 }
-                ACE_OS::memcpy(p, bitset, len); break;
+                DAF_OS::memcpy(p, bitset, len); break;
             }
 
             this->bit_buffer_.reset(0);
@@ -164,8 +164,8 @@ namespace DAF
                 BIT_BYTE_ptr p(0); ACE_NEW_NORETURN(p, BIT_BYTE_type[len]); if (p == 0) {
                     DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
                 }
-                ACE_OS::memset(p, 0, len); if (pos) {
-                    ACE_OS::memcpy(p, *this, this->size());
+                DAF_OS::memset(p, 0, len); if (pos) {
+                    DAF_OS::memcpy(p, *this, this->size());
                 }
                 this->bit_buffer_.reset(p); break;
             }
@@ -249,7 +249,7 @@ namespace DAF
 
         if (this_bits == that_bits) {
             for (size_t len = this->size(); len;) {
-                return ACE_OS::memcmp(*this, bitset, len);
+                return DAF_OS::memcmp(*this, bitset, len);
             }
         }
 
@@ -319,7 +319,7 @@ namespace DAF
                 this->bit_buffer_.reset(p); if (p == 0) {
                     DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
                 }
-                ACE_OS::memset(p, (val ? -1 : 0), len); this->bits_ = bits;
+                DAF_OS::memset(p, (val ? -1 : 0), len); this->bits_ = bits;
 
                 if (val) this->trim_bits();
 

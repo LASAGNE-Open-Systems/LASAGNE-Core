@@ -249,7 +249,7 @@ int test_SyncValueMultipleWaitersWithTimeout(int threadCount )
         }
 
         // Allow Timeout on waiter
-        ACE_OS::sleep(ACE_Time_Value(0, 50000));
+        DAF_OS::sleep(ACE_Time_Value(0, 50000));
 
         for (int i = count/2; i > 0 ; --i ) {
             value += sync.setValue(i);
@@ -302,7 +302,7 @@ int test_SyncValueMultipleWaitersWithTimeoutEarly(int threadCount )
         }
 
         // Allow Timeout on waiter
-        ACE_OS::sleep(ACE_Time_Value(0, 50000));
+        DAF_OS::sleep(ACE_Time_Value(0, 50000));
 
         for (int i = count/2; i > 0 ; --i ) {
             value += sync.setValue(i);
@@ -408,7 +408,7 @@ int test_SyncValueThreadKill(int threadCount )
 
         blocker.acquire();
 
-        ACE_OS::sleep(ACE_Time_Value(1));
+        DAF_OS::sleep(ACE_Time_Value(1));
 
         if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing Executor\n"));
 
@@ -513,7 +513,7 @@ int main(int argc, char *argv[])
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
         case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = ACE_OS::atoi(cli_opt.opt_arg());
+        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
     }
 
     std::cout << test::TEST_NAME << std::endl;

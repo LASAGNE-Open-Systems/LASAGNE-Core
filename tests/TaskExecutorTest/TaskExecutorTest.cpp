@@ -61,7 +61,7 @@ namespace test
         {
             sema_counter.release();
             if ( debug ) ACE_DEBUG((LM_INFO, "%t - %T Sleeping for Time %d ms\n", delay.msec()));
-            ACE_OS::sleep(delay);
+            DAF_OS::sleep(delay);
             if ( debug ) ACE_DEBUG((LM_INFO, "%t - %T Exit Sleep\n"));
             int count = sema_counter.permits();
             if ( debug ) ACE_DEBUG((LM_INFO, "%t - %T %d Exit Sleep\n", count));
@@ -198,11 +198,11 @@ namespace test
             sema.release();
             if (long_or_short )
             {
-                ACE_OS::sleep(ACE_Time_Value(1,0));
+                DAF_OS::sleep(ACE_Time_Value(1,0));
             }
             else
             {
-                ACE_OS::sleep(ACE_Time_Value(0,100));
+                DAF_OS::sleep(ACE_Time_Value(0,100));
             }
 
             sema_post.release();
@@ -250,11 +250,11 @@ namespace test
             sema.release();
             if (long_or_short )
             {
-                ACE_OS::sleep(ACE_Time_Value(1,0));
+                DAF_OS::sleep(ACE_Time_Value(1,0));
             }
             else
             {
-                ACE_OS::sleep(ACE_Time_Value(0,100));
+                DAF_OS::sleep(ACE_Time_Value(0,100));
             }
 
             sema_post.release();
@@ -364,7 +364,7 @@ namespace test
             // Checking Debug on thread count --> output should decrement
             svc_blocker.release(1);
 
-            ACE_OS::sleep(ACE_Time_Value(0, 50000));
+            DAF_OS::sleep(ACE_Time_Value(0, 50000));
             // TODO work out how we can sync off this ?
 
             value = int(diff - executor.size());
@@ -377,7 +377,7 @@ namespace test
             if (debug) ACE_DEBUG((LM_INFO, "S2 Current Pool Size: %d\n", executor.size()));
 
             svc_blocker.release(1);
-            ACE_OS::sleep(ACE_Time_Value(0, 50000));
+            DAF_OS::sleep(ACE_Time_Value(0, 50000));
 
             if ( int(executor.size()) != (diff - 2) )
             {
@@ -515,10 +515,10 @@ namespace test
             while ( executor.size() > 0 )
             {
                 if ( debug ) ACE_DEBUG((LM_DEBUG, "%T Current Pool Size %d\n", executor.size()));
-                ACE_OS::sleep(ACE_Time_Value(DAF::TaskExecutor::THREAD_DECAY_TIMEOUT / 10000, 1000));
+                DAF_OS::sleep(ACE_Time_Value(DAF::TaskExecutor::THREAD_DECAY_TIMEOUT / 10000, 1000));
             }
 
-            //ACE_OS::sleep(ACE_Time_Value(DAF::TaskExecutor::THREAD_DECAY_LIMIT/1000, 10000));
+            // DAF_OS::sleep(ACE_Time_Value(DAF::TaskExecutor::THREAD_DECAY_LIMIT/1000, 10000));
             // TODO work out how we can sync off this ?
 
             value = int(diff - executor.size());
@@ -625,10 +625,10 @@ namespace test
             for ( attempts = 0; executor.size() > 0 && attempts < max_attempts; ++attempts)
             {
                 if ( debug ) ACE_DEBUG((LM_DEBUG, "%T Current Pool Size %d\n", executor.size()));
-                ACE_OS::sleep(ACE_Time_Value(0, TestKeepAliveTime_1 * 1000/(max_attempts-1)));
+                DAF_OS::sleep(ACE_Time_Value(0, TestKeepAliveTime_1 * 1000/(max_attempts-1)));
             }
             //value = (attempts < max_attempts);
-            //ACE_OS::sleep(ACE_Time_Value(0, (TestKeepAliveTime_1 + 1) * 1000));
+            //DAF_OS::sleep(ACE_Time_Value(0, (TestKeepAliveTime_1 + 1) * 1000));
 
             if (debug) ACE_DEBUG((LM_INFO, "S2 Current Pool Size: %d\n", executor.size()));
 
@@ -649,7 +649,7 @@ namespace test
             for ( attempts = 0; executor.size() > 0 && attempts < max_attempts; ++attempts)
             {
                 if ( debug ) ACE_DEBUG((LM_DEBUG, "%T  2 Current Pool Size %d\n", executor.size()));
-                ACE_OS::sleep(ACE_Time_Value(0, TestKeepAliveTime_2 * 1000/(max_attempts-1)));
+                DAF_OS::sleep(ACE_Time_Value(0, TestKeepAliveTime_2 * 1000/(max_attempts-1)));
             }
 
             if (debug) ACE_DEBUG((LM_INFO, "S3 Current Pool Size: %d\n", executor.size()));
@@ -703,7 +703,7 @@ namespace test
             task->long_or_short = 1;
 
             task->run();
-            ACE_OS::thr_yield();
+            DAF_OS::thr_yield();
             if (debug)
             {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
@@ -754,7 +754,7 @@ namespace test
             // Crappy test..
             while ( task->thr_count() > 0 )
             {
-                ACE_OS::sleep(ACE_Time_Value(0, 100));
+                DAF_OS::sleep(ACE_Time_Value(0, 100));
             }
 
             if (debug)
@@ -765,7 +765,7 @@ namespace test
             task->long_or_short = 1;
 
             task->run();
-            ACE_OS::thr_yield();
+            DAF_OS::thr_yield();
             if (debug)
             {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
@@ -847,7 +847,7 @@ namespace test
             ACE_DEBUG((LM_WARNING, ACE_TEXT("Exception caughtin %s\n"),__FUNCTION__)); expected = -1; // Forced Error Result
         }
 
-        ACE_OS::sleep(1);
+        DAF_OS::sleep(1);
         if ( thr_man && grp_id != -1)
         {
             const int THREAD_LIST_SIZE = 10;
@@ -914,7 +914,7 @@ namespace test
             ACE_DEBUG((LM_WARNING, ACE_TEXT("Exception caughtin %s\n"),__FUNCTION__)); expected = -1;
         }
 
-        ACE_OS::sleep(1);
+        DAF_OS::sleep(1);
         if ( thr_man && grp_id != -1)
         {
             const int THREAD_LIST_SIZE = 10;
@@ -971,7 +971,7 @@ namespace test
                     return -1;
                 }
 
-            } synchExecutor_(threads); ACE_OS::sleep(10);
+            } synchExecutor_(threads); DAF_OS::sleep(10);
 
         } catch (const std::exception &ex) {
             ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("(%P | %t) Exception %s\n"), ex.what()), -3);
@@ -1011,7 +1011,7 @@ int main(int argc, char *argv[])
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
         case 'z': DAF::debug(10); test::debug = DAF::debug(); break;
-        case 'n': threadCount = ACE_OS::atoi(cli_opt.opt_arg());
+        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
     }
 
     ACE::debug(test::debug ? 1 : 0);

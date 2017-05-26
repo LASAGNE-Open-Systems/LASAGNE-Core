@@ -28,13 +28,13 @@ namespace TAF
     OutputCDR::OutputCDR(size_t size, int byte_order)
         : TAO_OutputCDR(size, byte_order)
     {
-        ACE_OS::memset(this->current()->wr_ptr(),0,this->current()->space());
+        DAF_OS::memset(this->current()->wr_ptr(),0,this->current()->space());
     }
 
     OutputCDR::OutputCDR(char *data, size_t size, int byte_order)
         : TAO_OutputCDR(data, size, byte_order)
     {
-        ACE_OS::memset(this->current()->wr_ptr(),0,this->current()->space());
+        DAF_OS::memset(this->current()->wr_ptr(),0,this->current()->space());
     }
 
     size_t

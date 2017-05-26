@@ -127,8 +127,8 @@ int ACE_TMAIN (int argc, char *argv [])
 
   for (int i = 0 ;i < num_of_messages; ++i ) try
   {
-    dsto::DRAWDetails_TopicType dt = { ::dsto::Triangle, i, CORBA::ULongLong(ACE_OS::gethrtime(ACE_OS::ACE_HRTIMER_GETTIME)) }; writer << dt;
-    ACE_OS::sleep(ACE_Time_Value(0, 100000));
+    dsto::DRAWDetails_TopicType dt = { ::dsto::Triangle, i, CORBA::ULongLong(DAF_OS::gethrtime(DAF_OS::ACE_HRTIMER_GETTIME)) }; writer << dt;
+    DAF_OS::sleep(ACE_Time_Value(0, 100000));
   }
   catch(...)
   {

@@ -104,7 +104,7 @@ namespace DAF
 
         try {
 
-            if (this->itemAvailable_.attempt(msecs)) switch (ACE_OS::last_error()) {
+            if (this->itemAvailable_.attempt(msecs)) switch (DAF_OS::last_error()) {
             case ETIME: DAF_THROW_EXCEPTION(DAF::TimeoutException); // Reverse the fact that we have been here and exit with error
             default:    DAF_THROW_EXCEPTION(DAF::InternalException);
             }
