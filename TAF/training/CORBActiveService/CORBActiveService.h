@@ -25,6 +25,8 @@
 // Include our CORBActiveDataSupport DDS declarations
 #include "CORBActiveDataSupport.h"
 
+#include "CORBActiveServiceS.h"
+
 namespace LTM   // Open the LTM namespace
 {
     // Define the CORBAActive DDS-Entities

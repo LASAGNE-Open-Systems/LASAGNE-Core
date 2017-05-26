@@ -10,8 +10,8 @@
 #include <ace/Arg_Shifter.h>
 
 // Note Include Generated cpp's
+#include "LTMTopicDetailsC.cpp"
 #include "CORBActiveServiceC.cpp"
-#include "CORBActiveServiceS.cpp"
 
 namespace { // Anonomous Namespace
 
