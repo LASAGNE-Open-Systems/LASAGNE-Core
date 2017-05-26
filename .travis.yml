@@ -1,0 +1,72 @@
+sudo: false
+language: cpp
+
+matrix:
+  include:
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-4.8']
+      env: COMPILER=g++-4.8
+
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-6']
+      env: COMPILER=g++-6
+
+env:
+  global:
+    # MPC settings
+    - MPC_ROOT=$TRAVIS_BUILD_DIR/ext/MPC
+    # ACE/TAO settings
+    - ACE_ROOT=$TRAVIS_BUILD_DIR/ext/ACE_TAO/ACE
+    - TAO_ROOT=$TRAVIS_BUILD_DIR/ext/ACE_TAO/TAO
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ACE_ROOT/lib
+    # OpenDDS settings
+    - DDS_ROOT=$TRAVIS_BUILD_DIR/ext/OpenDDS
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DDS_ROOT/lib
+    # LASAGNE settings
+    - DAF_ROOT=$TRAVIS_BUILD_DIR
+    - TAF_ROOT=$DAF_ROOT/TAF
+    - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DAF_ROOT/lib
+
+before_install:
+  - mkdir ext
+  - cd ext
+  - git clone --depth 1 git://github.com/DOCGroup/MPC.git
+  - git clone -b Latest_Micro --depth 1 git://github.com/DOCGroup/ACE_TAO.git
+  - git clone --depth 1 git://github.com/objectcomputing/OpenDDS.git
+  - cd ..
+
+branches:
+  only:
+    - develop
+    - master
+
+install:
+
+before_script:
+  # Print out the compiler version (useful to track)
+  - $COMPILER --version
+  # Copy additional build files into the correct locations
+  - cp bin/build/ace/config.h $ACE_ROOT/ace/config.h
+  - cp bin/build/ace/default.features $ACE_ROOT/bin/MakeProjectCreator/config/default.features
+  - cp bin/build/ace/platform_macros.GNU $ACE_ROOT/include/makeinclude/platform_macros.GNU
+  # Build dependencies
+  # - cd $TAO_ROOT
+  # - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAO_ACE.mwc
+  # - make CXX=$COMPILER --silent --jobs 2
+  # - cd $DDS_ROOT
+  # - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 DDS_no_tests.mwc
+  # - make CXX=$COMPILER --silent --jobs 2
+
+script:
+  - cd $TAF_ROOT
+  - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAF_CI.mwc
+  - make CXX=$COMPILER --jobs 2
