@@ -15,6 +15,15 @@ LASAGNE is a pattern-based framework for parallel and distributed computing
 * Domain agnostic
   * Core of LASAGNE does not mandate a data model representation
 
+## Status
+
+master:
+[![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=master)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core)
+[![Build status](https://ci.appveyor.com/api/projects/status/1gwwcaraqoku38i8/branch/master?svg=true)](https://ci.appveyor.com/project/LASAGNE-Open-Systems/lasagne-core/branch/master)
+develop:
+[![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=develop)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core)
+[![Build status](https://ci.appveyor.com/api/projects/status/1gwwcaraqoku38i8/branch/develop?svg=true)](https://ci.appveyor.com/project/LASAGNE-Open-Systems/lasagne-core/branch/develop)
+
 ## Getting Started
 
 ### Prerequisites
