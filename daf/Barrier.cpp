@@ -108,7 +108,7 @@ namespace DAF
         }
     }
 
-    int     Barrier::barrier(void) throw (DAF::IllegalThreadStateException, DAF::BrokenBarrierException)
+    int     Barrier::barrier(void)
     {
         this->entryGate_.acquire();
 
@@ -155,7 +155,6 @@ namespace DAF
     }
 
     int   Barrier::barrier(time_t msecs)
-        throw (DAF::IllegalThreadStateException, DAF::BrokenBarrierException, DAF::TimeoutException)
     {
         if (this->entryGate_.attempt(msecs)) {
             throw TimeoutException();
@@ -210,7 +209,7 @@ namespace DAF
         return int(index);
     }
 
-    bool    Barrier::waitReset(time_t msecs) throw (DAF::IllegalThreadStateException)
+    bool    Barrier::waitReset(time_t msecs)
     {
         ACE_Guard<ACE_SYNCH_MUTEX> ace_mon( *this );
 

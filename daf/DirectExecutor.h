@@ -49,7 +49,7 @@ namespace DAF
      */
     struct DAF_Export DirectExecutor : DAF::Executor {
 
-        virtual int execute(const DAF::Runnable_ref &command) throw (DAF::InternalException) {
+        virtual int execute(const DAF::Runnable_ref &command) {
             return (DAF::is_nil(command) ? 0 : command->run());
         }
     };

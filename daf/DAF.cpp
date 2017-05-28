@@ -339,7 +339,7 @@ namespace DAF
     }
 
     std::string
-    format_args(const std::string &args, bool substitute_env_args, bool quote_args) throw (DAF::IllegalArgumentException)
+    format_args(const std::string &args, bool substitute_env_args, bool quote_args)
     {
         ACE_ARGV args_argv(args.c_str(), substitute_env_args); DAF_ARGV params_argv(substitute_env_args);
 

@@ -192,7 +192,7 @@ namespace GCRoute
     }
 
     GCLocation
-    GCRadial::radialIntersect(const GCRadial &loc) const throw (NoRadialIntersect)
+    GCRadial::radialIntersect(const GCRadial &loc) const
     {
         if (*this == loc) {
             return GCLocation(*this);

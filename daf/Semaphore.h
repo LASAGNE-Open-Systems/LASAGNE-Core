@@ -85,9 +85,9 @@ namespace DAF
         }
 
         /** \todo{Fill this in} */
-        virtual int acquire(void) throw (DAF::InternalException);
+        virtual int acquire(void);
         /** \todo{Fill this in} */
-        virtual int attempt(time_t msecs) throw (DAF::InternalException);
+        virtual int attempt(time_t msecs);
         /** \todo{Fill this in} */
         virtual int release(void);
         /** \todo{Fill this in} */
