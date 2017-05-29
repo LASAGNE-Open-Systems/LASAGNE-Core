@@ -92,7 +92,7 @@ namespace DAF
         /** Constructor
         * \param thr_mgr: if 0 then the Singleton thread manager is used
         */
-        TaskExecutor(ACE_Thread_Manager * thr_mgr = 0);
+        TaskExecutor(void);
 
         virtual ~TaskExecutor(void);
 
@@ -171,9 +171,6 @@ namespace DAF
 
         /// Return the thread count is greater than zero
         bool    isActive(void) const        { return this->size() > 0;  }
-
-        /// Return the closed state
-        bool    isClosed(void) const        { return this->executorClosed_; }
 
         /**
         * Return the availability status of the TaskExecutor to accept further active
@@ -346,13 +343,48 @@ namespace DAF
 
     private:
 
+        struct Thread_Manager; // Forward Declaration
+
+        struct Thread_Descriptor : ACE_Thread_Descriptor {
+            int threadTerminate(Thread_Manager *);
+
+            ACE_hthread_t   threadHandle(void)  const { return this->thr_handle_; }
+            long          & threadFlags(void) { return this->flags_; }
+            ACE_thread_t    threadID(void)      const { return this->thr_id_; }
+            ACE_Task_Base * taskBase(void)      const { return this->task_; }
+            ACE_UINT32    & threadState(void) { return this->thr_state_; }
+        };
+
+        struct Thread_Manager : ACE_Thread_Manager {
+            using ACE_Thread_Manager::thread_desc_self;
+            using ACE_Thread_Manager::remove_thr;
+
+            /** \todo{Fill this in} */
+            const ACE_TCHAR *dll_name(void) const
+            {
+                return DAF_DLL_NAME;
+            }
+
+            /** \todo{Fill this in} */
+            const ACE_TCHAR *name(void) const
+            {
+                return typeid(*this).name();
+            }
+
+            int terminate_task(ACE_Task_Base * task, int async_cancel);
+            int terminate_thr(Thread_Descriptor *td, int async_cancel);
+        };
+
+        typedef ACE_DLL_Singleton_T<Thread_Manager, ACE_SYNCH_MUTEX>    SingletonThreadManager;
+
+    private:
+
         time_t  decay_timeout_;  // Decay Time for Threads      (milliseconds)
         time_t  evict_timeout_;  // Time for closing threads    (milliseconds)
         time_t  handoff_timeout_;// Time for handing off to existing threads before creating a new one (milliseconds)
 
         mutable volatile bool executorAvailable_;
 
-        bool executorClosing_;
         bool executorClosed_;
     };
 
