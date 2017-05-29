@@ -101,7 +101,9 @@ namespace DAF
             }
 
 #if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP == 1)
-            td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
+            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
+                td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
+            }
 #endif
             return status;
         }
@@ -148,7 +150,9 @@ namespace DAF
             }
 
 #if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP == 1)
-            td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
+            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
+                td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
+            }
 #endif
             return status;
         }
@@ -483,23 +487,22 @@ namespace DAF
         if (DAF_OS::thr_cancel(this->threadID())) {
 
 #if defined(ACE_WIN32)
-
             ACE_SET_BITS(this->threadFlags(), THR_DETACHED);
+            ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED);
 
 # if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
             this->terminate();
 # else
-            ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED);
-
             this->at_exit(this->taskBase(), 0, 0); // Ensure we don't do the at_exit()
 
             TaskExecutor::cleanup(this->taskBase(), this);
 
             thr_mgr->remove_thr(this, 1);// This may leave TSS leaking (Fixed with terminate() access)
 # endif
-            return -1; // Indicate we forced terminated (stops Task_Base::wait())
 #endif
+            return -1; // Indicate we forced terminated (stops Task_Base::wait())
         }
+
         return 0;
     }
 
@@ -540,67 +543,6 @@ namespace DAF
         }
         return -1;
     }
-
-//    int
-//    TaskExecutor::ThreadManager::terminate_grp(int grp_id, int arg)
-//    {
-//        if (DAF::debug() > 1) {
-//            ACE_DEBUG((LM_DEBUG,
-//                ACE_TEXT("DAF (%P | %t) DEBUG: Force therminate threads in group[%d].\n")
-//                , grp_id));
-//        }
-//
-//        return this->apply_grp(grp_id, ACE_THR_MEMBER_FUNC(&ThreadManager::terminate_thr), arg);
-//    }
-//
-//    int
-//    TaskExecutor::ThreadManager::terminate_thr(ACE_Thread_Descriptor *ace_td, int)
-//    {
-//        DAF_Thread_Descriptor * td = static_cast<DAF_Thread_Descriptor *>(ace_td);
-//
-//        if (td) {
-//
-//            ACE_thread_t thr_id = td->threadID(); td->at_exit(td->taskBase(), 0, 0);
-//
-//            try {
-//
-//                if (this->cancel_thr(td, true)) { // Cancel the thread
-//                    int error = DAF_OS::last_error();
-//                    switch (error) {
-//                    case 0: break;
-//#if defined(ACE_WIN32)
-//# if 1
-//                    case ENOTSUP: break; // Just go with *thr_to_be_removed*.
-//# else
-//                    case ENOTSUP: // Original code to terminate thread - BIG Sledge hammer!!
-//                        if (::TerminateThread(td->threadHandle(), DWORD(0xDEAD))) {
-//                            break;
-//                        }
-//                        error = DAF_OS::last_error(); // Fall though with terminate error
-//# endif
-//#endif
-//                    default:
-//                        if (DAF::debug() > 1) {
-//                            ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF (%P | %t) ERROR - TaskExecutor::ThreadManager:\n")
-//                                ACE_TEXT("\t - Failed to cancel thread; id=%d[0x%X],error=%d[%s]\n")
-//                                , unsigned(thr_id)
-//                                , unsigned(thr_id)
-//                                , error
-//                                , DAF::last_error_text(error).c_str()));
-//                        } break;
-//                    }
-//                }
-//
-//            } DAF_CATCH_ALL {
-//                /* Ignore any Errors - We Are Terminating */
-//            }
-//
-//            this->thr_to_be_removed_.enqueue_tail(td);
-//            TaskExecutor::cleanup(td->taskBase(), td);
-//        }
-//
-//        return 0;
-//    }
 
     /*********************************************************************************/
 
