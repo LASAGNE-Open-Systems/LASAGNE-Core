@@ -470,11 +470,12 @@ namespace DAF
 
     /*********************************************************************************/
 
-
     int
     TaskExecutor::Thread_Descriptor::threadTerminate(Thread_Manager *thr_mgr)
     {
         ACE_UNUSED_ARG(thr_mgr); // Not Used on Linux
+
+        const ACE_thread_t thr_id = this->threadID(); // Save Thread ID for reporting
 
         // ACE_Thread::cancel under pthread will result in a pthread_cancel being
         // called. (See 'man pthread_cancel') which results in an async
@@ -484,21 +485,25 @@ namespace DAF
         // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
         // etc.
 
-        if (DAF_OS::thr_cancel(this->threadID())) {
+        if (DAF_OS::thr_cancel(thr_id)) {
 
 #if defined(ACE_WIN32)
-            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
-            ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); // Stops cleanup logic
+
+//            if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD)))
+            {
+                ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
+                ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); // Stops cleanup logic
 
 # if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-            this->terminate();
+                this->terminate();
 # else
-            this->at_exit(this->taskBase(), 0, 0); // Ensure we don't do the at_exit()
+                this->at_exit(this->taskBase(), 0, 0); // Ensure we don't do the at_exit()
 
-            TaskExecutor::cleanup(this->taskBase(), this);
+                TaskExecutor::cleanup(this->taskBase(), this);
 
-            thr_mgr->remove_thr(this, 1);// This may leave TSS leaking (Fixed with terminate() access)
+                thr_mgr->remove_thr(this, 1);// This may leave TSS leaking (Fixed with terminate() access)
 # endif
+            }
 #endif
             return -1; // Indicate we forced terminated (stops Task_Base::wait())
         }
@@ -518,14 +523,14 @@ namespace DAF
 
         if (task) for (ACE_Double_Linked_List_Iterator<ACE_Thread_Descriptor> iter(this->thr_list_); !iter.done(); iter.advance()) {
             Thread_Descriptor * td(static_cast<Thread_Descriptor *>(iter.next()));
-            if (td && td->taskBase() == task && this->terminate_thr(td, async_cancel)) {
-                result = -1;
+            if (td && td->taskBase() == task) {
+                this->terminate_thr(td, async_cancel);
             }
         }
 
-        // Must terminate threads after we have traversed the thr_list_ to prevent clobber thr_list_'s integrity.
+        // Must terminate threads after we have traversed the thr_list_ to prevent clobbering thr_to_be_removed_'s integrity.
 
-        for (ACE_Thread_Descriptor * ace_td = 0; this->thr_to_be_removed_.dequeue_head(ace_td) != -1;) {
+        for (ACE_Thread_Descriptor * ace_td = 0; this->thr_to_be_removed_.dequeue_head(ace_td) != -1; DAF_OS::thr_yield()) {
             Thread_Descriptor * td = static_cast<Thread_Descriptor *>(ace_td);
             if (td && td->threadTerminate(this)) {
                 result = -1;
