@@ -32,18 +32,14 @@ project(TextParserClient) : taflib {
   exename       =  *
   exeout        =  .
   after         += TextParserService
-  
-  macros        += TEXTPARSERSERVICE_HAS_DLL=0
- 
-  verbatim(vc10, debug_cmd_args) {
-    "-z -w 5 -f SOA_Abstract.txt -TAFBaseContext TAF\/XMPL -ORBInitRef TAF_XMPL_TextParserService=corbaloc:iiop:localhost:8989/TAF_XMPL_TextParserService"
-  }
 
-  verbatim(vc12, debug_cmd_args) {
-    "-z -w 5 -f SOA_Abstract.txt -TAFBaseContext TAF\/XMPL -ORBInitRef TAF_XMPL_TextParserService=corbaloc:iiop:localhost:8989/TAF_XMPL_TextParserService"
-  }
+  macros        += TEXTPARSERSERVICE_HAS_DLL=0
 
   verbatim(vc14, debug_cmd_args) {
+    "-z -w 5 -f SOA_Abstract.txt -TAFBaseContext TAF\/XMPL -ORBInitRef TAF_XMPL_TextParserService=corbaloc:iiop:localhost:8989/TAF_XMPL_TextParserService"
+  }
+
+  verbatim(vs2017, debug_cmd_args) {
     "-z -w 5 -f SOA_Abstract.txt -TAFBaseContext TAF\/XMPL -ORBInitRef TAF_XMPL_TextParserService=corbaloc:iiop:localhost:8989/TAF_XMPL_TextParserService"
   }
 
@@ -52,7 +48,7 @@ project(TextParserClient) : taflib {
 
   Header_Files {
   }
-  
+
   Inline_Files {
   }
 
