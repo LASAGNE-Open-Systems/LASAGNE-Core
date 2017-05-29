@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -43,7 +43,7 @@ namespace //anonymous
     public:
         virtual void callback_op(const char *text)
         {
-            ACE_DEBUG((LM_DEBUG, ACE_TEXT("(%P|%t) <-- CLIENT::callback_op(%s)\n"), text));
+            ACE_DEBUG((LM_DEBUG, ACE_TEXT("(%P|%t) <-- CLIENT::callback_op(%C)\n"), text));
         }
     };
 
@@ -131,7 +131,7 @@ namespace //anonymous
                 }
             } catch (const CORBA::Exception& ) {
                 ACE_DEBUG((LM_ERROR, "CLIENT SVC: SimpleServer Object reference is invalid - Retry(%d).\n", i));
-                ACE_OS::sleep(2);
+                DAF_OS::sleep(2);
             }
 
             ACE_DEBUG((LM_INFO, "\n\t*****CLIENT SERVICE (%04t) %T*****\n"));
@@ -140,14 +140,14 @@ namespace //anonymous
 
                 CORBA::Long result = server->test_val();
 
-                ACE_DEBUG((LM_INFO, "(%P|%04t) %T <-> %d == CLIENT::test_val(%d) %s\n", test_value, result, (test_value == result ? "SUCCESS" : "FAILURE")));
+                ACE_DEBUG((LM_INFO, "(%P|%04t) %T <-> %d == CLIENT::test_val(%d) %C\n", test_value, result, (test_value == result ? "SUCCESS" : "FAILURE")));
 
             } catch(const CORBA::Exception &ex) {
                 ex._tao_print_exception("CLIENT SVC: UNEXPECTED exception -");
                 server = taf_xmpl::SimpleServer::_nil();
             }
 
-            ACE_OS::sleep(2);
+            DAF_OS::sleep(2);
         }
 
         return 0;

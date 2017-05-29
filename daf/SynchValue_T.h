@@ -131,9 +131,9 @@ namespace DAF
          *
          * @throw IllegalThreadStateException upon the SynchValue being destroyed while waiting
          */
-        virtual int waitValue(const T &value) throw (DAF::InternalException);
+        virtual int waitValue(const T &value);
 
-        virtual int waitValue(const T &value, time_t msec) throw (DAF::InternalException, DAF::TimeoutException);
+        virtual int waitValue(const T &value, time_t msec);
 
     };
 }  // namespace DAF

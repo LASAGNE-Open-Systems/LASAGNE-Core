@@ -50,7 +50,7 @@ namespace {
 
 namespace DAF
 {
-    Bitset::Bitset(size_t bits, bool val) throw (std::invalid_argument)
+    Bitset::Bitset(size_t bits, bool val)
         : bits_(bits), bit_buffer_(0)
     {
         if (ace_range(0, INT_MAX, int(bits)) == int(bits)) {
@@ -60,7 +60,7 @@ namespace DAF
                 this->bit_buffer_.reset(p); if (p == 0) {
                     DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
                 }
-                ACE_OS::memset(p, (val ? -1 : 0), len);
+                DAF_OS::memset(p, (val ? -1 : 0), len);
 
                 if (val) this->trim_bits();
             }
@@ -70,7 +70,7 @@ namespace DAF
         DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);
     }
 
-    Bitset::Bitset(const Bitset &bitset) throw (std::runtime_error)
+    Bitset::Bitset(const Bitset &bitset)
         : bits_(bitset.bits()), bit_buffer_(0)
     {
         size_t len = this->size();
@@ -79,12 +79,12 @@ namespace DAF
             this->bit_buffer_.reset(p); if (p == 0) {
                 DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
             }
-            ACE_OS::memcpy(p, bitset, len);
+            DAF_OS::memcpy(p, bitset, len);
         }
     }
 
     Bitset::BIT_BYTE_ptr
-    Bitset::bit_buffer(size_t off) const throw (std::out_of_range)
+    Bitset::bit_buffer(size_t off) const
     {
         if (this->bits()) for (Bitset::BIT_BYTE_ptr p = this->bit_buffer_.get(); p;) {
 
@@ -116,7 +116,7 @@ namespace DAF
                     }
                 }
                 else if ((i = (bit / BIT_BYTE_bits)) > 0) {
-                    return ACE_OS::memcmp(*this, bitset, size_t(i)) == 0;
+                    return DAF_OS::memcmp(*this, bitset, size_t(i)) == 0;
                 }
                 else break; // Should never happen
             }
@@ -126,7 +126,7 @@ namespace DAF
     }
 
     Bitset &
-    Bitset::operator = (const Bitset &bitset) throw (std::runtime_error)
+    Bitset::operator = (const Bitset &bitset)
     {
         if (this != &bitset) do { // Doing it to ourselves?
 
@@ -137,7 +137,7 @@ namespace DAF
                 this->bit_buffer_.reset(p); if (p == 0) {
                     DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
                 }
-                ACE_OS::memcpy(p, bitset, len); break;
+                DAF_OS::memcpy(p, bitset, len); break;
             }
 
             this->bit_buffer_.reset(0);
@@ -148,7 +148,7 @@ namespace DAF
     }
 
     Bitset &
-    Bitset::operator += (const Bitset &bitset) throw (std::runtime_error)
+    Bitset::operator += (const Bitset &bitset)
     {
         size_t pos = this->bits();
 
@@ -164,8 +164,8 @@ namespace DAF
                 BIT_BYTE_ptr p(0); ACE_NEW_NORETURN(p, BIT_BYTE_type[len]); if (p == 0) {
                     DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
                 }
-                ACE_OS::memset(p, 0, len); if (pos) {
-                    ACE_OS::memcpy(p, *this, this->size());
+                DAF_OS::memset(p, 0, len); if (pos) {
+                    DAF_OS::memcpy(p, *this, this->size());
                 }
                 this->bit_buffer_.reset(p); break;
             }
@@ -249,7 +249,7 @@ namespace DAF
 
         if (this_bits == that_bits) {
             for (size_t len = this->size(); len;) {
-                return ACE_OS::memcmp(*this, bitset, len);
+                return DAF_OS::memcmp(*this, bitset, len);
             }
         }
 
@@ -257,7 +257,7 @@ namespace DAF
     }
 
     Bitset
-    Bitset::subits(int pos, int len) const throw (std::out_of_range)
+    Bitset::subits(int pos, int len) const
     {
         if (*this && ace_range(0, int(this->bits() - 1), pos) == pos) {
             size_t bits = ace_min(this->bits() - pos, size_t(len));
@@ -270,7 +270,7 @@ namespace DAF
     }
 
     Bitset &
-    Bitset::erase(int pos, int len) throw (std::out_of_range)
+    Bitset::erase(int pos, int len)
     {
         if (*this && ace_range(0, int(this->bits() - 1), pos) == pos) {
             size_t bits = ace_min(this->bits() - pos, size_t(len));
@@ -292,7 +292,7 @@ namespace DAF
     }
 
     Bitset::bitraits
-    Bitset::operator [] (size_t bit) throw (std::out_of_range)
+    Bitset::operator [] (size_t bit)
     {
         if (*this && ace_range(size_t(0), this->bits() - 1, bit) == bit) {
             return bitraits(this->bit_buffer_[int(bit / BIT_BYTE_bits)], bit_mask(bit));
@@ -301,7 +301,7 @@ namespace DAF
     }
 
     bool
-    Bitset::operator [] (size_t bit) const throw (std::out_of_range)
+    Bitset::operator [] (size_t bit) const
     {
         if (*this && ace_range(size_t(0), this->bits() - 1, bit) == bit) {
             return (this->bit_buffer_[int(bit / BIT_BYTE_bits)] & bit_mask(bit)) ? true : false;
@@ -310,7 +310,7 @@ namespace DAF
     }
 
     Bitset &
-    Bitset::reset(size_t bits, bool val)  throw (std::invalid_argument)
+    Bitset::reset(size_t bits, bool val)
     {
         if (ace_range(0, INT_MAX, int(bits)) == int(bits)) {
             size_t len = bit_bytes(bits); this->bits_ = 0; // Clear out existing
@@ -319,7 +319,7 @@ namespace DAF
                 this->bit_buffer_.reset(p); if (p == 0) {
                     DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
                 }
-                ACE_OS::memset(p, (val ? -1 : 0), len); this->bits_ = bits;
+                DAF_OS::memset(p, (val ? -1 : 0), len); this->bits_ = bits;
 
                 if (val) this->trim_bits();
 

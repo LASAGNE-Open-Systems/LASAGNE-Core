@@ -67,7 +67,7 @@ namespace DAF
     }
 
     /// Increment the reference count.
-    size_t  RefCount::_add_ref(void) throw (DAF::INV_OBJREF)
+    size_t  RefCount::_add_ref(void)
     {
         if (this->refCount_ > 0) try {  // DCL
             ACE_Guard<ACE_SYNCH_MUTEX> guard(this->refLock_); ACE_UNUSED_ARG(guard);
@@ -80,7 +80,7 @@ namespace DAF
     }
 
     /// Decrement the reference count.
-    size_t  RefCount::_remove_ref(void) throw (DAF::INV_OBJREF)
+    size_t  RefCount::_remove_ref(void)
     {
         if (this->refCount_ > 0) try {  // DCL
             do  {

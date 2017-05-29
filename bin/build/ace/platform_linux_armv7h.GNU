@@ -6,6 +6,8 @@ inline ?= 1
 
 include $(ACE_ROOT)/include/makeinclude/platform_linux_common.GNU
 
+SYSARCH ?= $(shell uname -m)
+
 ifeq ($(insure),0)
   CC  ?= gcc
   CXX ?= g++
@@ -17,9 +19,13 @@ endif
 CXX_HOSTMACHINE := $(shell $(CXX_FOR_VERSION_TEST) -dumpmachine)
 
 # set archtecture specific build flags
-ifeq (armv7,$(findstring armv7,$(CXX_HOSTMACHINE)))
-  FLAGS_C_CC += -march=armv7-a -mfloat-abi=hard
+ifeq (armv7,$(findstring armv7,$(SYSARCH)))
+  FLAGS_C_CC += -march=armv7-a
   LDFLAGS    += -march=armv7-a
+endif
+
+ifeq (abihf,$(findstring abihf,$(CXX_HOSTMACHINE)))
+  FLAGS_C_CC += -mfloat-abi=hard
 endif
 
 ifeq ($(buildbits),32)

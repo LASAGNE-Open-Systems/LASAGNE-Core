@@ -1,0 +1,11 @@
+feature(coredx) : CORBActiveService, coredx {
+  specific(prop:windows) {
+    macros += COREDX_DLL_TS COREDX_DLL_TS_EXPORTS
+  }
+}
+
+// WARNING: NOT Tested + Broken
+feature(coredxcorba) {
+  requires      += coredx
+  //coredx_ts_flags += -corba LTMTopicDetailsC.h
+}

@@ -56,7 +56,7 @@ namespace DAF
     }
 
     template <typename T, typename F> T
-    FutureResult<T,F>::get(void) const throw (InvocationTargetException)
+    FutureResult<T,F>::get(void) const
     {
         {
             ACE_Guard<ACE_SYNCH_MUTEX> ace_mon(*this);
@@ -80,7 +80,7 @@ namespace DAF
     }
 
     template <typename T, typename F> T
-    FutureResult<T,F>::get(time_t msecs) const throw (InvocationTargetException, TimeoutException)
+    FutureResult<T,F>::get(time_t msecs) const
     {
         bool timeout = false;
         {

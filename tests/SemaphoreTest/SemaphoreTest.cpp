@@ -274,13 +274,13 @@ namespace test
             executor.execute(runner);
 
             while(executor.size() < 1) {
-                ACE_OS::sleep(ACE_Time_Value(0,300));
+                DAF_OS::sleep(ACE_Time_Value(0,300));
             }
-            ACE_OS::sleep(ACE_Time_Value(1,300));
+            DAF_OS::sleep(ACE_Time_Value(1,300));
 
             sema.release();
 
-            ACE_OS::sleep(ACE_Time_Value(1, 5000));
+            DAF_OS::sleep(ACE_Time_Value(1, 5000));
         }
 
         value = tester->permit_exit == tester->permit_entry;
@@ -318,9 +318,9 @@ namespace test
             kill_executor->execute(new TestSemaphore(sema));
 
             while(executor.size() < 1 && kill_executor->size() < 1) {
-                ACE_OS::sleep(ACE_Time_Value(0,300));
+                DAF_OS::sleep(ACE_Time_Value(0,300));
             }
-            ACE_OS::sleep(ACE_Time_Value(1,300));
+            DAF_OS::sleep(ACE_Time_Value(1,300));
 
             // Kill the Executor
             if ( debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing Executor\n"));
@@ -331,7 +331,7 @@ namespace test
 
             sema.release();
 
-            ACE_OS::sleep(ACE_Time_Value(1, 5000));
+            DAF_OS::sleep(ACE_Time_Value(1, 5000));
         }
 
         value = tester->permit_exit == tester->permit_entry;
@@ -390,7 +390,7 @@ namespace test
 
            if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - R2 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
 
-           ACE_OS::sleep(ACE_Time_Value(0,5000));
+           DAF_OS::sleep(ACE_Time_Value(0,5000));
            value = sema.waiters();
 
            // Clear out the rest - test is over.
@@ -463,7 +463,7 @@ namespace test
           sema.release();
 
           if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - R2 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
-          ACE_OS::sleep(ACE_Time_Value(0,5000));
+          DAF_OS::sleep(ACE_Time_Value(0,5000));
           value = sema.waiters();
 
           // Clear out the rest - test is over.
@@ -508,7 +508,7 @@ int main(int argc, char* argv[])
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
         case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = ACE_OS::atoi(cli_opt.opt_arg());
+        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
     }
 
     ACE_UNUSED_ARG(threadCount);

@@ -1,0 +1,9 @@
+feature(opensplice) : DDSActiveService, opensplice {  
+  splice_ts_flags += -P DDSActiveService_Export,DDSActiveService_export.h
+}
+
+// WARNING: NOT Tested + Broken
+feature(osplcorba) {
+    requires += opensplice
+    // splice_ts_flags += 
+}

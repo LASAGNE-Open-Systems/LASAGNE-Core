@@ -140,7 +140,7 @@ namespace test
       if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Killing the Monitor\n"));
       delete monitor;
 
-      ACE_OS::sleep(ACE_Time_Value(1,0));
+      DAF_OS::sleep(ACE_Time_Value(1,0));
 
 
 
@@ -197,7 +197,7 @@ namespace test
       if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Killing the Channel\n"));
       delete channel;
 
-      ACE_OS::sleep(ACE_Time_Value(1,0));
+      DAF_OS::sleep(ACE_Time_Value(1,0));
 
 
 
@@ -245,7 +245,7 @@ int main(int argc, char *argv[])
     case -1: break;
     case 'h': print_usage(cli_opt); return 0;
     case 'z': DAF::debug(true); test::debug=true; break;
-    case 'n': threadCount = ACE_OS::atoi(cli_opt.opt_arg());
+    case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
   }
 
   std::cout << test::TEST_NAME << std::endl;

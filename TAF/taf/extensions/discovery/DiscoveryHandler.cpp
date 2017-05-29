@@ -185,7 +185,7 @@ namespace TAF
     DiscoveryHandler::open_handler(const ACE_INET_Addr &mcast_addr, const char *net_if, bool reuse_addr)
     {
         do {
-            if (net_if && ACE_OS::strlen(net_if) > 0) {
+            if (net_if && DAF_OS::strlen(net_if) > 0) {
                 if (ACE_SOCK_Dgram_Mcast::join(mcast_addr, reuse_addr, net_if) == 0) {
                     break;
                 }
@@ -212,7 +212,7 @@ namespace TAF
     int
     DiscoveryHandler::sendIORQuery(const IORQueryReplyHandler &rh, const ACE_TCHAR *svc_ident)
     {
-        if (svc_ident && ACE_OS::strlen(svc_ident) > 0) {
+        if (svc_ident && DAF_OS::strlen(svc_ident) > 0) {
 
             const taf::IORQuery mcast_query = {
                 CORBA::UShort(rh.getReplyPort()), CORBA::UShort(0), svc_ident

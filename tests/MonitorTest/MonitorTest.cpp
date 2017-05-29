@@ -65,7 +65,7 @@ namespace
         ACE_UNUSED_ARG(argc); ACE_UNUSED_ARG(argv);
 
         if (this->execute(new MonitorRunnable()) == 0) {
-            ACE_OS::sleep(1); return this->execute(1);
+            DAF_OS::sleep(1); return this->execute(1);
         }
         return -1;
     }
@@ -97,7 +97,7 @@ namespace
 
         try {
             ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, monitor_, -1);
-            int i = monitor_.wait(), j = ACE_OS::last_error();
+            int i = monitor_.wait(), j = DAF_OS::last_error();
             if (i) {
                 ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("%P | %t) - MonitorTest return =%d;errno=%d"), i, j), -1);
             }

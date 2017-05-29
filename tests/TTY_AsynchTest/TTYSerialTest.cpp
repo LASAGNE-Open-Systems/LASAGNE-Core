@@ -268,7 +268,7 @@ int main ( int argc, char *argv[] )
     // going to do a short sleep to ensure the
     // aio is cleared out and we don't miss the
     // last trigger.
-    ACE_OS::sleep(testInterval);
+    DAF_OS::sleep(testInterval);
 
     const int expected = writer.count;
     const int result = reinterpret_cast<TEST::TestSerialHandler*>(device.get_device_handler())->get_count();

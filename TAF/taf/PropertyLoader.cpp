@@ -79,7 +79,7 @@ namespace TAF
 
         if (this->load_count() ? false : use_env) {
 
-            for (const char *properties = ACE_OS::getenv(this->config_switch()); properties;) {
+            for (const char *properties = DAF_OS::getenv(this->config_switch()); properties;) {
                 try {
                     if (this->load_file_profile(properties) == 0) {
                         break;

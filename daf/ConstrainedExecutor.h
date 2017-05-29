@@ -55,7 +55,7 @@ namespace DAF
             */
             ConstrainedExecutor(Executor &executor, size_t permits = 1);
 
-            virtual int     execute(const Runnable_ref &command)  throw (InternalException);
+            virtual int     execute(const Runnable_ref &command);
 
             /// Remaining number of permitted concurrent jobs
             virtual size_t  available(void) const;

@@ -99,7 +99,7 @@ namespace TAF
 template <typename T>
 inline bool operator <  (const TAF::StringManager_T<T> &lhs, const TAF::StringManager_T<T> &rhs)
 {
-    return ACE_OS::strcmp(lhs.in(), rhs.in()) < 0;
+    return DAF_OS::strcmp(lhs.in(), rhs.in()) < 0;
 }
 
 #endif // TAF_STRINGMANAGER_T_H

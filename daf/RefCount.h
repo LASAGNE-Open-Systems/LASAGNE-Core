@@ -102,9 +102,10 @@ namespace DAF
         }
 
         /// Increment the reference count.
-        size_t  _add_ref(void) throw (DAF::INV_OBJREF);
+        size_t  _add_ref(void);
+
         /// Decrement the reference count.
-        size_t  _remove_ref(void) throw (DAF::INV_OBJREF);
+        size_t  _remove_ref(void);
 
     protected:
 

@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -159,7 +159,7 @@ namespace TAF
     taf::EntityDescriptor *
     GestaltService_impl::findService(const char *svc_ident)
     {
-        if (svc_ident && ACE_OS::strlen(svc_ident) > 0) do {
+        if (svc_ident && DAF_OS::strlen(svc_ident) > 0) do {
             ACE_READ_GUARD_REACTION(ACE_SYNCH_RW_MUTEX, taf_mon, this->lock_, throw CORBA::BAD_OPERATION()); // Stop re-entrancy
             return this->makeEntityDescriptor(svc_ident)._retn();
         } while (false);
@@ -197,7 +197,7 @@ namespace TAF
     CORBA::Long
     GestaltService_impl::loadConfigFile(const char *profile_arg, CORBA::Long_out count)
     {
-        if (profile_arg && ACE_OS::strlen(profile_arg) > 0) try {
+        if (profile_arg && DAF_OS::strlen(profile_arg) > 0) try {
             GestaltServiceLoader svcLoader(*this);
             if (svcLoader.load_file_profile(DAF::trim_string(profile_arg)) == 0) {
                 count = CORBA::Long(svcLoader.size()); return CORBA::Long(svcLoader.process_directives());
@@ -212,7 +212,7 @@ namespace TAF
     void
     GestaltService_impl::loadStatic(const char *ident, const char *parameters)
     {
-        if (ident && ACE_OS::strlen(ident)) do {
+        if (ident && DAF_OS::strlen(ident)) do {
 
             const std::string svc_ident(DAF::trim_string(ident));
 
@@ -233,7 +233,7 @@ namespace TAF
                 const ACE_Service_Type *svc_type = 0;
 
                 if (this->find(svc_ident.c_str(), &svc_type, false) == 0) {
-                    ACE_OS::last_error(EEXIST); break;
+                    DAF_OS::last_error(EEXIST); break;
                 }
 
                 if (this->process_command(command, DEFAULT_SLOAD_TIMEOUT)) {
@@ -254,7 +254,7 @@ namespace TAF
                     , svc_ident.c_str(), DAF::last_error_text().c_str()));
             }
 
-            switch (ACE_OS::last_error()) {
+            switch (DAF_OS::last_error()) {
             case ETIME: throw CORBA::TIMEOUT();
             default:    throw CORBA::BAD_OPERATION();
             }
@@ -267,7 +267,7 @@ namespace TAF
     void
     GestaltService_impl::loadDynamic(const char *ident, const char *libpathname, const char *objectclass, const char *parameters)
     {
-        if (ident && ACE_OS::strlen(ident)) do {
+        if (ident && DAF_OS::strlen(ident)) do {
 
             const std::string svc_ident(DAF::trim_string(ident));
 
@@ -318,7 +318,7 @@ namespace TAF
                 const ACE_Service_Type *svc_type = 0;
 
                 if (this->find(svc_ident.c_str(), &svc_type, false) == 0) {
-                    ACE_OS::last_error(EEXIST); break;
+                    DAF_OS::last_error(EEXIST); break;
                 }
 
                 if (this->process_command(command, DEFAULT_DLOAD_TIMEOUT)) {
@@ -338,7 +338,7 @@ namespace TAF
                     , svc_ident.c_str(), DAF::last_error_text().c_str()));
             }
 
-            switch (ACE_OS::last_error()) {
+            switch (DAF_OS::last_error()) {
             case ETIME: throw CORBA::TIMEOUT();
             default:    throw CORBA::BAD_OPERATION();
             }
@@ -351,7 +351,7 @@ namespace TAF
     void
     GestaltService_impl::suspend(const char *ident)
     {
-        if (ident && ACE_OS::strlen(ident)) do {
+        if (ident && DAF_OS::strlen(ident)) do {
 
             const std::string svc_ident(DAF::trim_string(ident));
 
@@ -368,17 +368,17 @@ namespace TAF
                 const ACE_Service_Type *svc_type = 0;
 
                 if (this->find(svc_ident.c_str(), &svc_type, false) || svc_type == 0) {
-                    ACE_OS::last_error(EEXIST); break;
+                    DAF_OS::last_error(EEXIST); break;
                 }
 
                 if (svc_type->fini_called()) {
-                    ACE_OS::last_error(EACCES); break;
+                    DAF_OS::last_error(EACCES); break;
                 }
 
                 if (svc_type->active() ? this->process_command(command, DEFAULT_SUSPEND_TIMEOUT) : 0) {
                     const_cast<ACE_Service_Type*>(svc_type)->active(true); // Set back to active
-                    switch (ACE_OS::last_error()) {
-                    case EINVAL: ACE_OS::last_error(ENOTSUP); // Gestalt sets EINVAL when -1 returned
+                    switch (DAF_OS::last_error()) {
+                    case EINVAL: DAF_OS::last_error(ENOTSUP); // Gestalt sets EINVAL when -1 returned
                     default: continue;
                     }
                 }
@@ -397,7 +397,7 @@ namespace TAF
                     , svc_ident.c_str(), DAF::last_error_text().c_str()));
             }
 
-            switch (ACE_OS::last_error()) {
+            switch (DAF_OS::last_error()) {
             case ENOTSUP:   throw CORBA::NO_IMPLEMENT();
             case ETIME:     throw CORBA::TIMEOUT();
             default:        throw CORBA::BAD_OPERATION();
@@ -411,7 +411,7 @@ namespace TAF
     void
     GestaltService_impl::resume(const char *ident)
     {
-        if (ident && ACE_OS::strlen(ident)) do {
+        if (ident && DAF_OS::strlen(ident)) do {
 
             const std::string svc_ident(DAF::trim_string(ident));
 
@@ -428,17 +428,17 @@ namespace TAF
                 const ACE_Service_Type *svc_type = 0;
 
                 if (this->find(svc_ident.c_str(), &svc_type, false) || svc_type == 0) {
-                    ACE_OS::last_error(EEXIST); break;
+                    DAF_OS::last_error(EEXIST); break;
                 }
 
                 if (svc_type->fini_called()) {
-                    ACE_OS::last_error(EACCES); break;
+                    DAF_OS::last_error(EACCES); break;
                 }
 
                 if (svc_type->active() ? 0 : this->process_command(command, DEFAULT_RESUME_TIMEOUT)) {
                     const_cast<ACE_Service_Type*>(svc_type)->active(false);  // Set back to in-active
-                    switch (ACE_OS::last_error()) {
-                    case EINVAL: ACE_OS::last_error(ENOTSUP); // Gestalt sets EINVAL when -1 returned
+                    switch (DAF_OS::last_error()) {
+                    case EINVAL: DAF_OS::last_error(ENOTSUP); // Gestalt sets EINVAL when -1 returned
                     default: continue;
                     }
                 }
@@ -457,7 +457,7 @@ namespace TAF
                     , svc_ident.c_str(), DAF::last_error_text().c_str()));
             }
 
-            switch (ACE_OS::last_error()) {
+            switch (DAF_OS::last_error()) {
             case ENOTSUP:   throw CORBA::NO_IMPLEMENT();
             case ETIME:     throw CORBA::TIMEOUT();
             default:        throw CORBA::BAD_OPERATION();
@@ -471,7 +471,7 @@ namespace TAF
     void
     GestaltService_impl::remove(const char *ident)
     {
-        if (ident && ACE_OS::strlen(ident)) do {
+        if (ident && DAF_OS::strlen(ident)) do {
 
             const std::string svc_ident(DAF::trim_string(ident));
 
@@ -493,7 +493,7 @@ namespace TAF
                 const ACE_Service_Type *svc_type = 0;
 
                 if (this->find(svc_ident.c_str(), &svc_type, false) || svc_type == 0) {
-                    ACE_OS::last_error(EEXIST); break;
+                    DAF_OS::last_error(EEXIST); break;
                 }
 
                 if (svc_type->fini_called() ? 0 : this->process_command(command, DEFAULT_REMOVE_TIMEOUT)) {
@@ -514,7 +514,7 @@ namespace TAF
                     , svc_ident.c_str(), DAF::last_error_text().c_str()));
             }
 
-            switch (ACE_OS::last_error()) {
+            switch (DAF_OS::last_error()) {
             case ETIME: throw CORBA::TIMEOUT();
             default:    throw CORBA::BAD_OPERATION();
             }

@@ -143,28 +143,28 @@ namespace DAF
         * subinterface are generally guaranteed to block on puts upon
         * reaching capacity, but other implementations may or may not block.
         */
-        virtual int put(const T&) throw (DAF::InternalException) = 0;
+        virtual int put(const T&) = 0;
 
         /**
         * Place item in channel only if it can be accepted within
         * ms milliseconds. The time bound is interpreted in
         * a coarse-grained, best-effort fashion.
         */
-        virtual int offer(const T&, time_t msecs = 0) throw (DAF::InternalException) = 0;
+        virtual int offer(const T&, time_t msecs = 0) = 0;
 
         /**
         * Return and remove an item from channel,
         * possibly waiting indefinitely until
         * such an item exists.
         */
-        virtual T   take(void) throw (DAF::InternalException) = 0;
+        virtual T   take(void) = 0;
 
         /**
         * Return and remove an item from channel only if one is available within
         * ms milliseconds. The time bound is interpreted in a coarse
         * grained, best-effort fashion.
         */
-        virtual T   poll(time_t msecs = 0) throw (DAF::InternalException, DAF::TimeoutException) = 0;
+        virtual T   poll(time_t msecs = 0) = 0;
 
 
         /// Empty the channel.

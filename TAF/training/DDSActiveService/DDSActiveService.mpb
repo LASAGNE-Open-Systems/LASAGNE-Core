@@ -1,0 +1,26 @@
+project : taflib {
+  sharedname    = *
+
+  idlflags      += -Wb,export_include=DDSActiveService_export.h \
+                   -Wb,export_macro=DDSActiveService_Export
+
+  libout        = $(DAF_ROOT)/lib 
+
+  dynamicflags  += DDSACTIVESERVICE_BUILD_DLL
+
+  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl DDSActiveService > DDSActiveService_export.h
+
+  Idl_Files {
+    LTMTopicDetails.idl
+  }
+
+  Header_Files {
+    DDSActiveService.h
+    DDSActiveDataSupport.h
+  }
+
+  Source_Files {
+    DDSActiveService.cpp
+    DDSActiveDataSupport.cpp
+  }
+}

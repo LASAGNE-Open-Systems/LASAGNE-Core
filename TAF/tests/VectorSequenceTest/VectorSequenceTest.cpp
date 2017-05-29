@@ -80,11 +80,11 @@ namespace {
         for (CORBA::ULong i = 0; i < t->maximum(); i++) {
             t->length(i + 1); char s[16];
             {
-                ACE_OS::sprintf(s, ACE_TEXT("%04d"), int(i));
+                DAF_OS::sprintf(s, ACE_TEXT("%04d"), int(i));
                 t[i].s1 = std::string(s).c_str();
             }
             {
-                ACE_OS::sprintf(s, ACE_TEXT("%04d"), int(i * 100));
+                DAF_OS::sprintf(s, ACE_TEXT("%04d"), int(i * 100));
                 t[i].s2 = std::string(s).c_str();
             }
         }
@@ -117,13 +117,13 @@ namespace {
             for (size_t i = 0; i < MAX_SEQUENCE_SIZE; i++) {
                 char s[16];
                 {
-                    ACE_OS::sprintf(s, ACE_TEXT("%04d"), int(i));
+                    DAF_OS::sprintf(s, ACE_TEXT("%04d"), int(i));
                     if (std::string(s) != v[i].s1.in()) {
                         return false;
                     }
                 }
                 {
-                    ACE_OS::sprintf(s, ACE_TEXT("%04d"), int(i * 100));
+                    DAF_OS::sprintf(s, ACE_TEXT("%04d"), int(i * 100));
                     if (std::string(s) != v[i].s2.in()) {
                         return false;
                     }
@@ -166,13 +166,13 @@ namespace {
             for (CORBA::ULong i = 0; i < t.length(); i++) {
                 char s[16];
                 {
-                    ACE_OS::sprintf(s, ACE_TEXT("%04d"), int(i));
+                    DAF_OS::sprintf(s, ACE_TEXT("%04d"), int(i));
                     if (std::string(s) != t[i].s1.in()) {
                         return false;
                     }
                 }
                 {
-                    ACE_OS::sprintf(s, ACE_TEXT("%04d"), int(i * 100));
+                    DAF_OS::sprintf(s, ACE_TEXT("%04d"), int(i * 100));
                     if (std::string(s) != t[i].s2.in()) {
                         return false;
                     }

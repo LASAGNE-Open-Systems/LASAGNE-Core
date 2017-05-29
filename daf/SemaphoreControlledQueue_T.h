@@ -57,7 +57,7 @@ namespace DAF
         /** \todo{Fill this in} */
         virtual int insert(const T&);
         /** \todo{Fill this in} */
-        virtual T   extract(void) throw (DAF::InternalException);
+        virtual T   extract(void);
 
     private:
 

@@ -1,15 +1,13 @@
-// $Id: DAF.mwc
-
 workspace {
   cmdline += -include $DAF_ROOT/MPC/config \
              -feature_file $DAF_ROOT/MPC/config/TAF.features
   daf
-  tests
   GCRoute
   LDBC/LDBC.mwc
   TTY_Asynch
 
   exclude {
+    ext
     mvn
     tests
   }

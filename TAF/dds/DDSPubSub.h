@@ -362,7 +362,7 @@ namespace TAFDDS
 
         mutable ACE_SYNCH_MUTEX reader_lock_;
 
-        virtual void on_data_available(DDS::DataReader_ptr) throw();
+        virtual void on_data_available(DDS::DataReader_ptr);
 
     private:
 
@@ -396,7 +396,7 @@ namespace TAFDDS
 
         virtual DDS::ReturnCode_t on_data_available(const _data_type&);
 
-        virtual void on_data_available(DDS::DataReader_ptr) throw();
+        virtual void on_data_available(DDS::DataReader_ptr);
     };
 
 /***********************************************************************************/

@@ -73,9 +73,9 @@ namespace TAF_XMPL
         /// Initializes object when dynamic linking occurs.
         virtual int init(int argc, ACE_TCHAR *argv[]);
 
-        virtual int suspend(void)   { ACE_OS::last_error(ENOTSUP); return -1; }
+        virtual int suspend(void)   { DAF_OS::last_error(ENOTSUP); return -1; }
 
-        virtual int resume(void)    { ACE_OS::last_error(ENOTSUP); return -1; }
+        virtual int resume(void)    { DAF_OS::last_error(ENOTSUP); return -1; }
 
         /// Terminates object when dynamic unlinking occurs.
         virtual int fini(void);

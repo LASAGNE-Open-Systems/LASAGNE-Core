@@ -34,7 +34,7 @@ namespace TAFDDS {
 
     struct TopicListener : virtual TAFDDS::Listener, virtual DDS::TopicListener
     {
-        virtual void on_inconsistent_topic(DDS::Topic_ptr, const DDS::InconsistentTopicStatus&) throw()
+        virtual void on_inconsistent_topic(DDS::Topic_ptr, const DDS::InconsistentTopicStatus&)
         {
             std::cout << "DDS::TopicListener::on_inconsistent_topic." << std::endl;
         }
@@ -42,34 +42,34 @@ namespace TAFDDS {
 
     struct DataWriterListener : virtual TAFDDS::Listener, virtual DDS::DataWriterListener
     {
-        virtual void on_offered_deadline_missed(DDS::DataWriter_ptr, const DDS::OfferedDeadlineMissedStatus&) throw ()
+        virtual void on_offered_deadline_missed(DDS::DataWriter_ptr, const DDS::OfferedDeadlineMissedStatus&)
         {
             std::cout << "DDS::DataWriterListener::on_offered_deadline_missed." << std::endl;
         }
 
-        virtual void on_offered_incompatible_qos(DDS::DataWriter_ptr, const DDS::OfferedIncompatibleQosStatus&) throw ()
+        virtual void on_offered_incompatible_qos(DDS::DataWriter_ptr, const DDS::OfferedIncompatibleQosStatus&)
         {
             std::cout << "DDS::DataWriterListener::on_offered_incompatible_qos." << std::endl;
         }
 
-        virtual void on_liveliness_lost(DDS::DataWriter_ptr, const DDS::LivelinessLostStatus&) throw ()
+        virtual void on_liveliness_lost(DDS::DataWriter_ptr, const DDS::LivelinessLostStatus&)
         {
             std::cout << "DDS::DataWriterListener::on_liveliness_lost." << std::endl;
         }
 
-        virtual void on_publication_matched(DDS::DataWriter_ptr, const DDS::PublicationMatchedStatus&) throw ()
+        virtual void on_publication_matched(DDS::DataWriter_ptr, const DDS::PublicationMatchedStatus&)
         {
             std::cout << "DDS::DataWriterListener::on_publication_matched." << std::endl;
         }
 
 #if defined(TAF_USES_NDDS)
 
-        virtual void on_reliable_writer_cache_changed(DDS::DataWriter_ptr, const DDS::ReliableWriterCacheChangedStatus&) throw ()
+        virtual void on_reliable_writer_cache_changed(DDS::DataWriter_ptr, const DDS::ReliableWriterCacheChangedStatus&)
         {
             std::cout << "DDS::DataWriterListener::on_reliable_writer_cache_changed." << std::endl;
         }
 
-        virtual void on_reliable_reader_activity_changed(DDS::DataWriter_ptr, const DDS_ReliableReaderActivityChangedStatus&) throw ()
+        virtual void on_reliable_reader_activity_changed(DDS::DataWriter_ptr, const DDS_ReliableReaderActivityChangedStatus&)
         {
             std::cout << "DDS::DataWriterListener::on_reliable_reader_activity_changed." << std::endl;
         }
@@ -79,37 +79,37 @@ namespace TAFDDS {
 
     struct DataReaderListener : virtual TAFDDS::Listener, virtual DDS::DataReaderListener
     {
-        virtual void on_data_available(DDS::DataReader_ptr) throw()
+        virtual void on_data_available(DDS::DataReader_ptr)
         {
             std::cout << "DDS::DataReaderListener::on_data_available." << std::endl;
         }
 
-        virtual void on_requested_deadline_missed(DDS::DataReader_ptr, const DDS::RequestedDeadlineMissedStatus&) throw ()
+        virtual void on_requested_deadline_missed(DDS::DataReader_ptr, const DDS::RequestedDeadlineMissedStatus&)
         {
             std::cout << "DDS::DataReaderListener::on_requested_deadline_missed." << std::endl;
         }
 
-        virtual void on_requested_incompatible_qos(DDS::DataReader_ptr, const DDS::RequestedIncompatibleQosStatus&)  throw ()
+        virtual void on_requested_incompatible_qos(DDS::DataReader_ptr, const DDS::RequestedIncompatibleQosStatus&)
         {
             std::cout << "DDS::DataReaderListener::on_requested_incompatible_qos." << std::endl;
         }
 
-        virtual void on_sample_rejected(DDS::DataReader_ptr, const DDS::SampleRejectedStatus&) throw ()
+        virtual void on_sample_rejected(DDS::DataReader_ptr, const DDS::SampleRejectedStatus&)
         {
             std::cout << "DDS::DataReaderListener::on_sample_rejected." << std::endl;
         }
 
-        virtual void on_liveliness_changed(DDS::DataReader_ptr, const DDS::LivelinessChangedStatus&)  throw ()
+        virtual void on_liveliness_changed(DDS::DataReader_ptr, const DDS::LivelinessChangedStatus&)
         {
             std::cout << "DDS::DataReaderListener::on_liveliness_changed." << std::endl;
         }
 
-        virtual void on_sample_lost(DDS::DataReader_ptr, const DDS::SampleLostStatus&) throw ()
+        virtual void on_sample_lost(DDS::DataReader_ptr, const DDS::SampleLostStatus&)
         {
             std::cout << "DDS::DataReaderListener::on_sample_lost." << std::endl;
         }
 
-        virtual void on_subscription_matched(DDS::DataReader_ptr, const DDS::SubscriptionMatchedStatus&) throw ()
+        virtual void on_subscription_matched(DDS::DataReader_ptr, const DDS::SubscriptionMatchedStatus&)
         {
             std::cout << "DDS::DataReaderListener::on_subscription_matched." << std::endl;
         }
@@ -117,7 +117,7 @@ namespace TAFDDS {
 
     struct PublisherListener    : virtual DDS::PublisherListener, virtual TAFDDS::DataWriterListener
     {
-        virtual void on_publication_matched(DDS::DataWriter_ptr, const DDS::PublicationMatchedStatus&) throw ()
+        virtual void on_publication_matched(DDS::DataWriter_ptr, const DDS::PublicationMatchedStatus&)
         {
             std::cout << "DDS::PublisherListener::on_publication_matched." << std::endl;
         }
@@ -125,12 +125,12 @@ namespace TAFDDS {
 
     struct SubscriberListener   : virtual DDS::SubscriberListener, virtual TAFDDS::DataReaderListener
     {
-        virtual void on_subscription_matched(DDS::DataReader_ptr, const DDS::SubscriptionMatchedStatus&) throw ()
+        virtual void on_subscription_matched(DDS::DataReader_ptr, const DDS::SubscriptionMatchedStatus&)
         {
             std::cout << "DDS::SubscriberListener::on_subscription_matched." << std::endl;
         }
 
-        virtual void on_data_on_readers(DDS::Subscriber_ptr) throw()
+        virtual void on_data_on_readers(DDS::Subscriber_ptr)
         {
             std::cout << "DDS::SubscriberListener::on_data_on_readers." << std::endl;
         }
@@ -141,12 +141,12 @@ namespace TAFDDS {
                                         virtual TAFDDS::PublisherListener,
                                         virtual TAFDDS::SubscriberListener
     {
-        virtual void on_publication_matched(DDS::DataWriter_ptr, const DDS::PublicationMatchedStatus&) throw ()
+        virtual void on_publication_matched(DDS::DataWriter_ptr, const DDS::PublicationMatchedStatus&)
         {
             std::cout << "DDS::DomainParticipantListener::on_publication_matched." << std::endl;
         }
 
-        virtual void on_subscription_matched(DDS::DataReader_ptr, const DDS::SubscriptionMatchedStatus&) throw ()
+        virtual void on_subscription_matched(DDS::DataReader_ptr, const DDS::SubscriptionMatchedStatus&)
         {
             std::cout << "DDS::DomainParticipantListener::on_subscription_matched." << std::endl;
         }

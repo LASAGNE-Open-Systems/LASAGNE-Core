@@ -114,7 +114,7 @@ namespace DAF
     {
         if (this->interrupted() ? this->waiters() > 0 : true) {
 
-            this->interrupted_ = true; ACE_OS::thr_yield(); // Set our flag.
+            this->interrupted_ = true; DAF_OS::thr_yield(); // Set our flag.
 
             const int REMOVE_RETRY_MAXIMUM = 3; // Retry's before throw on condition
 
@@ -126,13 +126,13 @@ namespace DAF
 
             const ACE_Time_Value remove_delay(0, 5000); // Delay 5ms after the broadcast
 
-            for (int i = REMOVE_RETRY_MAXIMUM; i--; ACE_OS::sleep(remove_delay)) {  // Allow threads to exit wait
+            for (int i = REMOVE_RETRY_MAXIMUM; i--; DAF_OS::sleep(remove_delay)) {  // Allow threads to exit wait
                 if (this->waiters() > 0) {
                     ACE_GUARD_ACTION(_mutex_type, cond_lock, this->condition_mutex_.mutex(), this->broadcast(), break);
                 } else return 0;
             }
 
-            ACE_OS::last_error(EBUSY); return -1;
+            DAF_OS::last_error(EBUSY); return -1;
         }
 
         return 0;
@@ -150,7 +150,7 @@ namespace DAF
         }
 
         if (this->interrupted()) {
-            ACE_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
+            DAF_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
         }
 
         return result;

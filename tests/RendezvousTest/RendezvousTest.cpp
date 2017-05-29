@@ -62,7 +62,7 @@ namespace test
         {
             ran = true;
             if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Running Rendezvous Functor\n", this));
-            ACE_OS::sleep(this->delay);
+            DAF_OS::sleep(this->delay);
             if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Executing Rendezvous Functor\n", this));
 
             for ( size_t i = 0 ; i < v.size(); i++ )
@@ -113,7 +113,7 @@ namespace test
 
        virtual int run(void)
        {
-           if ( delay_msec ) ACE_OS::sleep(ACE_Time_Value(0, suseconds_t(delay_msec)));
+           if ( delay_msec ) DAF_OS::sleep(ACE_Time_Value(0, suseconds_t(delay_msec)));
 
            if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Entering Rendezvous %d\n", this, this->id));
 
@@ -223,7 +223,7 @@ namespace test
                 if(debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Got Illegal State? %s\n", te.what()));
                 result = 0;
             }
-            ACE_OS::thr_yield();
+            DAF_OS::thr_yield();
         }
 
         value = tester->broken;
@@ -281,7 +281,7 @@ namespace test
                 if(debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Got Illegal State? %s\n", te.what()));
                 result = 0;
             }
-            ACE_OS::thr_yield();
+            DAF_OS::thr_yield();
         }
 
         value = tester->broken;
@@ -337,7 +337,7 @@ namespace test
                 if(debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Got Illegal State? %s\n", te.what()));
                 result = 0;
             }
-            ACE_OS::thr_yield();
+            DAF_OS::thr_yield();
         }
 
         value = tester->broken;
@@ -388,7 +388,7 @@ namespace test
 
             result = rend.waitReset(100) && !rend.broken();
 
-            ACE_OS::thr_yield();
+            DAF_OS::thr_yield();
         }
 
         value = tester->broken;
@@ -424,7 +424,7 @@ namespace test
             for ( int i = 0; i < threadCount; ++i )
             {
                 executor.execute(timeout);
-                ACE_OS::sleep(ACE_Time_Value(0, 500000));
+                DAF_OS::sleep(ACE_Time_Value(0, 500000));
             }
 
             value = reinterpret_cast<TestRendezvous*>(timeout.ptr())->timeout;
@@ -541,7 +541,7 @@ namespace test
             }
 
             rendez.rendezvous(1);
-            ACE_OS::sleep(ACE_Time_Value(0, 500));
+            DAF_OS::sleep(ACE_Time_Value(0, 500));
         }
 
         value = functor.value;
@@ -594,7 +594,7 @@ namespace test
             // Deliberately Destroy the Rendezvous
             // to make sure the destruction process doesn't deadlock.
             delete rend;
-            ACE_OS::thr_yield();
+            DAF_OS::thr_yield();
         }
 
         value = tester->illegal + tester->broken;
@@ -652,7 +652,7 @@ namespace test
             // Deliberately Destroy the Rendezvous
             // to make sure the destruction process doesn't deadlock.
             delete rend;
-            ACE_OS::thr_yield();
+            DAF_OS::thr_yield();
         }
 
         // TODO Test Condition? - If it got here it didn't deadlock ?
@@ -751,7 +751,7 @@ namespace test
 
             delete kill_executor;
 
-            ACE_OS::thr_yield();
+            DAF_OS::thr_yield();
             //result &= rend.broken();
 
 
@@ -791,7 +791,7 @@ int main(int argc, char *argv[])
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
         case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = ACE_OS::atoi(cli_opt.opt_arg());
+        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
     }
 
     std::cout << test::TEST_NAME << std::endl;

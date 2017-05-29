@@ -1,0 +1,9 @@
+feature(opensplice) : CORBActiveService, opensplice {  
+  splice_ts_flags += -P CORBActiveService_Export,CORBActiveService_export.h
+}
+
+// WARNING: NOT Tested + Broken
+feature(osplcorba) {
+    requires += opensplice
+    // splice_ts_flags += 
+}

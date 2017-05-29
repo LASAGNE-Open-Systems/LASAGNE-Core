@@ -74,19 +74,19 @@ namespace DAF
         }
 
         /// Wait indefinately until condition is signalled.
-        int wait(const ACE_Time_Value *tv = 0) const throw (DAF::InternalException)
+        int wait(const ACE_Time_Value *tv = 0) const
         {
             return this->cond_mutex_.wait(tv);
         }
 
         /// Wait for upto ACE_Time_Value as an absolute TOD deadline or until condition is signalled.
-        int wait(const ACE_Time_Value &tv) const throw (DAF::InternalException)
+        int wait(const ACE_Time_Value &tv) const
         {
             return this->wait(&tv);
         }
 
         /// Wait for upto msec or until condition is signalled.
-        int wait(const time_t &msec) const throw (DAF::InternalException)
+        int wait(const time_t &msec) const
         {
             return this->wait(DAF_OS::gettimeofday(msec));
         }

@@ -64,7 +64,7 @@
 namespace {
 
     const struct _DateInitTime {
-        _DateInitTime(void) { ACE_OS::tzset(); }
+        _DateInitTime(void) { DAF_OS::tzset(); }
     } _tzTime;
 
     const int daysInCalanderMonth[] = { 0,
@@ -239,7 +239,7 @@ namespace {
 
 namespace DAF
 {
-    Date_Time::Date_Time(const ACE_Date_Time &dt) throw (DateTimeException)
+    Date_Time::Date_Time(const ACE_Date_Time &dt)
         : ACE_Date_Time(dt)
     {
         if (assertDateRange(*this)) {
@@ -248,7 +248,7 @@ namespace DAF
         DAF_THROW_EXCEPTION(DAF::DateTimeException);
     }
 
-    Date_Time::Date_Time(const ACE_Time_Value &tv) throw (DateTimeException)
+    Date_Time::Date_Time(const ACE_Time_Value &tv)
         : ACE_Date_Time()
     {
         time_t tv_t = tv.sec();
@@ -271,7 +271,7 @@ namespace DAF
         DAF_THROW_EXCEPTION(DAF::DateTimeException);     // "DAF::Date invalid_time_value");
     }
 
-    Date_Time::Date_Time(long d, long m, long y, long hh, long mm, long sec, long usec) throw (DateTimeException)
+    Date_Time::Date_Time(long d, long m, long y, long hh, long mm, long sec, long usec)
         : ACE_Date_Time(d,m,y,hh,mm,sec,usec)
     {
         if (assertDateRange(*this)) {
@@ -280,7 +280,7 @@ namespace DAF
         DAF_THROW_EXCEPTION(DAF::DateTimeException);     // "DAF::Date invalid_time_value");
     }
 
-    Date_Time::Date_Time(const struct tm &s, long microsec) throw (DateTimeException)
+    Date_Time::Date_Time(const struct tm &s, long microsec)
         : ACE_Date_Time(  s.tm_mday         // day of the month         - [1,31]
                         , s.tm_mon  + 1     // month of the year        - [1,12]
                         , s.tm_year + 1900  // year
@@ -295,7 +295,7 @@ namespace DAF
         DAF_THROW_EXCEPTION(DAF::DateTimeException);     // "DAF::Date invalid_time_value");
     }
 
-    Date_Time::Date_Time(const std::string &s) throw (DateTimeException)
+    Date_Time::Date_Time(const std::string &s)
         : ACE_Date_Time()
     {
         for (int y, m, d, hh = 0, mm = 0, ss = 0, us = 0; s.length() > 0;) {

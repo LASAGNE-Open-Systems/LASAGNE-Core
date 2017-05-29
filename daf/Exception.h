@@ -28,7 +28,7 @@
 
 #define DAF_THROW_EXCEPTION(EXCEPT_TYPE) \
   do { char ss[128];                     \
-     ACE_OS::snprintf(ss,sizeof(ss),"%s(%d):%s",typeid(EXCEPT_TYPE).name(),__LINE__,__FILE__); \
+     DAF_OS::snprintf(ss,sizeof(ss),"%s(%d):%s",typeid(EXCEPT_TYPE).name(),__LINE__,__FILE__); \
      throw EXCEPT_TYPE(ss);              \
   } while (false) /* NOTE No Trailing ';' */
 

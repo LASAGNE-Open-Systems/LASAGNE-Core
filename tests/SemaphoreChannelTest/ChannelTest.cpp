@@ -65,7 +65,7 @@ namespace test
                 ACE_DEBUG((LM_INFO, "(%P|%t) %T LongAss Assignment Waiting %d msecs\n", wait_time));
             }
 
-            ACE_OS::sleep(ACE_Time_Value(wait_time/1000,(wait_time%1000)*1000));
+            DAF_OS::sleep(ACE_Time_Value(wait_time/1000,(wait_time%1000)*1000));
             return *this;
         }
     };
@@ -274,7 +274,7 @@ namespace test
 
             counter.acquire();
 
-            ACE_OS::sleep(1);
+            DAF_OS::sleep(1);
         }
 
         value = tester->timeout;
@@ -316,7 +316,7 @@ namespace test
 
             counter.acquire();
 
-            ACE_OS::sleep(1);
+            DAF_OS::sleep(1);
         }
 
         value = tester->timeout;
@@ -367,7 +367,7 @@ namespace test
             // does our channel still function
             channel.put(expected);
 
-            ACE_OS::sleep(1);
+            DAF_OS::sleep(1);
         }
 
         value = tester->value;
@@ -410,7 +410,7 @@ namespace test
 
             counter.acquire();
 
-            ACE_OS::sleep(1);
+            DAF_OS::sleep(1);
 
             // At this point my killer is sitting on the guard
             // and we may have lost a value on the unclaimedTakers_ count
@@ -429,7 +429,7 @@ namespace test
 
             counter.acquire();
 
-            ACE_OS::sleep(1);
+            DAF_OS::sleep(1);
         }
 
         value = tester->value;
@@ -486,7 +486,7 @@ namespace test
 
             counter.acquire();
 
-            ACE_OS::sleep(1);
+            DAF_OS::sleep(1);
         }
 
         value = tester->value;
@@ -525,7 +525,7 @@ namespace test
 
             counter.acquire();
 
-            ACE_OS::sleep(1);
+            DAF_OS::sleep(1);
         }
 
         value = tester->timeout;
@@ -578,7 +578,7 @@ namespace test
             counter.acquire();
 
 
-            ACE_OS::sleep(2);
+            DAF_OS::sleep(2);
         }
 
         value = tester->result;
@@ -644,7 +644,7 @@ namespace test
 
 
 
-            ACE_OS::sleep(2);
+            DAF_OS::sleep(2);
         }
 
         value = tester->value.value;
@@ -681,7 +681,7 @@ int main(int argc, char *argv[])
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
         case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = ACE_OS::atoi(cli_opt.opt_arg());
+        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
     }
 
     std::cout << test::TEST_NAME << std::endl;

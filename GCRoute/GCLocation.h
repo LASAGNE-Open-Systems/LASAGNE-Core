@@ -277,7 +277,7 @@ namespace GCRoute
         GCRadian  maxLatitude(void) const;
 
         /* Intersecting Location of great circle radials */
-        GCLocation radialIntersect(const GCRadial&) const throw (NoRadialIntersect);
+        GCLocation radialIntersect(const GCRadial&) const;
     };
 
 } // namespace GCRoute

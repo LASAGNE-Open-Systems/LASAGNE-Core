@@ -29,7 +29,7 @@ namespace TAF
     char *
     PropertyServer_impl::get_property(const char *ident)
     {
-        if (ident && ACE_OS::strlen(ident) > 0) try {
+        if (ident && DAF_OS::strlen(ident) > 0) try {
             return CORBA::string_dup(ThePropertyRepository()->get_property(ident, true).c_str());
         } catch (const DAF::NotFoundException&) {
         } catch (const DAF::IllegalArgumentException&) {
@@ -46,7 +46,7 @@ namespace TAF
     void
     PropertyServer_impl::set_property(const char *ident, const char *value)
     {
-        if (ident && ACE_OS::strlen(ident) > 0) try {
+        if (ident && DAF_OS::strlen(ident) > 0) try {
             if (ThePropertyRepository()->set_property(ident, (value ? value : "")) == 0) {
                 return;
             }
@@ -63,7 +63,7 @@ namespace TAF
     void
     PropertyServer_impl::del_property(const char *ident)
     {
-        if (ident && ACE_OS::strlen(ident) > 0) try {
+        if (ident && DAF_OS::strlen(ident) > 0) try {
             ThePropertyRepository()->del_property(ident); return;
         } catch (const DAF::IllegalThreadStateException&) {
             throw CORBA::BAD_OPERATION();

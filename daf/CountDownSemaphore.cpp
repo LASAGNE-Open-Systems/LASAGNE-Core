@@ -112,7 +112,7 @@ namespace DAF
                 if (this->count_ == 0) {
                     return 0;
                 }
-            } while (end_time >= ACE_OS::gettimeofday());
+            } while (end_time >= DAF_OS::gettimeofday());
         }
         return -1;
     }

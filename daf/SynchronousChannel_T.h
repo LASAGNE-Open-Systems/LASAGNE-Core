@@ -71,7 +71,7 @@ namespace DAF
         // 1. This item has previously been acquired by caller
         // 2. Insert the item value, and signal item that it is ready
         // 3. Return item value.
-        virtual T   extract(void) throw (DAF::InternalException);
+        virtual T   extract(void);
 
     public:
 
@@ -82,14 +82,14 @@ namespace DAF
         * -# Wait until a taker arrives (via unclaimedTakers_ semaphore)
         * -# Assign item value using overloaded item assignment operator.
         */
-        virtual int put(const T &t) throw (DAF::InternalException);
+        virtual int put(const T &t);
 
         /**
         * Protocol is the same as put() except:
         * Backouts due to timeouts are allowed only during the wait
         * for takers. Upon claiming a taker, puts are forced to proceed.
         */
-        virtual int offer(const T &t, time_t msecs = 0) throw (DAF::InternalException);
+        virtual int offer(const T &t, time_t msecs = 0);
 
         /**
         * Basic protocol is:
@@ -98,7 +98,7 @@ namespace DAF
         * -# Wait until the item has a value.
         * -# Get the item value through item cast operator overload.
         */
-        virtual T   take(void) throw (DAF::InternalException);
+        virtual T   take(void);
 
         /**
         * Protocol is the same as take() except:
@@ -107,7 +107,7 @@ namespace DAF
         *   even here, if the put of an item we should get has already
         *   begun, we ignore the timeout and proceed.
         */
-        virtual T   poll(time_t msecs = 0) throw (DAF::InternalException, DAF::TimeoutException);
+        virtual T   poll(time_t msecs = 0);
 
         /**
         * Return the number of items currently in the channel.

@@ -162,13 +162,13 @@ namespace TAF
     int
     NamingService::suspend(void)
     {
-        ACE_OS::last_error(ENOTSUP); return -1;
+        DAF_OS::last_error(ENOTSUP); return -1;
     }
 
     int
     NamingService::resume(void)
     {
-        ACE_OS::last_error(ENOTSUP); return -1;
+        DAF_OS::last_error(ENOTSUP); return -1;
     }
 
     int
