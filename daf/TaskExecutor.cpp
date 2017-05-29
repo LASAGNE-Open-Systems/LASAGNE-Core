@@ -487,8 +487,8 @@ namespace DAF
         if (DAF_OS::thr_cancel(this->threadID())) {
 
 #if defined(ACE_WIN32)
-            ACE_SET_BITS(this->threadFlags(), THR_DETACHED);
-            ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED);
+            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
+            ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); // Stops cleanup logic
 
 # if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
             this->terminate();
