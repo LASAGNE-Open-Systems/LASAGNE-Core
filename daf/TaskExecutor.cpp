@@ -485,6 +485,9 @@ namespace DAF
         // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
         // etc.
 
+#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
+        this->do_at_exit();
+#endif
         if (DAF_OS::thr_cancel(thr_id)) {
 
 #if defined(ACE_WIN32)
