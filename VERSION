@@ -11,4 +11,4 @@ g++ 6.2.0
 Dependencies:
 ------------
 ACE-TAO version 6.4.3
-OpenDDS version 3.10
+OpenDDS version 3.11
