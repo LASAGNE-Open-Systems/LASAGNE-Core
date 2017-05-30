@@ -1,5 +1,3 @@
-// $Id$
-
 project (LDBCSQLite) : ldbc_sqlite_defaults {
   sharedname     = *
   libout         = $(DAF_ROOT)/lib
