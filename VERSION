@@ -1,1 +1,14 @@
 LASAGNE-Core version 1.4.3
+==========================
+
+Compilers:
+---------------
+Visual Studio 2015
+Visual Studio 2017
+g++ 4.8.1
+g++ 6.2.0
+
+Dependencies:
+------------
+ACE-TAO version 6.4.3
+OpenDDS version 3.10
