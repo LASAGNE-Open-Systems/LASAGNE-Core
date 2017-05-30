@@ -488,17 +488,18 @@ namespace DAF
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
         this->do_at_exit();
 #endif
-        if (DAF_OS::thr_cancel(thr_id)) {
+        if (DAF_OS::thr_cancel(thr_id)) do {
+
+            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
 
 #if defined(ACE_WIN32)
 
-//            if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD)))
+//            if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) // Causes hang/failure on Windows ??
             {
-                ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
                 ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); // Stops cleanup logic
 
 # if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->terminate();
+                this->terminate(); break; // Exit with 0 (will wait() on task)
 # else
                 this->at_exit(this->taskBase(), 0, 0); // Ensure we don't do the at_exit()
 
@@ -509,7 +510,8 @@ namespace DAF
             }
 #endif
             return -1; // Indicate we forced terminated (stops Task_Base::wait())
-        }
+
+        } while (false);
 
         return 0;
     }
