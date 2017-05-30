@@ -20,6 +20,7 @@ LASAGNE is a pattern-based framework for parallel and distributed computing
 master:
 [![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=master)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core)
 [![Build status](https://ci.appveyor.com/api/projects/status/1gwwcaraqoku38i8/branch/master?svg=true)](https://ci.appveyor.com/project/LASAGNE-Open-Systems/lasagne-core/branch/master)
+
 develop:
 [![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=develop)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core)
 [![Build status](https://ci.appveyor.com/api/projects/status/1gwwcaraqoku38i8/branch/develop?svg=true)](https://ci.appveyor.com/project/LASAGNE-Open-Systems/lasagne-core/branch/develop)
@@ -27,6 +28,7 @@ develop:
 Travis CI is building using:
 * g++ 4.8.1
 * g++ 6.2
+
 AppVeyor is building using:
 * Visual Studio 2015
 * Visual Studio 2017
