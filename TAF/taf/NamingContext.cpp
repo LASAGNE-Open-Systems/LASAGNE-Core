@@ -313,7 +313,9 @@ namespace TAF
 
     NamingContext::BindingIterator::~BindingIterator(void)
     {
-        if (!CORBA::is_nil(this->in())) try { (*this)->destroy(); } DAF_CATCH_ALL {}
+        if (!CORBA::is_nil(this->in())) {
+            (*this)->destroy();
+        }
     }
 
 } // namespace TAF
