@@ -54,7 +54,7 @@
                     <ul>
                         <li><pre>export DAF_ROOT = [extracted path]/LASAGNE-Core</pre></li>
                         <li><pre>export TAF_ROOT = [extracted path]/LASAGNE-Core/TAF</pre></li>
-                        <li><pre>export PATH = $PATH:[extracted path]/LASAGNE-Core/bin:[extracted path]/LASAGNE-Core/lib</pre></li>
+                        <li><pre>export PATH = $PATH:[extracted path]/LASAGNE-Core/bin</pre></li>
                         <li><pre>export LD_LIBRARY_PATH = $LD_LIBRARY_PATH:[extracted path]/LASAGNE-Core/lib</pre></li>
                     </ul>
                 </li>
@@ -81,7 +81,7 @@
                         <li><pre>export ACE_ROOT = [extracted path]/ACE_wrappers</pre></li>
                         <li><pre>export MPC_ROOT = [extracted path]/ACE_wrappers/MPC</pre></li>
                         <li><pre>export TAO_ROOT = [extracted path]/ACE_wrappers/TAO</pre></li>
-                        <li><pre>export PATH = $PATH:[extracted path]/ACE_wrappers/bin:[extracted path]/ACE_wrappers/lib</pre></li>
+                        <li><pre>export PATH = $PATH:[extracted path]/ACE_wrappers/bin</pre></li>
                         <li><pre>export LD_LIBRARY_PATH = $LD_LIBRARY_PATH:[extracted path]/ACE_wrappers/lib</pre></li>
                     </ul>
                 </li>
@@ -130,10 +130,10 @@ perl $ACE_ROOT/bin/mwc.pl -type gnuace $TAO_ROOT/TAO_ACE.mwc
             <ol>
                 <li>Obtain the latest OpenDDS release - <a href="http://opendds.org/downloads.html">OpenDDS download page</a></li>
                 <li>Extract the archive</li>
-                <li>Set environment variables (note the lib directory is created after build)
+                <li>Set environment variables
                     <ul>
                         <li><pre>export DDS_ROOT = [extracted path]/OpenDDS</pre></li>
-                        <li><pre>export PATH = $PATH:[extracted path]/OpenDDS/bin:[extracted path]/OpenDDS/lib</pre></li>
+                        <li><pre>export PATH = $PATH:[extracted path]/OpenDDS/bin</pre></li>
                         <li><pre>export LD_LIBRARY_PATH = $LD_LIBRARY_PATH:[extracted path]/OpenDDS/lib</pre></li>
                     </ul>
                 </li>
@@ -209,7 +209,7 @@ perl $ACE_ROOT/bin/mwc.pl -type gnuace $TAF_ROOT/TAF.mwc
             </ol>
         </section>
         <footer>
-            <p>Last Updated - May 18th 2017</p>
+            <p>Last Updated - May 30th 2017</p>
             <p>Copyright &copy; 2017 - DST Group, Australia</p>
         </footer>
     </body>
