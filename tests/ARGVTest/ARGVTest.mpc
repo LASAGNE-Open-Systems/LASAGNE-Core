@@ -1,15 +1,11 @@
 project(ARGVTest) : daflib  {
   exename = *
 
-  verbatim(vc10, debug_cmd_args) {
-    "-Argument1 val1 '-Argument 2' \"val 2\""
-  }
-
-  verbatim(vc12, debug_cmd_args) {
-    "-Argument1 val1 '-Argument 2' \"val 2\""
-  }
-
   verbatim(vc14, debug_cmd_args) {
+    "-Argument1 val1 '-Argument 2' \"val 2\""
+  }
+
+  verbatim(vs2017, debug_cmd_args) {
     "-Argument1 val1 '-Argument 2' \"val 2\""
   }
 }

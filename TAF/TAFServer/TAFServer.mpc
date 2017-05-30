@@ -1,16 +1,12 @@
 project(TAFServer) : taflib, tafextensions {
   exename   = *
   exeout    = $(DAF_ROOT)/bin
- 
-  verbatim(vc10, debug_cmd_args) {
-    "-TAFProperties LASAGNEProperties.conf -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986"
-  }
-
-  verbatim(vc12, debug_cmd_args) {
-    "-TAFProperties LASAGNEProperties.conf -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986"
-  }
 
   verbatim(vc14, debug_cmd_args) {
+    "-TAFProperties LASAGNEProperties.conf -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986"
+  }
+
+  verbatim(vs2017, debug_cmd_args) {
     "-TAFProperties LASAGNEProperties.conf -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986"
   }
 
