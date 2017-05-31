@@ -60,7 +60,7 @@ namespace DAF
     }
 
     template <typename T> T
-    SynchronousChannel<T>::extract(void) throw (DAF::InternalException)
+    SynchronousChannel<T>::extract(void)
     {
         ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, item_mon, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
         T t(item_); this->item_ = T(); this->itemTaken_.release(); // Announce we have taken item
@@ -71,7 +71,7 @@ namespace DAF
     }
 
     template <typename T> T
-    SynchronousChannel<T>::take(void) throw (DAF::InternalException)
+    SynchronousChannel<T>::take(void)
     {
         this->unclaimedTakers_.release(); DAF_OS::thr_yield(); // Announce a taker
 
@@ -92,19 +92,19 @@ namespace DAF
     }
 
     template <typename T> int
-    SynchronousChannel<T>::put(const T &t) throw (DAF::InternalException)
+    SynchronousChannel<T>::put(const T &t)
     {
         this->unclaimedTakers_.acquire(); return this->insert(t);
     }
 
     template <typename T> T
-    SynchronousChannel<T>::poll(time_t msecs) throw (DAF::InternalException, DAF::TimeoutException)
+    SynchronousChannel<T>::poll(time_t msecs)
     {
         this->unclaimedTakers_.release(); DAF_OS::thr_yield();
 
         try {
 
-            if (this->itemAvailable_.attempt(msecs)) switch (ACE_OS::last_error()) {
+            if (this->itemAvailable_.attempt(msecs)) switch (DAF_OS::last_error()) {
             case ETIME: DAF_THROW_EXCEPTION(DAF::TimeoutException); // Reverse the fact that we have been here and exit with error
             default:    DAF_THROW_EXCEPTION(DAF::InternalException);
             }
@@ -122,7 +122,7 @@ namespace DAF
     }
 
     template <typename T> int
-    SynchronousChannel<T>::offer(const T &t, time_t msecs) throw (DAF::InternalException)
+    SynchronousChannel<T>::offer(const T &t, time_t msecs)
     {
         if (this->unclaimedTakers_.attempt(msecs) == 0) {
             return this->insert(t);

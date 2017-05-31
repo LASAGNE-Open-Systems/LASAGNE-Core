@@ -92,7 +92,7 @@ namespace DAF
         {
             ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, ace_mon, shutdown_monitor_, -1); shutdown_monitor_.notifyAll();
         }
-        ACE_OS::thr_yield(); return 0;
+        DAF_OS::thr_yield(); return 0;
     }
 
     int

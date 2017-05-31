@@ -86,7 +86,7 @@ namespace DEV
                 iov_ptr     += int(io_len);
                 recv_len    += int(io_len);
 
-                ACE_OS::thr_yield();  // Yield a little for IO to Start
+                DAF_OS::thr_yield();  // Yield a little for IO to Start
             }
         }
 

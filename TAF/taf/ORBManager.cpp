@@ -176,7 +176,7 @@ namespace TAF {
                     ACE_TEXT("ERROR: Failed to initialize %d threads for %s instance.\n")
                     , orb_threads, tafORBName()), -1);
             }
-            ACE_OS::thr_yield(); // Yield a little for threads to start
+            DAF_OS::thr_yield(); // Yield a little for threads to start
         }
 
         return 0;
@@ -202,7 +202,7 @@ namespace TAF {
     }
 
     const TAF::NamingContext &
-    ORB::rootContext(ACE_Time_Value *timeout) const throw (CORBA::UserException)
+    ORB::rootContext(ACE_Time_Value *timeout) const
     {
         static ACE_SYNCH_MUTEX rootLock_;
 
@@ -241,7 +241,7 @@ namespace TAF {
     }
 
     const TAF::NamingContext &
-    ORB::baseContext(ACE_Time_Value *timeout) const throw (CORBA::UserException)
+    ORB::baseContext(ACE_Time_Value *timeout) const
     {
         static ACE_SYNCH_MUTEX baseLock_;
 

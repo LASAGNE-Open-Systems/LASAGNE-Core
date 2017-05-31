@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     {
         bitset.reset(9, true);
 
-        if (bitset.size() != sizeof(BUF_9_BITS_TRUE) || ACE_OS::memcmp(bitset.bit_buffer(), BUF_9_BITS_TRUE, bitset.size())) {
+        if (bitset.size() != sizeof(BUF_9_BITS_TRUE) || DAF_OS::memcmp(bitset.bit_buffer(), BUF_9_BITS_TRUE, bitset.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed to Initialize Buffer Correctly%s")
                 , DAF::bit_dump(bitset, bitset.bits()).c_str()), -1);
         }
@@ -61,8 +61,8 @@ int main(int argc, char *argv[])
 
         do {
             if (bitset.size() == sizeof(BUF_MIN_BITS_TRUE) && bitset_cpy.size() == sizeof(BUF_MIN_BITS_TRUE)) {
-                if (ACE_OS::memcmp(bitset.bit_buffer(), BUF_MIN_BITS_TRUE, bitset.size()) == 0) {
-                    if (ACE_OS::memcmp(bitset_cpy.bit_buffer(), BUF_MIN_BITS_TRUE, bitset_cpy.size()) == 0) {
+                if (DAF_OS::memcmp(bitset.bit_buffer(), BUF_MIN_BITS_TRUE, bitset.size()) == 0) {
+                    if (DAF_OS::memcmp(bitset_cpy.bit_buffer(), BUF_MIN_BITS_TRUE, bitset_cpy.size()) == 0) {
                         break;
                     }
                 }
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed subits with incorrect length %d\n")
                 , int(subits.bits())), -1);
         }
-        else if (ACE_OS::memcmp(subits, BUF_SUBITS_SET, subits.size())) {
+        else if (DAF_OS::memcmp(subits, BUF_SUBITS_SET, subits.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed subits with wrong bits set%s")
                 , DAF::bit_dump(subits, subits.bits()).c_str()), -1);
         }
@@ -101,7 +101,7 @@ int main(int argc, char *argv[])
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed erase with incorrect length %d\n")
                 , int(erasebits.bits())), -1);
         }
-        else if (ACE_OS::memcmp(erasebits, BUF_ERASE_SET, erasebits.size())) {
+        else if (DAF_OS::memcmp(erasebits, BUF_ERASE_SET, erasebits.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed erase with wrong bits set%s")
                 , DAF::bit_dump(erasebits, erasebits.bits()).c_str()), -1);
         }
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed erase with incorrect length %d\n")
                 , int(erasebits.bits())), -1);
         }
-        else if (ACE_OS::memcmp(erasebits, BUF_ERASE_SET, erasebits.size())) {
+        else if (DAF_OS::memcmp(erasebits, BUF_ERASE_SET, erasebits.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed erase with wrong bits set%s")
                 , DAF::bit_dump(erasebits, erasebits.bits()).c_str()), -1);
         }
@@ -127,7 +127,7 @@ int main(int argc, char *argv[])
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed ~ with incorrect length %d\n")
                 , int(bINV.bits())), -1);
         }
-        else if (ACE_OS::memcmp(bINV, BUF_MAX_BITS_ZERO, bINV.size())) {
+        else if (DAF_OS::memcmp(bINV, BUF_MAX_BITS_ZERO, bINV.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed ~ with wrong bits set%s")
                 , DAF::bit_dump(bINV, bINV.bits()).c_str()), -1);
         }
@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
         if (boolbits.size() != sizeof(BUF_MAX_BITS_TRUE)) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed &= with incorrect length\n")), -1);
         }
-        else if (ACE_OS::memcmp(boolbits, BUF_MAX_BITS_TRUE, boolbits.size())) {
+        else if (DAF_OS::memcmp(boolbits, BUF_MAX_BITS_TRUE, boolbits.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed &= with wrong bits set%s")
                 , DAF::bit_dump(boolbits, boolbits.bits()).c_str()), -1);
         }
@@ -155,7 +155,7 @@ int main(int argc, char *argv[])
         if (boolbits.size() != sizeof(BUF_MAX_BITS_ZERO)) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed ^= with incorrect length\n")), -1);
         }
-        else if (ACE_OS::memcmp(boolbits, BUF_MAX_BITS_ZERO, boolbits.size())) {
+        else if (DAF_OS::memcmp(boolbits, BUF_MAX_BITS_ZERO, boolbits.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed ^= with wrong bits set\n")), -1);
         }
     }
@@ -168,7 +168,7 @@ int main(int argc, char *argv[])
         if (boolbits.size() != sizeof(BUF_MAX_BITS_TRUE)) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed |= with incorrect length\n")), -1);
         }
-        else if (ACE_OS::memcmp(boolbits, BUF_MAX_BITS_TRUE, boolbits.size())) {
+        else if (DAF_OS::memcmp(boolbits, BUF_MAX_BITS_TRUE, boolbits.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed |= with wrong bits set\n")), -1);
         }
     }
@@ -176,7 +176,7 @@ int main(int argc, char *argv[])
 
     std::cout << "Testing == Bitset ";
     {
-        if (bitset.size() != sizeof(BUF_MAX_BITS_TRUE) || ACE_OS::memcmp(bitset.bit_buffer(), BUF_MAX_BITS_TRUE, bitset.size())) {
+        if (bitset.size() != sizeof(BUF_MAX_BITS_TRUE) || DAF_OS::memcmp(bitset.bit_buffer(), BUF_MAX_BITS_TRUE, bitset.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed to Initialize Buffer Correctly")), -1);
         }
         else if (bitset != DAF::Bitset(MAX_BITS - 1, true)) {  // Only checks overlapping bits
@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
         if (b_add.size() != sizeof(BUF_MAX_ADD_SET)) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed in '+' to increase buffer size\n")), -1);
         }
-        else if (ACE_OS::memcmp(b_add, BUF_MAX_ADD_SET, b_add.size())) {
+        else if (DAF_OS::memcmp(b_add, BUF_MAX_ADD_SET, b_add.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed '+' with wrong Bits\n")), -1);
         }
     }
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
         if ((bitset[1] = false) ? true : false)  {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed to set false\n")), -1);
         }
-        else if (ACE_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
+        else if (DAF_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed with different Bits\n")), -1);
         }
     }
@@ -239,13 +239,13 @@ int main(int argc, char *argv[])
         if (!bitset[1] ? false : true) { // Bit 0 is true HERE!!
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed !true != false\n")), -1);
         }
-        else if ((bitset[1] = !bitset[1]) ? ACE_OS::memcmp(bitset.bit_buffer(), BUF_MAX_BITS_TRUE, bitset.size()) : true) {
+        else if ((bitset[1] = !bitset[1]) ? DAF_OS::memcmp(bitset.bit_buffer(), BUF_MAX_BITS_TRUE, bitset.size()) : true) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed to set true\n")), -1);
         }
         else if (!(bitset[1] = false) ? false : true)  {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed !true != false\n")), -1);
         }
-        else if (ACE_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
+        else if (DAF_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed in ! operator buffer state\n")), -1);
         }
     }
@@ -270,19 +270,19 @@ int main(int argc, char *argv[])
 
     std::cout << "Testing ^= operator ";
     {
-        if (ACE_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
+        if (DAF_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed to initialize to false\n")), -1);
         }
-        else if ((bitset[1] ^= true) ? ACE_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : true) {
+        else if ((bitset[1] ^= true) ? DAF_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : true) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (false ^ true) != true")), -1);
         }
-        else if ((bitset[1] ^= false) ? ACE_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : true) {
+        else if ((bitset[1] ^= false) ? DAF_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : true) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (true ^ false) != true")), -1);
         }
-        else if ((bitset[1] ^= true) || ACE_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
+        else if ((bitset[1] ^= true) || DAF_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (true ^ true)  != false")), -1);
         }
-        else if ((bitset[1] ^= false) || ACE_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
+        else if ((bitset[1] ^= false) || DAF_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (false ^ false) != false")), -1);
         }
     }
@@ -293,10 +293,10 @@ int main(int argc, char *argv[])
         if (bitset[1] |= false) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (false | false) != false")), -1);
         }
-        else if ((bitset[1] |= true) ? ACE_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : true) {
+        else if ((bitset[1] |= true) ? DAF_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : true) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (false | true) != true")), -1);
         }
-        else if ((bitset[1] |= false) ? ACE_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : true) {
+        else if ((bitset[1] |= false) ? DAF_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : true) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (true | false) != true")), -1);
         }
     }
@@ -304,13 +304,13 @@ int main(int argc, char *argv[])
 
     std::cout << "Testing &= operator ";
     {
-        if ((bitset[1] &= true) ? ACE_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : false) {
+        if ((bitset[1] &= true) ? DAF_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : false) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (true & true)   != true")), -1);
         }
-        else if ((bitset[1] &= false) || ACE_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
+        else if ((bitset[1] &= false) || DAF_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (true & false)  != false")), -1);
         }
-        else if ((bitset[1] &= false) || ACE_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
+        else if ((bitset[1] &= false) || DAF_OS::memcmp(bitset, BUF_MAX_BITS_SET, bitset.size())) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (false & false) != false")), -1);
         }
     }
@@ -324,7 +324,7 @@ int main(int argc, char *argv[])
             }
         }
         catch (const std::out_of_range&) {
-            if (ACE_OS::memcmp(bitset, BUF_MAX_BITS_SET, sizeof(BUF_MAX_BITS_SET))) {
+            if (DAF_OS::memcmp(bitset, BUF_MAX_BITS_SET, sizeof(BUF_MAX_BITS_SET))) {
                 ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed in Range Check with resultant buffer state\n")), -1);
             }
         }

@@ -426,7 +426,7 @@ namespace LTM  // Open the LTM Namespace
 
                 try {
 
-                    DDS::ReturnCode_t dds_error = td_writer.publish(LTMTopicDetailsTopicType(td));
+                    DDS::ReturnCode_t dds_error = td_writer.publish(LTMTopicDetailsTopicAdapter(td));
 
                     if (dds_error != DDS::RETCODE_OK) {
 

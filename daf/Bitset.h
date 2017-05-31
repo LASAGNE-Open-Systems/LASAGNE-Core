@@ -58,12 +58,12 @@ namespace DAF
         * \param bits is the capacity
         * \param init_val is the initializing value of the bit sequence
         */
-        Bitset(size_t bits = 0, bool init_val = false) throw (std::invalid_argument);
+        Bitset(size_t bits = 0, bool init_val = false);
 
         /**
         * Copy Constructor
         */
-        Bitset(const Bitset &) throw (std::runtime_error);
+        Bitset(const Bitset &);
 
         virtual ~Bitset(void) {}
 
@@ -108,7 +108,7 @@ namespace DAF
 
         /** Accessor to the Bit buffer
         \param off offset in bits to the returned pointer   */
-        BIT_BYTE_ptr bit_buffer(size_t off = 0) const throw (std::out_of_range);
+        BIT_BYTE_ptr bit_buffer(size_t off = 0) const;
 
         /// Pointer to the underlying bit sequence
         operator const void * () const
@@ -119,14 +119,14 @@ namespace DAF
         /** Array Accessor
         \param bit access the number 'bit' in the buffer
         \return value of the bit    */
-        bool        operator [] (size_t bit) const throw (std::out_of_range);
+        bool        operator [] (size_t bit) const;
         /// Access to allow rw access to a particular bit in the underlying bit sequence
-        bitraits    operator [] (size_t bit) throw (std::out_of_range);
+        bitraits    operator [] (size_t bit);
 
         /// Assign a Bitset from another Bitset sequence
-        Bitset &    operator  = (const Bitset &bitset) throw (std::runtime_error);
+        Bitset &    operator  = (const Bitset &bitset);
         /// Append a Bitset onto the end of an existing Bitset sequence
-        Bitset &    operator += (const Bitset &bitset) throw (std::runtime_error);
+        Bitset &    operator += (const Bitset &bitset);
 
         /** Compare Bit Buffers
         \param bitset buffer to compare against
@@ -160,14 +160,14 @@ namespace DAF
         \param len end of new buffer
         \return New Bitset class with subset of bits
          */
-        Bitset   subits(int pos, int len = EOF) const throw (std::out_of_range);
+        Bitset   subits(int pos, int len = EOF) const;
 
         /** Remove bits from the buffer
         Erase bits starting at a bit position for a maximum bit length; NOTE: remaining bits are left shifted after erase
         \param pos start position of bits for removal
         \param len number of bits to remove from buffer
         */
-        Bitset & erase(int pos, int len = EOF) throw (std::out_of_range);
+        Bitset & erase(int pos, int len = EOF);
 
         /// Invert all the bits in the bitset sequence
         Bitset & flip(void);
@@ -176,7 +176,7 @@ namespace DAF
         \param bits number of bits to reset value
         \param val the binary value to assign
         */
-        Bitset & reset(size_t bits, bool val = false) throw (std::invalid_argument);
+        Bitset & reset(size_t bits, bool val = false);
 
 
     protected:
