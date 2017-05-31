@@ -82,7 +82,9 @@ namespace TAF
 
         virtual int init_bind_i(const std::string &name);
 
-        _interface_stub_var_type stub_reference_;
+        _interface_stub_var_type    stub_reference_;
+
+        bool    stub_activated_;
     };
 
 } // namespace TAF
