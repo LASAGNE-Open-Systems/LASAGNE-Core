@@ -226,7 +226,7 @@ namespace DAF
         /// ACE DLL Singleton Object Manager Key
         const ACE_TCHAR * name(void) const
         {
-            return typeid(*this).name();
+            return ACE_TEXT_CHAR_TO_TCHAR(typeid(*this).name());
         }
 
     private:
