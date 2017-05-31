@@ -82,13 +82,15 @@ namespace TAF
 
         virtual int init_bind_i(const std::string &name);
 
-        _interface_stub_var_type stub_reference_;
-
     private:
 
         // = Prevent assignment and initialization.
         ACE_UNIMPLEMENTED_FUNC(void operator = (const CORBAInterfaceHandler_T<INTERFACE_TYPE,DEFAULTPOA_TYPE> &))
         ACE_UNIMPLEMENTED_FUNC(CORBAInterfaceHandler_T(const CORBAInterfaceHandler_T<INTERFACE_TYPE, DEFAULTPOA_TYPE> &))
+
+        _interface_stub_var_type    stub_reference_;
+
+        bool    stub_activated_;
     };
 
 } // namespace TAF
