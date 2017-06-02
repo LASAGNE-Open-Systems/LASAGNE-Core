@@ -21,9 +21,10 @@
 - Fixed leftover Subversion tags
 - Fixed exception specifications (removed)
 - Fixed an issue with CORBAInterfaceHandler servant deactivation through the destructor
+- Fixed selective support for OpenDDS Java bindings within projects
 
 ##### Notes:
-- There is not currently proper support for wide-character builds
+- There is not currently support for wide-character builds
 _______________________________________________________________________________
 
 ### LASAGNE-Core 1.4.3
