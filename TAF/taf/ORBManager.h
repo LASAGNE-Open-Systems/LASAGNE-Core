@@ -101,7 +101,7 @@ namespace TAF
 
         const ACE_TCHAR *name(void) const
         {
-            return typeid(*this).name();
+            return ACE_TEXT_CHAR_TO_TCHAR(typeid(*this).name());
         }
 
     protected:  // service methods
