@@ -11,3 +11,11 @@ feature(opendds) : taflib, dcps, dcps_ts_defaults {
   IDL_Files {
   }
 }
+
+feature(java) {
+  requires      += opendds
+  includes      += $(DDS_ROOT)/java/idl2jni/runtime
+  verbatim(gnuace, macros, 1) {
+    java = 1
+  }
+}

@@ -5,14 +5,9 @@ feature(opendds) : DDSActiveService, opendds {
 
 feature(java) : dcps_java {
   requires      += opendds
-  idlflags      -= -Sa -St
-
   idl2jniflags  += -Wb,export_include=DDSActiveService_export.h \
                    -Wb,export_macro=DDSActiveService_Export
   idl2jniflags  += -DTAF_USES_DDS -DTAF_USES_OPENDDS -DTAF_USES_DDSCORBA
-  verbatim(gnuace, macros) {
-    java = 1
-  }
   specific {
     jarname = ODDS_LTMTopicDetails
   }

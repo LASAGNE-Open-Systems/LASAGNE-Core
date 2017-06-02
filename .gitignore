@@ -31,20 +31,29 @@
 *.out
 *.app
 
+# Log files
+*.log
+
 # Visual Studio projects and solutions
+.vs/
 *.sln
 *.vcxproj
 *.vcxproj.filters
 *.VC.db
+*.VC.opendb
 
 # Visual C++ build files
-*.iobj
-*.ipdb
-*.tlog
 *.buildstate
-*.exp
-*.res
 *.config
+*.exp
+*.idb
+*.ilk
+*.iobj
+*.ipch
+*.ipdb
+*.pdb
+*.res
+*.tlog
 
 # CORBA and DDS generated files
 *C.h
@@ -53,10 +62,19 @@
 *S.h
 *S.cpp
 *TypeSupport.idl
-*TypeSupportImpl.h
-*TypeSupportImpl.cpp
 *TypeSupportC.h
 *TypeSupportC.cpp
 *TypeSupportC.inl
+*TypeSupportImpl.h
+*TypeSupportImpl.cpp
 *TypeSupportS.h
 *TypeSupportS.cpp
+
+# Generated export header files
+*_export.h
+
+# CORBA IOR files
+*.ior
+
+# GNU Make files
+GNUmakefile*
