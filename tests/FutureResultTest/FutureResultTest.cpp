@@ -485,7 +485,7 @@ int main(int argc, char *argv[])
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
         case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = ACE_OS::atoi(cli_opt.opt_arg());
+        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
     }
 
     std::cout << test::TEST_NAME << std::endl;

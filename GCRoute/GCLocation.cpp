@@ -133,7 +133,7 @@ namespace GCRoute
         float lng_s = float(60*(60*(lng-double(lng_d))-double(lng_m)));
 
         char str[64];
-        ACE_OS::sprintf(str, "%03d:%02d:%02f%c %03d:%02d:%02f%c",
+        DAF_OS::sprintf(str, "%03d:%02d:%02f%c %03d:%02d:%02f%c",
             lat_d,lat_m,lat_s, ((latitude() < 0.0)  ? 'S' : 'N'),
             lng_d,lng_m,lng_s, ((longitude() < 0.0) ? 'E' : 'W'));
 
@@ -152,7 +152,7 @@ namespace GCRoute
         float lng_m = float(60*(lng-double(lng_d)));
 
         char str[64];
-        ACE_OS::sprintf(str, "%d %02.04f%c %d %02.04f%c",
+        DAF_OS::sprintf(str, "%d %02.04f%c %d %02.04f%c",
             lat_d,lat_m, ((latitude() < 0.0)  ? 'S' : 'N'),
             lng_d,lng_m, ((longitude() < 0.0) ? 'E' : 'W'));
 
@@ -192,7 +192,7 @@ namespace GCRoute
     }
 
     GCLocation
-    GCRadial::radialIntersect(const GCRadial &loc) const throw (NoRadialIntersect)
+    GCRadial::radialIntersect(const GCRadial &loc) const
     {
         if (*this == loc) {
             return GCLocation(*this);

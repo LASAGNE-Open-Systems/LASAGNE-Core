@@ -123,8 +123,7 @@ namespace DAF
         * Upon a Timeout occuring this will set the state to broken
         * and notify all existing waiters.
         */
-        bool    waitReset(time_t msecs = 0) throw (DAF::IllegalThreadStateException,
-                                                   DAF::InternalException);
+        bool    waitReset(time_t msecs = 0);
 
         /**
         * Enter a rendezvous; returning after all other parties arrive.
@@ -142,9 +141,7 @@ namespace DAF
         * Also returns as
         * broken if the RendezvousFunction encountered a run-time exception.
         */
-        T       rendezvous(const T &t_in)
-                    throw (DAF::IllegalThreadStateException, DAF::BrokenBarrierException,
-                    DAF::InternalException);
+        T       rendezvous(const T &t_in);
 
         /**
         * Wait msecs to complete a rendezvous.
@@ -166,10 +163,7 @@ namespace DAF
         * the exchange. If the timeout occured while already in the
         * exchange, <code>broken</code> status is also set.
         */
-        T      rendezvous(const T &t_in, time_t msec)
-                    throw (DAF::IllegalThreadStateException, DAF::BrokenBarrierException,
-                    DAF::TimeoutException,
-                    DAF::InternalException);
+        T      rendezvous(const T &t_in, time_t msec);
 
     private:
 

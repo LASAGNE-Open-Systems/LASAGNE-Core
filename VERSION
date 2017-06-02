@@ -1,0 +1,19 @@
+LASAGNE-Core version 1.4.4
+==========================
+
+Compilers:
+---------------
+Visual Studio 2015
+Visual Studio 2017
+g++ 4.8.1
+g++ 6.2.0
+
+Dependencies:
+------------
+ACE-TAO version 6.4.3
+
+Optional:
+---------
+OpenDDS 3.11
+RTI DDS 5.2 (plus optional CORBA Compatibility Kit)
+CoreDX 3.6.47

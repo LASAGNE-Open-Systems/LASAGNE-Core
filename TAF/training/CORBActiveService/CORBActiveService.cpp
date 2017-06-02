@@ -407,16 +407,26 @@ namespace LTM  // Open the LTM Namespace
 
                 const ACE_Time_Value td_time(DAF_OS::gettimeofday());
 
-                const LTMTopicDetailsCORBAType td = {
+#if 0
+                const LTMTopicDetailsCORBAType td = { // Constant initialiser
                     CORBA::ULongLong(td_time.sec()),
                     CORBA::ULong(td_time.usec()),
                     CORBA::ULong(DAF_OS::thread_ID()),
                     "DDS Topic Data"
                 };
+#else
+                LTMTopicDetailsCORBAType td;
+                {
+                    td.topicTime_.sec_ = CORBA::ULongLong(td_time.sec());
+                    td.topicTime_.usec_ = CORBA::ULong(td_time.usec());
+                    td.topicID_ = CORBA::ULong(DAF_OS::thread_ID());
+                    td.topicData_ = CORBA::string_dup("DDS Topic Data");
+                }
+#endif
 
                 try {
 
-                    DDS::ReturnCode_t dds_error = td_writer.publish(LTMTopicDetailsTopicType(td));
+                    DDS::ReturnCode_t dds_error = td_writer.publish(LTMTopicDetailsTopicAdapter(td));
 
                     if (dds_error != DDS::RETCODE_OK) {
 

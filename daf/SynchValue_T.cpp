@@ -106,7 +106,7 @@ namespace DAF
     }
 
     template <typename T> int
-    SynchValue<T>::waitValue(const T &value) throw (InternalException)
+    SynchValue<T>::waitValue(const T &value)
     {
         if (this->value_ == value) { // DCL
             return 0;
@@ -144,8 +144,6 @@ namespace DAF
 
     template <typename T> int
     SynchValue<T>::waitValue(const T &value, time_t msec)
-        throw (InternalException, DAF::TimeoutException)
-
     {
         const ACE_Time_Value end_time(DAF_OS::gettimeofday(msec));
 

@@ -54,7 +54,7 @@ namespace DAF
     } // Ananomous
 
     template <> inline DAF::Runnable_ref
-    SynchronousChannel<DAF::Runnable_ref>::extract(void) throw (DAF::InternalException)
+    SynchronousChannel<DAF::Runnable_ref>::extract(void)
     {
         ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException));
         DAF::Runnable_ref t(this->item_._retn()); this->itemTaken_.release();
@@ -335,12 +335,12 @@ namespace DAF
                 }
 
 #if defined(ACE_TANDEM_T1248_PTHREADS)
-                ACE_OS::memcpy(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
+                DAF_OS::memcpy(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
 #else
                 this->last_thread_id_ = 0;    // Reset to prevent inadvertant match on ID
 #endif /* defined (ACE_TANDEM_T1248_PTHREADS) */
 
-                ACE_OS::thr_yield(); return 0; // Let The Thread(s) start up (Still Locked though)
+                DAF_OS::thr_yield(); return 0; // Let The Thread(s) start up (Still Locked though)
 
             } while (false);
         }
@@ -349,7 +349,7 @@ namespace DAF
     }
 
     int
-    TaskExecutor::execute(const DAF::Runnable_ref &cmd) throw (DAF::InternalException)
+    TaskExecutor::execute(const DAF::Runnable_ref &cmd)
     {
         if (this->isAvailable()) try {
 
@@ -384,18 +384,18 @@ namespace DAF
                 break;
             }
 
-            ACE_OS::thr_setprio(ACE_Sched_Priority(cmd->runPriority())); // Set the requested priority
+            DAF_OS::thr_setprio(ACE_Sched_Priority(cmd->runPriority())); // Set the requested priority
 
-            ACE_OS::last_error(0); this->svc(cmd._retn()); // Dispatch The Command
+            DAF_OS::last_error(0); this->svc(cmd._retn()); // Dispatch The Command
 
-            ACE_OS::thr_setprio(default_prio);  // Reset Priority
+            DAF_OS::thr_setprio(default_prio);  // Reset Priority
         }
 
         cmd = DAF::Runnable::_nil(); return 0;
     }
 
     int
-    TaskExecutor::task_handOff(const DAF::Runnable_ref &cmd) throw (DAF::InternalException)
+    TaskExecutor::task_handOff(const DAF::Runnable_ref &cmd)
     {
         if (this->isAvailable()) do {
             {
@@ -421,14 +421,14 @@ namespace DAF
                     }
 
 #if defined(ACE_TANDEM_T1248_PTHREADS)
-                    ACE_OS::memset(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
+                    DAF_OS::memset(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
 #else
                     this->last_thread_id_ = 0;    // Reset to prevent inadvertant match on ID
 #endif /* defined (ACE_TANDEM_T1248_PTHREADS) */
                 }
             }
 
-            ACE_OS::thr_yield(); return 0; // Let The Thread start up
+            DAF_OS::thr_yield(); return 0; // Let The Thread start up
 
         } while (false);
 
@@ -478,7 +478,7 @@ namespace DAF
 
         time_t evictTimeout = this->getEvictTimeout(); // Start with the full evict timeout value.
 
-        for (int evict_retry = TASK_EVICT_RETRY_MAXIMUM; (ACE_OS::thr_yield(), this->isActive()); evictTimeout /= 2) {
+        for (int evict_retry = TASK_EVICT_RETRY_MAXIMUM; (DAF_OS::thr_yield(), this->isActive()); evictTimeout /= 2) {
 
             try {
 
@@ -548,7 +548,7 @@ namespace DAF
             try {
 
                 if (this->cancel_thr(td, true)) { // Cancel the thread
-                    int error = ACE_OS::last_error();
+                    int error = DAF_OS::last_error();
                     switch (error) {
                     case 0: break;
 #if defined(ACE_WIN32)
@@ -559,7 +559,7 @@ namespace DAF
                         if (::TerminateThread(td->threadHandle(), DWORD(0xDEAD))) {
                             break;
                         }
-                        error = ACE_OS::last_error(); // Fall though with terminate error
+                        error = DAF_OS::last_error(); // Fall though with terminate error
 # endif
 #endif
                     default:

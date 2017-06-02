@@ -47,7 +47,7 @@ namespace DAF
             }
             ACE_DEBUG((LM_ERROR,
                 ACE_TEXT("FAILED to acquire Kernel eventfd (errno %d)\n")
-                , ACE_OS::last_error()));
+                , DAF_OS::last_error()));
 #endif
             return ACE_INVALID_HANDLE;
         }
@@ -104,7 +104,7 @@ namespace DAF
     {
 #if defined(DAF_HAS_EVENTFD) && (DAF_HAS_EVENTFD == 1)
         if (this->fd_ != ACE_INVALID_HANDLE) {
-            ACE_OS::close(this->fd_);
+            DAF_OS::close(this->fd_);
         }
 #endif
         this->cancel_all_timers(); this->reactor()->remove_handler(this, ACE_Event_Handler::DONT_CALL);
@@ -135,12 +135,12 @@ namespace DAF
         return ACE_Auto_Event::signal();
 #elif defined(DAF_HAS_EVENTFD) && (DAF_HAS_EVENTFD == 1)
         uint64_t input_d = 1;
-        if (ACE_OS::write(this->get_handle(), &input_d, sizeof(input_d)) == sizeof(input_d)) {
+        if (DAF_OS::write(this->get_handle(), &input_d, sizeof(input_d)) == sizeof(input_d)) {
             return 0;
         }
         ACE_DEBUG((LM_ERROR,
             ACE_TEXT("Failed to write to eventfd %d with (errno %d)\n")
-            , this->get_handle(), ACE_OS::last_error()));
+            , this->get_handle(), DAF_OS::last_error()));
 #endif
         return -1;
     }
@@ -195,11 +195,11 @@ namespace DAF
 #elif defined(DAF_HAS_EVENTFD) && (DAF_HAS_EVENTFD == 1)
         if (this->get_handle() == fd) {
             uint64_t output_d = 0;
-            if (ACE_OS::read(this->get_handle(), &output_d, sizeof(output_d)) == sizeof(output_d)) try {
+            if (DAF_OS::read(this->get_handle(), &output_d, sizeof(output_d)) == sizeof(output_d)) try {
                 return this->handle_event(fd, 0, 0);
             } catch (...) {
                 ACE_DEBUG((LM_ERROR, ACE_TEXT("Failed to read from eventfd %d (errno %d)\n")
-                    , this->get_handle(), ACE_OS::last_error()));
+                    , this->get_handle(), DAF_OS::last_error()));
                 throw;
             }
         }

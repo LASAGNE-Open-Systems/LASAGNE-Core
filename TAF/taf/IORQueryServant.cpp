@@ -35,7 +35,7 @@ namespace TAF
     }
 
     int
-    IORQueryServant::is_ident(const std::string &ident) const throw (CORBA::Exception)
+    IORQueryServant::is_ident(const std::string &ident) const
     {
         if (ident.length()) {
 

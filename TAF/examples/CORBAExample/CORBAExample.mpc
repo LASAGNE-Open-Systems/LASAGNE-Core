@@ -30,7 +30,11 @@ project(CORBAClient) : taflib {
 
   macros        += CORBASERVICE_HAS_DLL=0 
 
-  verbatim(vc10, debug_cmd_args) {
+  verbatim(vc14, debug_cmd_args) {
+    "-ORBInitRef TAF_XMPL_CORBAService=corbaloc:iiop:localhost:8989/MySimpleServer -ORBObjRefStyle URL"
+  }
+
+  verbatim(vs2017, debug_cmd_args) {
     "-ORBInitRef TAF_XMPL_CORBAService=corbaloc:iiop:localhost:8989/MySimpleServer -ORBObjRefStyle URL"
   }
 

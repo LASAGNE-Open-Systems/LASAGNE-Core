@@ -49,20 +49,20 @@ namespace DAF
         DAF::Semaphore  putGuard_, takeGuard_;
 
         virtual int insert(const T&) = 0;
-        virtual T   extract(void) throw (DAF::InternalException) = 0;
+        virtual T   extract(void) = 0;
 
     public:
         /** \todo{Fill this in} */
         SemaphoreControlledChannel(size_t capacity);
 
         /** \todo{Fill this in} */
-        virtual int put(const T&) throw (DAF::InternalException);
+        virtual int put(const T&);
         /** \todo{Fill this in} */
-        virtual int offer(const T&, time_t msecs = 0) throw (DAF::InternalException);
+        virtual int offer(const T&, time_t msecs = 0);
         /** \todo{Fill this in} */
-        virtual T   take(void) throw (DAF::InternalException);
+        virtual T   take(void);
         /** \todo{Fill this in} */
-        virtual T   poll(time_t msecs = 0) throw (DAF::InternalException, DAF::TimeoutException);
+        virtual T   poll(time_t msecs = 0);
 
 
         /** \todo{Fill this in} */

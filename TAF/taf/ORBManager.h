@@ -42,8 +42,8 @@
 #include <ace/Singleton.h>
 
 namespace {  // Stop Unused warnings
-    DAF_UNUSED_ARG(TAO_Requires_POA_Initializer);
-    DAF_UNUSED_ARG(TAO_Requires_IORTable_Initializer);
+    DAF_UNUSED_STATIC(TAO_Requires_POA_Initializer);
+    DAF_UNUSED_STATIC(TAO_Requires_IORTable_Initializer);
 }
 
 namespace TAF
@@ -82,8 +82,8 @@ namespace TAF
 
         const IORTable::Table_var &     IORTable(void) const;
 
-        const TAF::NamingContext &      rootContext(ACE_Time_Value *timeout = 0) const throw (CORBA::UserException);
-        const TAF::NamingContext &      baseContext(ACE_Time_Value *timeout = 0) const throw (CORBA::UserException);
+        const TAF::NamingContext &      rootContext(ACE_Time_Value *timeout = 0) const;
+        const TAF::NamingContext &      baseContext(ACE_Time_Value *timeout = 0) const;
 
         CORBA::Object_var   string_to_object(const std::string &s)  const;
         CORBA::String_var   object_to_string(CORBA::Object_ptr obj) const;

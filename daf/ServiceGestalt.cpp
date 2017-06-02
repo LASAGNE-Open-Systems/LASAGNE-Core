@@ -61,7 +61,7 @@ namespace {
         , result_       (-1)
         , error_        (0)
     {
-        ACE_OS::last_error(0); // Reset Error Code for invoker
+        DAF_OS::last_error(0); // Reset Error Code for invoker
     }
 
     int
@@ -73,10 +73,10 @@ namespace {
             if ((this->result_ = this->gestalt_->process_directive(this->command_.c_str())) != 0) {
 #if defined(ACE_WIN32)
                 for (int error = ::GetLastError(); error;) {
-                    ACE_OS::last_error(error); break;
+                    DAF_OS::last_error(error); break;
                 }
 #endif
-                this->error_ = ACE_OS::last_error();
+                this->error_ = DAF_OS::last_error();
             }
 
         } DAF_CATCH_ALL{ /* Possible failure in user code */ }
@@ -88,10 +88,10 @@ namespace {
     ServiceAction::wait_result(time_t timeout) const
     {
         for (ACE_Time_Value tm(DAF_OS::gettimeofday(timeout)); this->resultLock_.acquire(tm);) {
-            ACE_OS::last_error(ACE_OS::last_error()); return -1;  // Possibly a timeout
+            DAF_OS::last_error(DAF_OS::last_error()); return -1;  // Possibly a timeout
         }
 
-        this->resultLock_.release(); ACE_OS::last_error(this->error_); return this->result_;
+        this->resultLock_.release(); DAF_OS::last_error(this->error_); return this->result_;
     }
 }
 
@@ -116,7 +116,7 @@ namespace DAF
 #endif
 
     std::string
-    locateServiceIdent(const ACE_Service_Object *svc_obj, const ACE_Service_Gestalt *sg) throw (DAF::NotFoundException)
+    locateServiceIdent(const ACE_Service_Object *svc_obj, const ACE_Service_Gestalt *sg)
     {
         ACE_Service_Repository *repo = (sg ? const_cast<ACE_Service_Gestalt*>(sg)->current_service_repository() : 0);
 
@@ -206,7 +206,7 @@ namespace DAF
             }
         }
 
-        ACE_OS::last_error(ENOEXEC); return -1;  // Not Executable
+        DAF_OS::last_error(ENOEXEC); return -1;  // Not Executable
     }
 
     std::string
@@ -218,7 +218,7 @@ namespace DAF
         s << ACE_TEXT("static ");
         s << ident;
         s << ACE_TEXT(" \"");
-        if (parameters && ACE_OS::strlen(parameters) > 0) {
+        if (parameters && DAF_OS::strlen(parameters) > 0) {
             s << parameters;
         }
         s << '"';
@@ -227,7 +227,7 @@ namespace DAF
         s << ACE_TEXT("<static id=\"");
         s << ident;
         s << '"';
-        if (parameters && ACE_OS::strlen(parameters) > 0) {
+        if (parameters && DAF_OS::strlen(parameters) > 0) {
             s << ACE_TEXT(" params=\"");
             s << parameters;
             s << '"';
@@ -252,7 +252,7 @@ namespace DAF
         s << ':';
         s << objectclass;
         s << ACE_TEXT("() \"");
-        if (parameters && ACE_OS::strlen(parameters) > 0) {
+        if (parameters && DAF_OS::strlen(parameters) > 0) {
             s << parameters;
         }
         s << '"';
@@ -266,7 +266,7 @@ namespace DAF
         s << ACE_TEXT("\" init=\"");
         s << objectclass;
         s << '"';
-        if (parameters && ACE_OS::strlen(parameters) > 0) {
+        if (parameters && DAF_OS::strlen(parameters) > 0) {
             s << ACE_TEXT(" params=\"");
             s << parameters;
             s << '"';

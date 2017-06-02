@@ -77,7 +77,7 @@ namespace DAF
     }
 
     template <typename T, typename F> bool
-    Rendezvous<T,F>::waitReset(time_t msecs) throw (IllegalThreadStateException,InternalException)
+    Rendezvous<T,F>::waitReset(time_t msecs)
     {
         ACE_Guard<ACE_SYNCH_MUTEX> ace_mon( *this );
 
@@ -104,7 +104,7 @@ namespace DAF
     }
 
     template <typename T, typename F> T
-    Rendezvous<T,F>::rendezvous(const T &t) throw (IllegalThreadStateException, BrokenBarrierException, InternalException)
+    Rendezvous<T,F>::rendezvous(const T &t)
     {
         this->entryGate_.acquire();
 
@@ -167,7 +167,6 @@ namespace DAF
 
     template <typename T, typename F> T
     Rendezvous<T,F>::rendezvous(const T &t, time_t msec)
-        throw (IllegalThreadStateException, BrokenBarrierException, TimeoutException, InternalException)
     {
         if (this->entryGate_.attempt(msec)) {
             throw TimeoutException();

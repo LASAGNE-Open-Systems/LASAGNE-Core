@@ -95,7 +95,7 @@ namespace {
 
     int validate_string_var_type(const CORBA::String_var &s)
     {
-        return ACE_OS::strcmp(s, DEREK_TEXT) == 0;
+        return DAF_OS::strcmp(s, DEREK_TEXT) == 0;
     }
 
     int validate_string_vector_type(const StringVectorType &s)
@@ -103,7 +103,7 @@ namespace {
         if (s.size() == MAX_SEQUENCE_SIZE) {
             for (size_t i = 0; i < MAX_SEQUENCE_SIZE; i++) {
                 std::stringstream ss; std::ends(ss << DEREK_TEXT << int(i));
-                if (ACE_OS::strcmp(ss.str().c_str(), s[i].in())) return false;
+                if (DAF_OS::strcmp(ss.str().c_str(), s[i].in())) return false;
             }
             return true;
         }
@@ -115,7 +115,7 @@ namespace {
         if (s.length() == CORBA::ULong(MAX_SEQUENCE_SIZE)) {
             for (CORBA::ULong i = 0; i < CORBA::ULong(MAX_SEQUENCE_SIZE); i++) {
                 std::stringstream ss; std::ends(ss << DEREK_TEXT << int(i));
-                if (ACE_OS::strcmp(ss.str().c_str(), s[i].in())) return false;
+                if (DAF_OS::strcmp(ss.str().c_str(), s[i].in())) return false;
             }
             return true;
         }

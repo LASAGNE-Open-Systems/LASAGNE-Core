@@ -85,7 +85,7 @@ namespace {
         case 'l':
             for (const ACE_TCHAR *looptime_val = get_opts.opt_arg(); looptime_val;) {
                 if (::isdigit(int(*looptime_val))) {
-                    DISCOVER_TIMOUT.set(ace_range(2, 120, ACE_OS::atoi(looptime_val)), 0);
+                    DISCOVER_TIMOUT.set(ace_range(2, 120, DAF_OS::atoi(looptime_val)), 0);
                 }
                 break;
             } break;
@@ -94,7 +94,7 @@ namespace {
         case 'v':   verbose_ = 1;
             for (const ACE_TCHAR *verbose_val = get_opts.opt_arg(); verbose_val;) {
                 if (::isdigit(int(*verbose_val))) {
-                    verbose_ = ace_range(1, 10, ACE_OS::atoi(verbose_val));
+                    verbose_ = ace_range(1, 10, DAF_OS::atoi(verbose_val));
                 }
                 break;
             } break;
@@ -102,7 +102,7 @@ namespace {
         case 'z':   debug_ = 1;
             for (const ACE_TCHAR *debug_val = get_opts.opt_arg(); debug_val;) {
                 if (::isdigit(int(*debug_val))) {
-                    debug_ = ace_range(1, 10, ACE_OS::atoi(debug_val));
+                    debug_ = ace_range(1, 10, DAF_OS::atoi(debug_val));
                 }
                 break;
             } break;
@@ -194,14 +194,14 @@ namespace {
                 for (CORBA::ULong i = 0; i < mp.profile_count(); i++) {
                     TAO_Profile *profile(mp.get_profile(i));
                     if (profile) {
-                        char iors[16]; ACE_OS::sprintf(iors, "IOR[%d]:", int(i));
+                        char iors[16]; DAF_OS::sprintf(iors, "IOR[%d]:", int(i));
                         *this << '\t' << std::setw(8) << iors << CORBA::String_var(profile->to_string()).in() << std::endl;
 
                         const IOP::MultipleComponentProfile &mcp(profile->tagged_components().components());
 
-                        if (ior_tags_ || verbose_ > 2) for (CORBA::ULong j = 0; j < mcp.length(); j++) {
+                        if (ior_tags_ || verbose() > 2) for (CORBA::ULong j = 0; j < mcp.length(); j++) {
                             const IOP::TaggedComponent &tc(mcp[j]);
-                            char tags[16]; ACE_OS::sprintf(tags, "-Tag[%03x]:", int(tc.tag));
+                            char tags[16]; DAF_OS::sprintf(tags, "-Tag[%03x]:", int(tc.tag));
                             *this << '\t' << std::setw(10) << tags;
                             const size_t tc_data_len = size_t(tc.component_data.length()); if (tc_data_len) {
                                 *this << DAF::hex_dump_data(tc.component_data.get_buffer(), tc_data_len, (tc_data_len % 32));
@@ -226,7 +226,7 @@ namespace {
 
         const char * ident_format((ed.flags_ & (1U << taf::SVC_EXECUTE)) ? ACE_TEXT("[%02d] %s\t[%s]\n") : ACE_TEXT("-->[%02d] %s\t[%s]\n"));
         {
-            char sIdent[256]; ACE_OS::sprintf(sIdent, ident_format
+            char sIdent[256]; DAF_OS::sprintf(sIdent, ident_format
                 , int(index), ed.ident_.in(), svc_flags_to_string(unsigned(ed.flags_)).c_str());
             *this << sIdent;
         }
@@ -238,7 +238,7 @@ namespace {
         }
 
         {
-            char sTime[64]; ACE_OS::sprintf(sTime, " - [elapsed %d:%02d Hrs]", run_hrs, unsigned(run_min % 60U));
+            char sTime[64]; DAF_OS::sprintf(sTime, " - [elapsed %d:%02d Hrs]", run_hrs, unsigned(run_min % 60U));
             *this << '\t' << std::setw(8) << "START:" << DAF_Date_Time(start_time) << " GMT" << sTime << std::endl;
         }
 
@@ -276,11 +276,11 @@ namespace {
 
         CORBA::String_var svc_name(taf_server->svc_name());
 
-        if (svc_name && ACE_OS::strlen(svc_name.in())) {
+        if (svc_name && DAF_OS::strlen(svc_name.in())) {
 
             char msg[BUFSIZ];
 
-            ACE_OS::sprintf(msg, ACE_TEXT("Hi there %s, Discovery Utility on '%s' can see you!!")
+            DAF_OS::sprintf(msg, ACE_TEXT("Hi there %s, Discovery Utility on '%s' can see you!!")
                 , svc_name.in(), DAF_OS::gethostname().c_str());
 
             taf_server->sendConsoleMsg(msg);
@@ -288,7 +288,7 @@ namespace {
 
         this->insert_descriptor(taf::EntityDescriptor_var(taf_server->entity_descriptor()), index);
 
-        if (properties_ || verbose_ > 1) try {
+        if (properties_ || verbose() > 1) try {
             this->insert_properties(taf_server->list_properties());
         } DAF_CATCH_ALL {}
 

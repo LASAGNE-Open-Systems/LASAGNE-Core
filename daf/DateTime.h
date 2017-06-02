@@ -91,11 +91,11 @@ namespace DAF
             }
 
             /** \todo{Fill this in} */
-            Date_Time(const ACE_Date_Time &)                throw (DAF::DateTimeException);
+            Date_Time(const ACE_Date_Time &);
             /** \todo{Fill this in} */
-            Date_Time(const ACE_Time_Value &)               throw (DAF::DateTimeException);
+            Date_Time(const ACE_Time_Value &);
             /** \todo{Fill this in} */
-            Date_Time(const struct tm &, long microsec = 0) throw (DAF::DateTimeException);
+            Date_Time(const struct tm &, long microsec = 0);
             /** \todo{Fill this in} */
             Date_Time( long day,
                        long month,
@@ -103,11 +103,11 @@ namespace DAF
                        long hour      = 0,
                        long minute    = 0,
                        long second    = 0,
-                       long microsec  = 0) throw (DAF::DateTimeException);
+                       long microsec  = 0);
 
             // Parse string using DAF_DATE_TIME_DEFAULT_FORMAT to build date_time
             /** \todo{Fill this in} */
-            Date_Time(const std::string &) throw (DAF::DateTimeException);
+            Date_Time(const std::string &);
 
             /** \todo{Fill this in} */
             operator ACE_Time_Value () const;

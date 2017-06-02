@@ -47,7 +47,7 @@ namespace DEV
         // Under Linux aio_write and aio_read get queued on the same file descriptor.
         // therefore we duplicate it here to allow concurrent aio_read and aio_write.
         // see "man dup"
-        this->write_handle_ = ACE_OS::dup(handler.handle());
+        this->write_handle_ = DAF_OS::dup(handler.handle());
         if ( this->write_handle_ != ACE_INVALID_HANDLE && this->open(handler, this->write_handle_) == 0) {
             ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, *this, -1); return this->signal_writer();
         }
@@ -91,7 +91,7 @@ namespace DEV
                 iov_ptr     += int(io_len);
                 send_len    += int(io_len);
 
-                ACE_OS::thr_yield();  // Yield a little for IO to Start
+                DAF_OS::thr_yield();  // Yield a little for IO to Start
             }
         }
 

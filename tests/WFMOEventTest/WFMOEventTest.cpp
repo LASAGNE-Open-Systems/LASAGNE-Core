@@ -87,8 +87,8 @@ MySignaller::MySignalHandler::handle_event(int sig, siginfo_t*, ucontext_t*)
 {
     this->timer_.stop();
     {
-        char s[128]; ACE_OS::sprintf(s, "(%u | %04u) Handler= %02d, Signal=%d "
-            , static_cast<int>(ACE_OS::getpid())
+        char s[128]; DAF_OS::sprintf(s, "(%u | %04u) Handler= %02d, Signal=%d "
+            , static_cast<int>(DAF_OS::getpid())
             , static_cast<int>(DAF_OS::thread_ID())
             , this->ident_
             , sig);
@@ -134,7 +134,7 @@ MySignaller::svc(void)
     int th_ident = thread_id++;
 
     for(int id = th_ident; this->is_active(); id += th_ident) {
-        this->handler_[id %= SIGNAL_HANDLER_MAX]->signal(); ACE_OS::sleep(ACE_Time_Value(0,1000));
+        this->handler_[id %= SIGNAL_HANDLER_MAX]->signal(); DAF_OS::sleep(ACE_Time_Value(0,1000));
     }
 
     return 0;

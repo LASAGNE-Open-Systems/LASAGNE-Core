@@ -29,10 +29,10 @@ namespace {
     void    taf_print_debug(const char *id, int dbug)
     {
         char s[32]; if (dbug) {
-            ACE_OS::sprintf(s, ACE_TEXT("ON[%d]"), dbug);
+            DAF_OS::sprintf(s, ACE_TEXT("ON[%d]"), dbug);
         }
         else {
-            ACE_OS::strcpy(s, ACE_TEXT("OFF"));
+            DAF_OS::strcpy(s, ACE_TEXT("OFF"));
         }
         ACE_DEBUG((LM_INFO, ACE_TEXT("%s=%s - %T\n"), (id ? id : "Debug"), s));
     }

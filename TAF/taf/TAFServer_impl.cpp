@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -147,7 +147,7 @@ namespace TAF
     void
     TAFServer_impl::sendConsoleMsg(const char *msg)
     {
-        if (msg && ACE_OS::strlen(msg) > 0) {
+        if (msg && DAF_OS::strlen(msg) > 0) {
             ACE_DEBUG((LM_INFO, ACE_TEXT("\nINFO: %s[%s @ %D]\n'%s'\n")
                 , TAFServerImpl::svc_ident()
                 , tafServerName()
@@ -240,13 +240,13 @@ namespace TAF
     int
     TAFServer_impl::suspend(void)
     {
-        ACE_OS::last_error(ENOTSUP); return -1;
+        DAF_OS::last_error(ENOTSUP); return -1;
     }
 
     int
     TAFServer_impl::resume(void)
     {
-        ACE_OS::last_error(ENOTSUP); return -1;
+        DAF_OS::last_error(ENOTSUP); return -1;
     }
 
     int
@@ -400,7 +400,7 @@ namespace {
 
         if (ACE_Service_Config::process_directive(TAFServerDescriptor, false) == 0) {
             if (ACE_Service_Config::initialize(TAFServer::svc_ident(), args.c_str()) == 0) {
-                ACE_OS::thr_yield(); return; // Allow a little for TAFServer to load-up
+                DAF_OS::thr_yield(); return; // Allow a little for TAFServer to load-up
             }
         }
 
@@ -448,7 +448,7 @@ namespace {
         try {
             ACE_Service_Config_Guard svc_guard(ACE_Service_Config::global()); ACE_UNUSED_ARG(svc_guard);
             for (TAFServer * tafServer(ACE_Dynamic_Service<TAFServer>::instance(TAFServer::svc_ident())); tafServer;) {
-                this->initResult_ = 0; this->initLock_.release(); ACE_OS::thr_yield(); // Let the wait_result() waiter go
+                this->initResult_ = 0; this->initLock_.release(); DAF_OS::thr_yield(); // Let the wait_result() waiter go
                 {
                     const DAF::ShutdownHandler shutdown_handler; return tafServer->run(true);  ACE_UNUSED_ARG(shutdown_handler);
                 }
@@ -474,10 +474,10 @@ extern "C" {
         static time_t tafserver_loader_timeout_(TAFServer::TAFSERVER_LOAD_TIMEOUT); // Timeout in Seconds
 
         static struct TAFServerLoaderTimeout {
-            TAFServerLoaderTimeout(const char *_tafserver_load_timeout = ACE_OS::getenv(TAF_SERVERLOADTIMEOUT)) {
+            TAFServerLoaderTimeout(const char *_tafserver_load_timeout = DAF_OS::getenv(TAF_SERVERLOADTIMEOUT)) {
                 if (_tafserver_load_timeout) {
                     const std::string tm(DAF::trim_string(_tafserver_load_timeout)); if (tm.length() && ::isdigit(int(tm[0]))) {
-                        tafserver_loader_timeout_ = time_t(ace_range(30, 300, ACE_OS::atoi(tm.c_str())));
+                        tafserver_loader_timeout_ = time_t(ace_range(30, 300, DAF_OS::atoi(tm.c_str())));
                     }
                 }
             }

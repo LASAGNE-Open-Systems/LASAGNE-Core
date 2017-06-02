@@ -44,7 +44,7 @@ namespace DAF
     }
 
     template<typename T> int
-    SemaphoreControlledChannel<T>::put(const T &t) throw (DAF::InternalException)
+    SemaphoreControlledChannel<T>::put(const T &t)
     {
         if (this->putGuard_.acquire() == 0) try {
             if (this->insert(t) == 0) {
@@ -57,7 +57,7 @@ namespace DAF
     }
 
     template<typename T> int
-    SemaphoreControlledChannel<T>::offer(const T &t, time_t msecs) throw (DAF::InternalException)
+    SemaphoreControlledChannel<T>::offer(const T &t, time_t msecs)
     {
         if (this->putGuard_.attempt(msecs) == 0) try {
             if (this->insert(t) == 0) {
@@ -70,7 +70,7 @@ namespace DAF
     }
 
     template<typename T> T
-    SemaphoreControlledChannel<T>::take(void) throw (DAF::InternalException)
+    SemaphoreControlledChannel<T>::take(void)
     {
         this->takeGuard_.acquire();
 
@@ -87,9 +87,9 @@ namespace DAF
     }
 
     template<typename T> T
-    SemaphoreControlledChannel<T>::poll(time_t msecs) throw (DAF::InternalException, DAF::TimeoutException)
+    SemaphoreControlledChannel<T>::poll(time_t msecs)
     {
-        if (this->takeGuard_.attempt(msecs)) switch (ACE_OS::last_error()) {
+        if (this->takeGuard_.attempt(msecs)) switch (DAF_OS::last_error()) {
             case ETIME: DAF_THROW_EXCEPTION(DAF::TimeoutException); // Reverse the fact that we have been here and exit with error
             default:    DAF_THROW_EXCEPTION(DAF::InternalException);
         }

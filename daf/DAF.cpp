@@ -93,12 +93,12 @@ namespace DAF
 
         const char *p = reinterpret_cast<const char*>(buf);
 
-        char s[128]; ACE_OS::sprintf(s, ACE_TEXT("\nDAF_DUMP: Address = 0x%p, Length = %d"), p, int(len)); ss << s;
+        char s[128]; DAF_OS::sprintf(s, ACE_TEXT("\nDAF_DUMP: Address = 0x%p, Length = %d"), p, int(len)); ss << s;
 
         if (p) {
 
             for (int i = 0; len > 0; i++) {
-                ACE_OS::sprintf(s, ACE_TEXT("\n0x%04X -"), unsigned(i * width));
+                DAF_OS::sprintf(s, ACE_TEXT("\n0x%04X -"), unsigned(i * width));
                 size_t l_len = ace_min(width, len);
                 ss << s << hex_dump_data(p, l_len, width);
                 len -= l_len; p += l_len;
@@ -121,7 +121,7 @@ namespace DAF
 
         const char *p = reinterpret_cast<const char*>(buf);
 
-        char s[128]; ACE_OS::sprintf(s, ACE_TEXT("\nDAF_BitDump: Address = 0x%p, Length = %d bits"), p, int(bits)); ss << s;
+        char s[128]; DAF_OS::sprintf(s, ACE_TEXT("\nDAF_BitDump: Address = 0x%p, Length = %d bits"), p, int(bits)); ss << s;
 
         if (p && int(bits) > 0) {
 
@@ -132,11 +132,14 @@ namespace DAF
                 do {
                     if (i) {
                         if (i % width) {
-                            if ((i % 8) == 0) ss << ' '; continue;
+                            if ((i % 8) == 0) {
+                                ss << ' ';
+                            }
+                            continue;
                         }
                     }
 
-                    ACE_OS::sprintf(s, ACE_TEXT("\n0x%04X - "), unsigned(i / 8)); ss << s;
+                    DAF_OS::sprintf(s, ACE_TEXT("\n0x%04X - "), unsigned(i / 8)); ss << s;
 
                 } while (false);
 
@@ -238,7 +241,7 @@ namespace DAF
         char s[64] = { 0 };
 
         if (error) for (const char * errno_text = DAF::get_errno_text(error); errno_text;) {
-            ACE_OS::sprintf(s, ACE_TEXT("[Error=%d (%s)]"), error, errno_text); break;
+            DAF_OS::sprintf(s, ACE_TEXT("[Error=%d (%s)]"), error, errno_text); break;
         }
 
         return s;
@@ -336,7 +339,7 @@ namespace DAF
     }
 
     std::string
-    format_args(const std::string &args, bool substitute_env_args, bool quote_args) throw (DAF::IllegalArgumentException)
+    format_args(const std::string &args, bool substitute_env_args, bool quote_args)
     {
         ACE_ARGV args_argv(args.c_str(), substitute_env_args); DAF_ARGV params_argv(substitute_env_args);
 

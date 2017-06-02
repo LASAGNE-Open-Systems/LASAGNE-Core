@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -232,7 +232,7 @@ namespace TAFDDS
     DDS_Topic_handle
     DDS_Topic_factory::create_topic(const DDS_DomainParticipant_handle &participant, const DDS_Type_handle &type, DDS::String_ptr topic_name)
     {
-        if (topic_name ? ACE_OS::strlen(topic_name) == 0 : true) {
+        if (topic_name ? DAF_OS::strlen(topic_name) == 0 : true) {
             DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);
         }
 

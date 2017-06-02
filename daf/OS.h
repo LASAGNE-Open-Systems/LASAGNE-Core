@@ -54,6 +54,13 @@ namespace DAF_OS
 {
     using namespace ACE_OS;
 
+    /** Remap some windows error messages as appropriate */
+    DAF_Export int                  last_error(void);
+    inline int                      last_error(int error)
+    {
+        ACE_OS::last_error(error); return error;
+    }
+
     inline ACE_Time_Value           gettimeofday(void)
     {
         return ACE_OS::gettimeofday();
@@ -95,7 +102,7 @@ namespace DAF_OS
     template <typename T> inline
     const T abs(const T &t)
     {
-        return T((t < T(0.0)) ? -(t) : (t));
+        return T((t > T(0.0)) ? (t) : -(t));
     }
 
     template <typename T> inline
@@ -113,7 +120,7 @@ namespace DAF_OS
     template <typename T> inline
     const T eps_zero(const T &t)
     {
-        return ((DAF_OS::abs(t) < T(DAF_M_EPS)) ? T(0.0) : t);
+        return ((DAF_OS::abs(t) > T(DAF_M_EPS)) ? t : T(0.0));
     }
 
     /*

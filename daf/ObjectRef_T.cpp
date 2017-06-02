@@ -94,16 +94,22 @@ namespace DAF
     /// Function operators.
     template <typename T> inline
     typename ObjectRef<T>::_in_type
-    ObjectRef<T>::operator -> (void) const throw (DAF::INV_OBJREF)
+    ObjectRef<T>::operator -> (void) const
     {
-        if (this->ptr_) return this->ptr_; throw DAF::INV_OBJREF();
+        if (this->ptr_) {
+            return this->ptr_;
+        }
+        throw DAF::INV_OBJREF();
     }
 
     template <typename T> inline
     typename ObjectRef<T>::_ref_type
-    ObjectRef<T>::operator * (void) const throw (DAF::INV_OBJREF)
+    ObjectRef<T>::operator * (void) const
     {
-        if (this->ptr_) return *this->ptr_; throw DAF::INV_OBJREF();
+        if (this->ptr_) {
+            return *this->ptr_;
+        }
+        throw DAF::INV_OBJREF();
     }
 
     template <typename T> inline
@@ -184,7 +190,7 @@ namespace DAF
     }
 
     template <typename T> template <typename A>  // Support widening (C++11 Standard - Section 6.6.3)
-    ObjectRef<T>::operator ObjectRef<A> () const throw (DAF::INV_OBJREF)
+    ObjectRef<T>::operator ObjectRef<A> () const
     {
         for (A *ap = ObjectRefTraits<A>::narrow(this->ptr_);ap;) {
             return ObjectRef<A>(ap);
@@ -250,9 +256,12 @@ namespace DAF
 
     template <typename T> inline
     T *
-    ObjectRefOut<T>::operator -> (void) const throw (DAF::INV_OBJREF)
+    ObjectRefOut<T>::operator -> (void) const
     {
-        if (this->ptr_) return this->ptr_; throw DAF::INV_OBJREF();
+        if (this->ptr_) {
+            return this->ptr_;
+        }
+        throw DAF::INV_OBJREF();
     }
 } // namespace DAF
 

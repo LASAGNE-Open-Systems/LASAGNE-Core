@@ -31,7 +31,7 @@ namespace TAF
     namespace {
         const ACE_TCHAR * property_options[] = { // Only valid command line argument overrides
             TAF_RESOLVETIMEOUT,
-            TAF_DISCOVERYDISABLE,
+            TAF_DISCOVERYENABLE,
             TAF_DISCOVERYENDPOINT,
 #if defined(TAF_HAS_SECURITY)
             TAF_SECURITYDISABLE,
@@ -79,7 +79,7 @@ namespace TAF
 
         if (this->load_count() ? false : use_env) {
 
-            for (const char *properties = ACE_OS::getenv(this->config_switch()); properties;) {
+            for (const char *properties = DAF_OS::getenv(this->config_switch()); properties;) {
                 try {
                     if (this->load_file_profile(properties) == 0) {
                         break;

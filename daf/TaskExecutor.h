@@ -158,7 +158,7 @@ namespace DAF
         * is an adaptation of "this", all of which invoke <DAF::Runnable::run>.
         * Returns -1 if handoff failure occurs otherwise 0.
         */
-        virtual int     execute(const DAF::Runnable_ref &) throw (DAF::InternalException);
+        virtual int     execute(const DAF::Runnable_ref &);
 
         /// Return the current thread count.  NOTE: support for the DAF::Executor interface
         virtual size_t  size(void) const    { return this->thr_count_;  }
@@ -242,6 +242,18 @@ namespace DAF
         */
         virtual int module_closed(void);
 
+    protected:  // Default Service Interface to Not Supported
+
+        virtual int suspend(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
+
+        virtual int resume(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
+
     protected:
 
         /**
@@ -264,7 +276,7 @@ namespace DAF
         * the new thread will coallesce back into the pool after the DAF::Runnable request
         * has been completed.
         */
-        virtual int task_handOff(const DAF::Runnable_ref &) throw (DAF::InternalException);
+        virtual int task_handOff(const DAF::Runnable_ref &);
 
         /**
         * Dispatch a DAF::Runnable within the context of an existing pool thread.
