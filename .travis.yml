@@ -48,6 +48,7 @@ branches:
   only:
     - develop
     - master
+    - release*
 
 install:
 
