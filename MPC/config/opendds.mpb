@@ -15,7 +15,7 @@ feature(opendds) : taflib, dcps, dcps_ts_defaults {
 feature(java) {
   requires      += opendds
   includes      += $(DDS_ROOT)/java/idl2jni/runtime
-  verbatim(gnuace, macros) {
+  verbatim(gnuace, macros, 1) {
     java = 1
   }
 }
