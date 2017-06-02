@@ -15,5 +15,5 @@ ACE-TAO version 6.4.3
 Optional:
 ---------
 OpenDDS 3.11
-RTI DDS 5.1
+RTI DDS 5.1 (plus optional CORBA Compatibility Kit)
 CoreDX 3.6.47
