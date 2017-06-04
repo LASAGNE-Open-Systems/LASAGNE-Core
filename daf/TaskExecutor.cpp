@@ -499,7 +499,7 @@ namespace DAF
                 ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); // Stops cleanup logic
 
 # if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->terminate(); break; // Exit with 0 (will wait() on task)
+                this->terminate(); //break; // Exit with 0 (will wait() on task)
 # else
                 this->at_exit(this->taskBase(), 0, 0); // Ensure we don't do the at_exit()
 
