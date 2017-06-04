@@ -485,33 +485,30 @@ namespace DAF
         // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
         // etc.
 
+        ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); // Stops cleanup logic
+
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
         this->do_at_exit();
+#else
+        this->at_exit(this->taskBase(), 0, 0); TaskExecutor::cleanup(this->taskBase(), this);
 #endif
-        if (DAF_OS::thr_cancel(thr_id)) do {
+        if (DAF_OS::thr_cancel(thr_id)) {
 
             ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
 
 #if defined(ACE_WIN32)
 
-//            if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) // Causes hang/failure on Windows ??
+            if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD)))
             {
-                ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); // Stops cleanup logic
-
 # if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->terminate(); //break; // Exit with 0 (will wait() on task)
+                this->terminate();
 # else
-                this->at_exit(this->taskBase(), 0, 0); // Ensure we don't do the at_exit()
-
-                TaskExecutor::cleanup(this->taskBase(), this);
-
-                thr_mgr->remove_thr(this, 1);// This may leave TSS leaking (Fixed with terminate() access)
+                thr_mgr->remove_thr(this, true); // This *may* leave TSS leaking (Fixed with terminate() access)
 # endif
             }
 #endif
             return -1; // Indicate we forced terminated (stops Task_Base::wait())
-
-        } while (false);
+        }
 
         return 0;
     }
