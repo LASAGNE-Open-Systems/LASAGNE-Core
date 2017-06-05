@@ -100,8 +100,8 @@ namespace DAF
                 }
             }
 
-#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP == 1)
-            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
+#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
+            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
                 td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
             }
 #endif
@@ -149,8 +149,8 @@ namespace DAF
                 }
             }
 
-#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP == 1)
-            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
+#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
+            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
                 td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
             }
 #endif
@@ -274,14 +274,20 @@ namespace DAF
         ACE_thread_t thread_ids[],
         const char* thr_name[])
     {
-        if (this->isAvailable()) {
+        if (ACE_BIT_ENABLED(flags, (THR_DETACHED | THR_DAEMON))) {
+            ACE_DEBUG((LM_WARNING, ACE_TEXT("(%P | %t) DAF::TaskExecutor::execute; ")
+                ACE_TEXT("Unsupported flags THR_DETACHED and THR_DAEMON - flags reset.\n")));
+            ACE_CLR_BITS(flags, (THR_DETACHED | THR_DAEMON));
+        }
 
-            ACE_GUARD_RETURN(ACE_Thread_Mutex, ace_mon, this->lock_, -1);
+        if (this->isAvailable()) do {
 
-            if (this->isAvailable()) do { // DCL
+            { // Scope Lock
 
-                if (force_active ? false : this->isActive()) {
-                    break; // Already active.
+                ACE_GUARD_RETURN(ACE_Thread_Mutex, mon, this->lock_, (DAF_OS::last_error(ENOLCK), -1));
+
+                if (this->isAvailable() ? (force_active ? false : this->thr_count() > 0) : true) {  // DCL
+                    break; // Not available OR already active without being forced
                 }
 
                 this->thr_count_ += n_threads;
@@ -301,9 +307,7 @@ namespace DAF
                         thread_handles,
                         this,
                         thr_name);
-                }
-                else
-                {
+                } else {
                     // Thread Ids were not specified
                     grp_spawned = this->thr_mgr_->spawn_n(n_threads,
                         &TaskExecutor::execute_svc,
@@ -322,18 +326,14 @@ namespace DAF
                     this->thr_count_ -= n_threads; break;
                 }
 
-#if defined(ACE_TANDEM_T1248_PTHREADS)
-                DAF_OS::memcpy(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
-#else
-                this->last_thread_id_ = 0;    // Reset to prevent inadvertant match on ID
-#endif /* defined (ACE_TANDEM_T1248_PTHREADS) */
+                this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
+            }
 
-                DAF_OS::thr_yield(); return 0; // Let The Thread(s) start up (Still Locked though)
+            DAF_OS::thr_yield(); return 0; // Let The Thread(s) start up (Still Locked though)
 
-            } while (false);
-        }
+        } while (false);
 
-        return -1;
+        DAF_OS::last_error(ENOEXEC); return -1;
     }
 
     int
@@ -383,21 +383,22 @@ namespace DAF
     }
 
     int
-    TaskExecutor::task_handOff(const DAF::Runnable_ref &cmd)
+    TaskExecutor::task_handOff(const DAF::Runnable_ref &command)
     {
-        if (this->isAvailable()) do {
+        if (DAF::is_nil(command) ? false : this->isAvailable()) do {
+
+            WorkerExTask_ref tp(new WorkerExTask(this, command));
+
             {
-                ACE_GUARD_REACTION(ACE_Thread_Mutex, ace_mon, this->lock_, break);
+                ACE_GUARD_RETURN(ACE_Thread_Mutex, mon, this->lock_, (DAF_OS::last_error(ENOLCK), -1));
 
                 if (this->isAvailable()) { // DCL
 
                     ++this->thr_count_;
 
-                    WorkerExTask_ptr tp(new WorkerExTask(this, cmd));
-
                     int grp_spawned = this->thr_mgr()->spawn_n(1
                         , &TaskExecutor::execute_run
-                        , tp // Give the cmd to the thread (it will delete)
+                        , WorkerExTask_ref(tp)._retn() // Give the cmd to the thread (it will delete)
                         , (THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED)
                         , ACE_DEFAULT_THREAD_PRIORITY
                         , this->grp_id()
@@ -405,14 +406,10 @@ namespace DAF
                     );
 
                     if (grp_spawned == -1) {
-                        delete tp; --this->thr_count_; break; // Clean up command after failed handoff
+                        --this->thr_count_; WorkerExTask::intrusive_remove_ref(tp); break; // Clean up command after failed handoff
                     }
 
-#if defined(ACE_TANDEM_T1248_PTHREADS)
-                    DAF_OS::memset(&this->last_thread_id_, 0, sizeof(this->last_thread_id_));
-#else
-                    this->last_thread_id_ = 0;    // Reset to prevent inadvertant match on ID
-#endif /* defined (ACE_TANDEM_T1248_PTHREADS) */
+                    this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
                 }
             }
 
@@ -420,7 +417,7 @@ namespace DAF
 
         } while (false);
 
-        return -1;
+        DAF_OS::last_error(ENOEXEC); return -1;
     }
 
     int
@@ -438,9 +435,11 @@ namespace DAF
 
                 ACE_GUARD_RETURN(ACE_Thread_Mutex, mon, this->lock_, (DAF_OS::last_error(ENOLCK), -1));
 
-                while (this->thr_count()) {
-                    if (this->zero_condition_.wait(&tv) && this->thr_count()) { // DCL
-                        throw "Threads-Not-Exiting";  // Throw to terminate_task(release locks)
+                while (this->thr_count() > 0) {
+                    if (this->zero_condition_.wait(&tv) && DAF_OS::last_error() == ETIME) {
+                        if (this->thr_count() > 0) { // DCL
+                            throw "Threads-Not-Exiting";  // Throw to terminate_task(release locks)
+                        }
                     }
                 }
 
@@ -473,11 +472,9 @@ namespace DAF
     /*********************************************************************************/
 
     int
-    TaskExecutor::Thread_Descriptor::threadTerminate(Thread_Manager *thr_mgr)
+    TaskExecutor::Thread_Descriptor::threadTerminate(Thread_Manager *thr_mgr, int async_cancel)
     {
-        ACE_UNUSED_ARG(thr_mgr); // Not Used on Linux
-
-        const ACE_thread_t thr_id = this->threadID(); // Save Thread ID for reporting
+        const ACE_thread_t thr_id = this->threadID(); ACE_UNUSED_ARG(thr_id); // Save Thread ID for debug reporting
 
         // ACE_Thread::cancel under pthread will result in a pthread_cancel being
         // called. (See 'man pthread_cancel') which results in an async
@@ -487,27 +484,27 @@ namespace DAF
         // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
         // etc.
 
+        ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED);
+
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
         this->do_at_exit();
+#else
+        this->at_exit(this->taskBase(), 0, 0); TaskExecutor::cleanup(this->taskBase(), this);
 #endif
-        if (thr_mgr->cancel_thr(this, true)) {
+        if (thr_mgr->cancel_thr(this, async_cancel)) {
 
             thr_mgr->wait_on_exit(false);  // Don't wait on exit
 
             ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
 
 #if defined(ACE_WIN32)
+            ::TerminateThread(this->threadHandle(), DWORD(0xDEAD));
+#endif
 
-            if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD)))
-            {
-# if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->terminate();
-# else
-                this->at_exit(this->taskBase(), 0, 0);
-                TaskExecutor::cleanup(this->taskBase(), this);
-                thr_mgr->remove_thr(this, true); // This *may* leave TSS leaking (Fixed with terminate() access)
-# endif
-            }
+#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
+            this->terminate();
+#else
+            thr_mgr->remove_thr(this, async_cancel); // This *may* leave TSS leaking (Fixed with terminate() access)
 #endif
         }
 
@@ -526,17 +523,16 @@ namespace DAF
 
         if (task) for (ACE_Double_Linked_List_Iterator<ACE_Thread_Descriptor> iter(this->thr_list_); !iter.done(); iter.advance()) {
             Thread_Descriptor * td(static_cast<Thread_Descriptor *>(iter.next()));
-            if (td && td->taskBase() == task) {
-                this->terminate_thr(td, async_cancel);
+            if (td && td->taskBase() == task && this->terminate_thr(td, async_cancel)) {
+                result = -1;
             }
         }
 
         // Must terminate threads after we have traversed the thr_list_ to prevent clobbering thr_to_be_removed_'s integrity.
 
-        for (ACE_Thread_Descriptor * ace_td = 0; this->thr_to_be_removed_.dequeue_head(ace_td) != -1; DAF_OS::thr_yield()) {
-            Thread_Descriptor * td = static_cast<Thread_Descriptor *>(ace_td);
-            if (td && td->threadTerminate(this)) {
-                result = -1;
+        for (ACE_Thread_Descriptor * td = 0; this->thr_to_be_removed_.dequeue_head(td) != -1; DAF_OS::thr_yield()) {
+            if (td) {
+                static_cast<Thread_Descriptor *>(td)->threadTerminate(this, async_cancel);
             }
         }
 

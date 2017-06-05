@@ -336,7 +336,7 @@ namespace DAF
         struct Thread_Manager; // Forward Declaration
 
         struct Thread_Descriptor : ACE_Thread_Descriptor {
-            int threadTerminate(Thread_Manager *);
+            int threadTerminate(Thread_Manager *, int async_cancel);
 
             ACE_hthread_t   threadHandle(void)  const { return this->thr_handle_; }
             long          & threadFlags(void) { return this->flags_; }
