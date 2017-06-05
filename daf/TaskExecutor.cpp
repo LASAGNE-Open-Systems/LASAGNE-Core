@@ -70,7 +70,7 @@ namespace DAF
 
         if (worker) for (ACE_Task_Base * task(worker->task_base()); task;) {
 
-            ACE_Thread_Descriptor * td = static_cast<TaskExecutor::ThreadManager *>(task->thr_mgr())->thread_desc_self();
+            ACE_Thread_Descriptor * td = static_cast<TaskExecutor::Thread_Manager *>(task->thr_mgr())->thread_desc_self();
 
             // Register ourself with our <Thread_Manager>'s thread exit hook
             // mechanism so that our close() hook will be sure to get invoked
@@ -118,7 +118,7 @@ namespace DAF
 
         for (ACE_Task_Base * task(reinterpret_cast<ACE_Task_Base *>(args)); task;) {
 
-            ACE_Thread_Descriptor * td = static_cast<TaskExecutor::ThreadManager *>(task->thr_mgr())->thread_desc_self();
+            ACE_Thread_Descriptor * td = static_cast<TaskExecutor::Thread_Manager *>(task->thr_mgr())->thread_desc_self();
 
             // Register ourself with our <Thread_Manager>'s thread exit hook
             // mechanism so that our close() hook will be sure to get invoked
@@ -490,7 +490,7 @@ namespace DAF
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
         this->do_at_exit();
 #endif
-        if (DAF_OS::thr_cancel(thr_id)) {
+        if (thr_mgr->cancel_thr(this, true)) {
 
             thr_mgr->wait_on_exit(false);  // Don't wait on exit
 

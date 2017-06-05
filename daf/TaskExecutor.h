@@ -319,16 +319,6 @@ namespace DAF
 
     private:
 
-        /**
-        * Trickery with inheritance to allow access to enable the force termination of
-        * un-cooperative threads when closing the pool.
-        */
-        static struct ThreadManager : ACE_Thread_Manager {
-            using ACE_Thread_Manager::thread_desc_self;
-            int terminate_thr(ACE_Thread_Descriptor *td, int terminate_index = 0);
-            int terminate_grp(int grp_id, int terminate_index = 0);
-        } threadManager_;
-
         /// Routine that runs the service execute routine as a daemon thread.
         static  ACE_THR_FUNC_RETURN execute_run(void *workerExTask);
         static  ACE_THR_FUNC_RETURN execute_svc(void *aceTaskBase);
@@ -359,6 +349,7 @@ namespace DAF
             using ACE_Thread_Manager::thread_desc_self;
             using ACE_Thread_Manager::wait_on_exit;
             using ACE_Thread_Manager::remove_thr;
+            using ACE_Thread_Manager::cancel_thr;
 
             Thread_Manager(int wait_on_exit = true)
             {
