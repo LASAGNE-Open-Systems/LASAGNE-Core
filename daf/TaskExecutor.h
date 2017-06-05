@@ -365,23 +365,9 @@ namespace DAF
                 this->wait_on_exit(wait_on_exit);
             }
 
-            /** \todo{Fill this in} */
-            const ACE_TCHAR *dll_name(void) const
-            {
-                return DAF_DLL_NAME;
-            }
-
-            /** \todo{Fill this in} */
-            const ACE_TCHAR *name(void) const
-            {
-                return typeid(*this).name();
-            }
-
             int terminate_task(ACE_Task_Base * task, int async_cancel);
             int terminate_thr(Thread_Descriptor *td, int async_cancel);
         };
-
-//        typedef ACE_DLL_Singleton_T<Thread_Manager, ACE_SYNCH_MUTEX>    SingletonThreadManager;
 
     private:
 

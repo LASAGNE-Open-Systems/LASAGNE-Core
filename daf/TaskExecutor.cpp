@@ -197,9 +197,7 @@ namespace DAF
 
     /*********************************************************************************/
 
-    TaskExecutor::ThreadManager TaskExecutor::threadManager_;
-
-    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new Thread_Manager(true))
+    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new TaskExecutor::Thread_Manager(true))
         , zero_condition_   (this->lock_)
         , decay_timeout_    (THREAD_DECAY_TIMEOUT)
         , evict_timeout_    (THREAD_EVICT_TIMEOUT)
