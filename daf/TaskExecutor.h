@@ -357,7 +357,13 @@ namespace DAF
 
         struct Thread_Manager : ACE_Thread_Manager {
             using ACE_Thread_Manager::thread_desc_self;
+            using ACE_Thread_Manager::wait_on_exit;
             using ACE_Thread_Manager::remove_thr;
+
+            Thread_Manager(int wait_on_exit = true)
+            {
+                this->wait_on_exit(wait_on_exit);
+            }
 
             /** \todo{Fill this in} */
             const ACE_TCHAR *dll_name(void) const
@@ -375,7 +381,7 @@ namespace DAF
             int terminate_thr(Thread_Descriptor *td, int async_cancel);
         };
 
-        typedef ACE_DLL_Singleton_T<Thread_Manager, ACE_SYNCH_MUTEX>    SingletonThreadManager;
+//        typedef ACE_DLL_Singleton_T<Thread_Manager, ACE_SYNCH_MUTEX>    SingletonThreadManager;
 
     private:
 

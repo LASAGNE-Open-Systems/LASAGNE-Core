@@ -101,7 +101,7 @@ namespace DAF
             }
 
 #if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP == 1)
-            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
+            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
                 td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
             }
 #endif
@@ -150,7 +150,7 @@ namespace DAF
             }
 
 #if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP == 1)
-            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
+            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
                 td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
             }
 #endif
@@ -199,7 +199,7 @@ namespace DAF
 
     TaskExecutor::ThreadManager TaskExecutor::threadManager_;
 
-    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(TaskExecutor::SingletonThreadManager::instance())
+    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new Thread_Manager(true))
         , zero_condition_   (this->lock_)
         , decay_timeout_    (THREAD_DECAY_TIMEOUT)
         , evict_timeout_    (THREAD_EVICT_TIMEOUT)
@@ -219,7 +219,7 @@ namespace DAF
 
     TaskExecutor::~TaskExecutor(void)
     {
-        this->module_closed();
+        this->module_closed(); delete this->thr_mgr(); this->thr_mgr(0);
     }
 
     int
@@ -447,8 +447,12 @@ namespace DAF
                 }
 
             } DAF_CATCH_ALL { // Must be called without locks held
-                if (static_cast<Thread_Manager *>(this->thr_mgr())->terminate_task(this, true) == 0) {
-                    this->wait();
+                for (Thread_Manager * thr_mgr = static_cast<Thread_Manager *>(this->thr_mgr()); thr_mgr;) {
+                    thr_mgr->terminate_task(this, true);
+                    if (thr_mgr->wait_on_exit()) {
+                        this->wait();
+                    }
+                    break;
                 }
             }
         }
@@ -485,14 +489,12 @@ namespace DAF
         // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
         // etc.
 
-        ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED); // Stops cleanup logic
-
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
         this->do_at_exit();
-#else
-        this->at_exit(this->taskBase(), 0, 0); TaskExecutor::cleanup(this->taskBase(), this);
 #endif
         if (DAF_OS::thr_cancel(thr_id)) {
+
+            thr_mgr->wait_on_exit(false);  // Don't wait on exit
 
             ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
 
@@ -503,11 +505,12 @@ namespace DAF
 # if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
                 this->terminate();
 # else
+                this->at_exit(this->taskBase(), 0, 0);
+                TaskExecutor::cleanup(this->taskBase(), this);
                 thr_mgr->remove_thr(this, true); // This *may* leave TSS leaking (Fixed with terminate() access)
 # endif
             }
 #endif
-            return -1; // Indicate we forced terminated (stops Task_Base::wait())
         }
 
         return 0;
