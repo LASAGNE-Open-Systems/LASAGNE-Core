@@ -100,11 +100,8 @@ namespace DAF
                 }
             }
 
-#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
-            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
-                td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
-            }
-#endif
+            static_cast<Thread_Descriptor *>(td)->threadAtExit(false);
+
             return status;
         }
 
@@ -149,11 +146,8 @@ namespace DAF
                 }
             }
 
-#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
-            if (ACE_BIT_DISABLED(static_cast<Thread_Descriptor *>(td)->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED)) {
-                td->at_exit(task, 0, 0); TaskExecutor::cleanup(task, td); // This prevents a second invocation of the cleanup code
-            }
-#endif
+            static_cast<Thread_Descriptor *>(td)->threadAtExit(false);
+
             return status;
         }
 
@@ -163,34 +157,42 @@ namespace DAF
     void
     TaskExecutor::cleanup(void *obj, void *args)
     {
-        if (obj) for (TaskExecutor * task = dynamic_cast<TaskExecutor *>(reinterpret_cast<ACE_Task_Base *>(obj)); task;) {
+        if (obj) {
 
-            try { task->close(0); } DAF_CATCH_ALL { /* Calling application code */ }
+            for (TaskExecutor * task = dynamic_cast<TaskExecutor *>(reinterpret_cast<ACE_Task_Base *>(obj)); task;) {
 
-            ACE_thread_t thr_self = ACE_Thread::self();
+                try {
+                    task->close(0); /* Calling application code */
+                } DAF_CATCH_ALL {
+                }
 
-            {
-                ACE_GUARD_REACTION(ACE_Thread_Mutex, ace_mon, task->lock_, break);
+                ACE_thread_t thr_self = ACE_Thread::self();
 
-                if (args) for (Thread_Descriptor * td = reinterpret_cast<Thread_Descriptor*>(args); td;) {
-                    thr_self = td->self();
-                    if (DAF::debug() > 2) {
-                        ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %t) TaskExecutor::cleanup; ")
-                            ACE_TEXT("grp_id=%d,thr_count=%d,ThreadID=%d[0x%X],ThreadState=0x%X\n")
-                            , task->grp_id()
-                            , task->thr_count()
-                            , unsigned(thr_self), unsigned(thr_self)
-                            , unsigned(td->threadState())));
+                {
+                    ACE_GUARD_REACTION(ACE_Thread_Mutex, ace_mon, task->lock_, break);
+
+                    if (args) {
+                        for (Thread_Descriptor * td = reinterpret_cast<Thread_Descriptor*>(args); td;) {
+                            thr_self = td->self();
+                            if (DAF::debug() > 2) {
+                                ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %t) TaskExecutor::cleanup; ")
+                                    ACE_TEXT("grp_id=%d,thr_count=%d,ThreadID=%d[0x%X],ThreadState=0x%X\n")
+                                    , task->grp_id()
+                                    , task->thr_count()
+                                    , unsigned(thr_self), unsigned(thr_self)
+                                    , unsigned(td->threadState())));
+                            }
+                            break;
+                        }
                     }
-                    break;
-                }
 
-                // Ensure we don't go negative (i.e. maybe because we are terminating threads)
-                if (0 == --task->thr_count_) {
-                    task->last_thread_id_ = thr_self;
-                }
+                    // Ensure we don't go negative (i.e. maybe because we are terminating threads)
+                    if (0 == --task->thr_count_) {
+                        task->last_thread_id_ = thr_self;
+                    }
 
-                task->zero_condition_.broadcast(); break; // Must Be Last as task may go away
+                    task->zero_condition_.broadcast(); break; // Must Be Last as task may go away
+                }
             }
         }
     }
@@ -329,7 +331,9 @@ namespace DAF
                 this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
             }
 
-            DAF_OS::thr_yield(); return 0; // Let The Thread(s) start up (Still Locked though)
+            DAF_OS::thr_yield(); // Let the thread(s) start up
+
+            return 0;
 
         } while (false);
 
@@ -398,7 +402,7 @@ namespace DAF
 
                     int grp_spawned = this->thr_mgr()->spawn_n(1
                         , &TaskExecutor::execute_run
-                        , WorkerExTask_ref(tp)._retn() // Give the cmd to the thread (it will delete)
+                        , WorkerExTask::_duplicate(tp) // Give the cmd to the thread (it will delete)
                         , (THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED)
                         , ACE_DEFAULT_THREAD_PRIORITY
                         , this->grp_id()
@@ -410,10 +414,15 @@ namespace DAF
                     }
 
                     this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
-                }
-            }
 
-            DAF_OS::thr_yield(); return 0; // Let The Thread start up
+                } else break; // Not Available
+            }
+#if 1
+            DAF_OS::thr_yield(); // Let the thread start up
+#else
+            tp->_waitActive(THREAD_START_TIMEOUT); // Synchronise thread startup when supported (soon)
+#endif
+            return 0;
 
         } while (false);
 
@@ -472,6 +481,28 @@ namespace DAF
     /*********************************************************************************/
 
     int
+    TaskExecutor::Thread_Descriptor::threadAtExit(bool force_at_exit)
+    {
+#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
+        ACE_UNUSED_ARG(force_at_exit);
+#else
+        if (force_at_exit) // Set by threadTerminate()
+#endif
+        {
+            if (ACE_BIT_DISABLED(this->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
+#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
+                this->do_at_exit();
+#else
+                this->at_exit(this->taskBase(), 0, 0); TaskExecutor::cleanup(this->taskBase(), this);
+#endif
+                return 0;
+            }
+        }
+
+        return -1;
+    }
+
+    int
     TaskExecutor::Thread_Descriptor::threadTerminate(Thread_Manager *thr_mgr, int async_cancel)
     {
         const ACE_thread_t thr_id = this->threadID(); ACE_UNUSED_ARG(thr_id); // Save Thread ID for debug reporting
@@ -484,14 +515,7 @@ namespace DAF
         // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
         // etc.
 
-        ACE_SET_BITS(this->threadState(), ACE_Thread_Manager::ACE_THR_TERMINATED);
-
-#if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-        this->do_at_exit();
-#else
-        this->at_exit(this->taskBase(), 0, 0); TaskExecutor::cleanup(this->taskBase(), this);
-#endif
-        if (thr_mgr->cancel_thr(this, async_cancel)) {
+        if (this->threadAtExit(true) ? false : thr_mgr->cancel_thr(this, async_cancel)) { // Sets ACE_Thread_Manager::ACE_THR_CANCELLED regardless of success
 
             thr_mgr->wait_on_exit(false);  // Don't wait on exit
 
@@ -530,10 +554,8 @@ namespace DAF
 
         // Must terminate threads after we have traversed the thr_list_ to prevent clobbering thr_to_be_removed_'s integrity.
 
-        for (ACE_Thread_Descriptor * td = 0; this->thr_to_be_removed_.dequeue_head(td) != -1; DAF_OS::thr_yield()) {
-            if (td) {
-                static_cast<Thread_Descriptor *>(td)->threadTerminate(this, async_cancel);
-            }
+        for (ACE_Thread_Descriptor * td = 0; this->thr_to_be_removed_.dequeue_head(td) == 0; DAF_OS::thr_yield()) {
+            static_cast<Thread_Descriptor *>(td)->threadTerminate(this, async_cancel);
         }
 
         return result;
@@ -542,7 +564,7 @@ namespace DAF
     int
     TaskExecutor::Thread_Manager::terminate_thr(Thread_Descriptor * td, int /* async_cancel */)
     {
-        if (ACE_BIT_DISABLED(td->threadState(), (ACE_THR_JOINING | ACE_THR_TERMINATED))) {
+        if (ACE_BIT_DISABLED(td->threadState(), (ACE_THR_JOINING | ACE_THR_CANCELLED))) {
             return this->thr_to_be_removed_.enqueue_tail(td);
         }
         return -1;

@@ -85,8 +85,9 @@ namespace DAF
         /// default timeout values
         enum {
             THREAD_HANDOFF_TIMEOUT  = time_t(1),    // 1 millisecond
-            THREAD_EVICT_TIMEOUT    = time_t(6000), // 6 Seconds
-            THREAD_DECAY_TIMEOUT    = time_t(30000) // 30 Seconds
+            THREAD_START_TIMEOUT    = time_t(DAF_MSECS_ONE_SECOND), // 1 Second
+            THREAD_EVICT_TIMEOUT    = time_t(DAF_MSECS_ONE_SECOND * 6), // 6 Seconds
+            THREAD_DECAY_TIMEOUT    = time_t(DAF_MSECS_ONE_SECOND * 30) // 30 Seconds
         };
 
         /** Constructor
@@ -336,6 +337,7 @@ namespace DAF
         struct Thread_Manager; // Forward Declaration
 
         struct Thread_Descriptor : ACE_Thread_Descriptor {
+            int threadAtExit(bool force_at_exit);
             int threadTerminate(Thread_Manager *, int async_cancel);
 
             ACE_hthread_t   threadHandle(void)  const { return this->thr_handle_; }

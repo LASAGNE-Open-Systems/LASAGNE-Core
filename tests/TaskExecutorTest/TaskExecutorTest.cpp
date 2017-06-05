@@ -808,54 +808,53 @@ namespace test
         ACE_Thread_Manager *thr_man = 0;
 
         //DAF_Debug dbg(10);
-
-        try {
-
+        {
             ACE_Refcounted_Auto_Ptr<TestTaskExecutorLongShort, ACE_SYNCH_MUTEX> task(new TestTaskExecutorLongShort());
 
-            grp_id = task->grp_id();
-            thr_man = task->thr_mgr();
+            try {
 
-            task->long_or_short = 1;
+                //            ACE_Refcounted_Auto_Ptr<TestTaskExecutorLongShort, ACE_SYNCH_MUTEX> task(new TestTaskExecutorLongShort());
 
-            task->run(threads);
+                grp_id = task->grp_id();
+                thr_man = task->thr_mgr();
 
-            for ( int i =0; i < threads; ++i )
-            {
-                task->sema.acquire();
+                task->long_or_short = 1;
+
+                task->run(threads);
+
+                for (int i = 0; i < threads; ++i) {
+                    task->sema.acquire();
+                }
+
+                if (debug) {
+                    ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
+                }
+
+                for (int i = 0; i < threads; ++i) {
+                    task->execute(new TestPause(delay, counter));
+                }
+
+                for (int i = 0; i < threads; ++i) {
+                    counter.attempt(ATTEMPT_TIMEOUT);
+                }
+
+                // At this point all threads are up and "sleeping" (svc_threads + worker_threads)
+                // Going to destroy the TaskExecutor.
+                task->module_closed();  // Emulate destructor
+
+            } DAF_CATCH_ALL{
+                ACE_DEBUG((LM_WARNING, ACE_TEXT("Exception caughtin %s\n"),__FUNCTION__)); expected = -1; // Forced Error Result
             }
 
-            if (debug)
-            {
-                ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count() ));
+            DAF_OS::sleep(1);
+            if (thr_man && grp_id != -1) {
+                const int THREAD_LIST_SIZE = 10;
+                ACE_thread_t thread_list[THREAD_LIST_SIZE];
+
+                value = int(thr_man->thread_grp_list(grp_id, thread_list, THREAD_LIST_SIZE));
+                if (debug) ACE_DEBUG((LM_INFO, "%t - Main Checking GroupId %d thread Count %d\n", grp_id, value));
             }
-
-            for ( int i =0; i < threads; ++i )
-            {
-                task->execute(new TestPause(delay, counter));
-            }
-
-            for ( int i =0; i < threads; ++i )
-            {
-                counter.attempt(ATTEMPT_TIMEOUT);
-            }
-
-            // At this point all threads are up and "sleeping" (svc_threads + worker_threads)
-            // Going to destroy the TaskExecutor.
-
-        } DAF_CATCH_ALL{
-            ACE_DEBUG((LM_WARNING, ACE_TEXT("Exception caughtin %s\n"),__FUNCTION__)); expected = -1; // Forced Error Result
-        }
-
-        DAF_OS::sleep(1);
-        if ( thr_man && grp_id != -1)
-        {
-            const int THREAD_LIST_SIZE = 10;
-            ACE_thread_t thread_list[THREAD_LIST_SIZE];
-
-            value = int(thr_man->thread_grp_list(grp_id, thread_list, THREAD_LIST_SIZE));
-            if (debug) ACE_DEBUG((LM_INFO, "%t - Main Checking GroupId %d thread Count %d\n", grp_id, value));
-        }
+         }
 
          result = (value == expected);
 
@@ -884,49 +883,52 @@ namespace test
 
         ACE_Thread_Manager *thr_man = 0;
 
-        try {
+        { // Scope Thread_Manager
 
             ACE_Refcounted_Auto_Ptr<TestExecutor, ACE_SYNCH_MUTEX> executor(new TestExecutor(counter, blocker));
 
-            grp_id = executor->grp_id();
-            thr_man = executor->thr_mgr();
+            try {
 
-            executor->init(threads, 0);
 
-            for ( int i =0; i < threads; ++i )
-            {
-                counter.attempt(ATTEMPT_TIMEOUT);
+                grp_id = executor->grp_id();
+                thr_man = executor->thr_mgr();
+
+                executor->init(threads, 0);
+
+                for (int i = 0; i < threads; ++i) {
+                    counter.attempt(ATTEMPT_TIMEOUT);
+                }
+
+                for (int i = 0; i < threads; ++i) {
+                    executor->execute(new TestAcquire(counter, blocker));
+                }
+
+                for (int i = 0; i < threads; ++i) {
+                    counter.attempt(ATTEMPT_TIMEOUT);
+                }
+
+                // At this point all threads are up and "sleeping" (svc_threads + worker_threads)
+                // Going to destroy the TaskExecutor.
+
+                executor->module_closed(); // Simulate destruction
+
+            } DAF_CATCH_ALL{
+                ACE_DEBUG((LM_WARNING, ACE_TEXT("Exception caughtin %s\n"),__FUNCTION__)); expected = -1;
             }
 
-            for ( int i =0; i < threads; ++i )
-            {
-                executor->execute(new TestAcquire(counter, blocker));
-            }
+            DAF_OS::sleep(1);
+            if (thr_man && grp_id != -1) {
+                const int THREAD_LIST_SIZE = 10;
+                ACE_thread_t thread_list[THREAD_LIST_SIZE];
 
-            for ( int i =0; i < threads; ++i )
-            {
-                counter.attempt(ATTEMPT_TIMEOUT);
+                value = int(thr_man->thread_grp_list(grp_id, thread_list, THREAD_LIST_SIZE));
+                if (debug) ACE_DEBUG((LM_INFO, "%t - Main Checking GroupId %d thread Count %d\n", grp_id, value));
             }
-
-            // At this point all threads are up and "sleeping" (svc_threads + worker_threads)
-            // Going to destroy the TaskExecutor.
-        } DAF_CATCH_ALL{
-            ACE_DEBUG((LM_WARNING, ACE_TEXT("Exception caughtin %s\n"),__FUNCTION__)); expected = -1;
         }
 
-        DAF_OS::sleep(1);
-        if ( thr_man && grp_id != -1)
-        {
-            const int THREAD_LIST_SIZE = 10;
-            ACE_thread_t thread_list[THREAD_LIST_SIZE];
+        result = (value == expected);
 
-            value = int(thr_man->thread_grp_list(grp_id, thread_list, THREAD_LIST_SIZE));
-            if (debug) ACE_DEBUG((LM_INFO, "%t - Main Checking GroupId %d thread Count %d\n", grp_id, value));
-        }
-
-         result = (value == expected);
-
-         std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
+        std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
 
         return result;
     }
@@ -1000,6 +1002,8 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char *argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
+
     int result = 1;
     int threadCount = 2;
     ACE_Get_Opt cli_opt(argc, argv, "hzn:");
@@ -1028,10 +1032,10 @@ int main(int argc, char *argv[])
 
     result &= test::test_TaskExecutor_Dtor_Time(threadCount);
 
-#ifndef ACE_WIN32
+//#ifndef ACE_WIN32
     result &= test::test_TaskExecutor_Dtor_Block(threadCount);
     //result &= test::test_TaskExecutor_Sync_Block(threadCount);
-#endif
+//#endif
     //result &= test::test_ACE_Task_Base(threadCount );
 
     return !result;
