@@ -38,6 +38,7 @@
 #include "SynchronousChannel_T.h"
 
 #include <ace/Task.h>
+#include <ace/Auto_Ptr.h>
 #include <ace/Singleton.h>
 #include <ace/Thread_Manager.h>
 
@@ -79,6 +80,8 @@ namespace DAF
         using ACE_Task_Base::activate;  // make this private - Use this->execute()
         using ACE_Task_Base::thr_count; // make this private - Use this->size() const
         using ACE_Task_Base::grp_id;    // make this private - Use this->grp_id() const
+
+        ACE_Auto_Ptr<ACE_Thread_Manager> thread_mgr_; // Declared first so destructed last
 
     public:
 

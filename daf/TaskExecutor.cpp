@@ -159,16 +159,14 @@ namespace DAF
     {
         if (obj) {
 
-            for (TaskExecutor * task = dynamic_cast<TaskExecutor *>(reinterpret_cast<ACE_Task_Base *>(obj)); task;) {
+            TaskExecutor * task = dynamic_cast<TaskExecutor *>(reinterpret_cast<ACE_Task_Base *>(obj));
 
-                try {
-                    task->close(0); /* Calling application code */
-                } DAF_CATCH_ALL {
-                }
+            if (task) do {
 
                 ACE_thread_t thr_self = ACE_Thread::self();
 
                 {
+
                     ACE_GUARD_REACTION(ACE_Thread_Mutex, ace_mon, task->lock_, break);
 
                     if (args) {
@@ -191,15 +189,19 @@ namespace DAF
                         task->last_thread_id_ = thr_self;
                     }
 
-                    task->zero_condition_.broadcast(); break; // Must Be Last as task may go away
+                    task->zero_condition_.broadcast(); // Signal thread is leaving
                 }
-            }
+
+                task->close(0); // *task* is undefined here. close() could have deleted it.
+
+            } while (false);
         }
     }
 
     /*********************************************************************************/
 
     TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new TaskExecutor::Thread_Manager(true))
+        , thread_mgr_       (ACE_Task_Base::thr_mgr()) // Contains lifecycle of local ACE_Thread_Manager
         , zero_condition_   (this->lock_)
         , decay_timeout_    (THREAD_DECAY_TIMEOUT)
         , evict_timeout_    (THREAD_EVICT_TIMEOUT)
@@ -219,7 +221,7 @@ namespace DAF
 
     TaskExecutor::~TaskExecutor(void)
     {
-        this->module_closed(); delete this->thr_mgr(); this->thr_mgr(0);
+        this->module_closed(); this->thr_mgr(0);
     }
 
     int
@@ -483,7 +485,7 @@ namespace DAF
     int
     TaskExecutor::Thread_Descriptor::threadAtExit(bool force_at_exit)
     {
-        if (ACE_BIT_DISABLED(this->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
+        if (ACE_BIT_DISABLED(this->threadState(), (ACE_Thread_Manager::ACE_THR_CANCELLED | ACE_Thread_Manager::ACE_THR_TERMINATED))) {
 
             // Skip if thread has already been cancelled (terminated)
 
@@ -498,8 +500,9 @@ namespace DAF
 #else
                 this->at_exit(this->taskBase(), 0, 0); TaskExecutor::cleanup(this->taskBase(), this);
 #endif
-                return 0;
             }
+
+            return 0;
         }
 
         return -1;
@@ -520,7 +523,7 @@ namespace DAF
 
         if (this->threadAtExit(true) ? false : thr_mgr->cancel_thr(this, async_cancel)) { // Sets ACE_Thread_Manager::ACE_THR_CANCELLED regardless of success
 
-            thr_mgr->wait_on_exit(false);  // Don't wait on exit
+            thr_mgr->wait_on_exit(false);  // Don't wait on exit - Thread will be terminated!!
 
             ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
 
@@ -567,7 +570,7 @@ namespace DAF
     int
     TaskExecutor::Thread_Manager::terminate_thr(Thread_Descriptor * td, int /* async_cancel */)
     {
-        if (ACE_BIT_DISABLED(td->threadState(), (ACE_THR_JOINING | ACE_THR_CANCELLED))) {
+        if (ACE_BIT_DISABLED(td->threadState(), (ACE_THR_JOINING | ACE_THR_CANCELLED | ACE_THR_TERMINATED))) {
             return this->thr_to_be_removed_.enqueue_tail(td);
         }
         return -1;
