@@ -483,13 +483,16 @@ namespace DAF
     int
     TaskExecutor::Thread_Descriptor::threadAtExit(bool force_at_exit)
     {
+        if (ACE_BIT_DISABLED(this->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
+
+            // Skip if thread has already been cancelled (terminated)
+
 #if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
-        ACE_UNUSED_ARG(force_at_exit);
+            ACE_UNUSED_ARG(force_at_exit);
 #else
-        if (force_at_exit) // Set by threadTerminate()
+            if (force_at_exit) // Set by threadTerminate()
 #endif
-        {
-            if (ACE_BIT_DISABLED(this->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
+            {
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
                 this->do_at_exit();
 #else
