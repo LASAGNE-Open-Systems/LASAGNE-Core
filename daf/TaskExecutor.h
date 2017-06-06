@@ -339,27 +339,24 @@ namespace DAF
 
         struct Thread_Manager; // Forward Declaration
 
-        struct Thread_Descriptor : ACE_Thread_Descriptor {
+        struct Thread_Descriptor : ACE_Thread_Descriptor
+        {
             int threadAtExit(bool force_at_exit);
             int threadTerminate(Thread_Manager *, int async_cancel);
 
-            ACE_hthread_t   threadHandle(void)  const { return this->thr_handle_; }
-            long          & threadFlags(void) { return this->flags_; }
-            ACE_thread_t    threadID(void)      const { return this->thr_id_; }
-            ACE_Task_Base * taskBase(void)      const { return this->task_; }
-            ACE_UINT32    & threadState(void) { return this->thr_state_; }
+            ACE_hthread_t   threadHandle(void)  const   { return this->thr_handle_; }
+            long          & threadFlags(void)           { return this->flags_; }
+            ACE_thread_t    threadID(void)      const   { return this->thr_id_; }
+            ACE_Task_Base * taskBase(void)      const   { return this->task_; }
+            ACE_UINT32    & threadState(void)           { return this->thr_state_; }
         };
 
-        struct Thread_Manager : ACE_Thread_Manager {
+        struct Thread_Manager : ACE_Thread_Manager
+        {
             using ACE_Thread_Manager::thread_desc_self;
             using ACE_Thread_Manager::wait_on_exit;
             using ACE_Thread_Manager::remove_thr;
             using ACE_Thread_Manager::cancel_thr;
-
-            Thread_Manager(int wait_on_exit = true)
-            {
-                this->wait_on_exit(wait_on_exit);
-            }
 
             int terminate_task(ACE_Task_Base * task, int async_cancel);
             int terminate_thr(Thread_Descriptor *td, int async_cancel);

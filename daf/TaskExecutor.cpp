@@ -200,8 +200,8 @@ namespace DAF
 
     /*********************************************************************************/
 
-    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new TaskExecutor::Thread_Manager(true))
-        , thread_mgr_       (ACE_Task_Base::thr_mgr()) // Contains lifecycle of local ACE_Thread_Manager
+    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new TaskExecutor::Thread_Manager())
+        , thread_mgr_       (this->thr_mgr()) // Contains lifecycle of local ACE_Thread_Manager
         , zero_condition_   (this->lock_)
         , decay_timeout_    (THREAD_DECAY_TIMEOUT)
         , evict_timeout_    (THREAD_EVICT_TIMEOUT)
@@ -481,7 +481,7 @@ namespace DAF
     int
     TaskExecutor::Thread_Descriptor::threadAtExit(bool force_at_exit)
     {
-        if (ACE_BIT_DISABLED(this->threadState(), (ACE_Thread_Manager::ACE_THR_CANCELLED | ACE_Thread_Manager::ACE_THR_TERMINATED))) {
+        if (ACE_BIT_DISABLED(this->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
 
             // Skip if thread has already been cancelled (terminated)
 
@@ -521,8 +521,6 @@ namespace DAF
 
             ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Set THR_DETACHED - Stops waiting on non-existant thread
 
-            thr_mgr->wait_on_exit(false);  // Don't wait on exit - Thread will be terminated!!
-
 #if defined(ACE_WIN32)
             ::TerminateThread(this->threadHandle(), DWORD(0xDEAD));
 #endif
@@ -542,15 +540,18 @@ namespace DAF
     int
     TaskExecutor::Thread_Manager::terminate_task(ACE_Task_Base * task, int async_cancel)
     {
-        ACE_MT(ACE_GUARD_RETURN(ACE_Thread_Mutex, ace_mon, this->lock_, -1));
+        ACE_GUARD_RETURN(ACE_Thread_Mutex, ace_mon, this->lock_, (DAF_OS::last_error(ENOLCK),-1));
+
         ACE_ASSERT(this->thr_to_be_removed_.is_empty());
 
         int result = 0;
 
-        if (task) for (ACE_Double_Linked_List_Iterator<ACE_Thread_Descriptor> iter(this->thr_list_); !iter.done(); iter.advance()) {
-            Thread_Descriptor * td(static_cast<Thread_Descriptor *>(iter.next()));
-            if (td && td->taskBase() == task && this->terminate_thr(td, async_cancel)) {
-                result = -1;
+        if (task) {
+            for (ACE_Double_Linked_List_Iterator<ACE_Thread_Descriptor> iter(this->thr_list_); !iter.done(); iter.advance()) {
+                Thread_Descriptor * td(static_cast<Thread_Descriptor *>(iter.next()));
+                if (td && td->taskBase() == task && this->terminate_thr(td, async_cancel)) {
+                    result = -1;
+                }
             }
         }
 
