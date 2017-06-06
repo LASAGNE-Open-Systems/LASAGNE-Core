@@ -456,16 +456,12 @@ namespace DAF
 
             } DAF_CATCH_ALL { // Must be called without locks held
                 for (Thread_Manager * thr_mgr = static_cast<Thread_Manager *>(this->thr_mgr()); thr_mgr;) {
-                    thr_mgr->terminate_task(this, true);
-                    if (thr_mgr->wait_on_exit()) {
-                        this->wait();
-                    }
-                    break;
+                    thr_mgr->terminate_task(this, true); break;
                 }
             }
         }
 
-        return 0;
+        return this->wait();
     }
 
     /*********************************************************************************/
@@ -521,21 +517,24 @@ namespace DAF
         // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
         // etc.
 
-        if (this->threadAtExit(true) ? false : thr_mgr->cancel_thr(this, async_cancel)) { // Sets ACE_Thread_Manager::ACE_THR_CANCELLED regardless of success
+        if (this->threadAtExit(true) == 0) { // Handle at_exits and if OK - Kill the thread
 
-            thr_mgr->wait_on_exit(false);  // Don't wait on exit - Thread will be terminated!!
+            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Set THR_DETACHED - Stops waiting on non-existant thread
 
-            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Allows CloseHandle()
+            if (thr_mgr->cancel_thr(this, async_cancel)) { // Sets ACE_Thread_Manager::ACE_THR_CANCELLED regardless of success
+
+                thr_mgr->wait_on_exit(false);  // Don't wait on exit - Thread will be terminated!!
 
 #if defined(ACE_WIN32)
-            ::TerminateThread(this->threadHandle(), DWORD(0xDEAD));
+                ::TerminateThread(this->threadHandle(), DWORD(0xDEAD));
 #endif
 
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-            this->terminate();
+                this->terminate();
 #else
-            thr_mgr->remove_thr(this, async_cancel); // This *may* leave TSS leaking (Fixed with terminate() access)
+                thr_mgr->remove_thr(this, async_cancel); // This *may* leave TSS leaking (Fixed with terminate() access)
 #endif
+            }
         }
 
         return 0;
