@@ -221,7 +221,7 @@ namespace DAF
 
     TaskExecutor::~TaskExecutor(void)
     {
-        this->module_closed(); this->thr_mgr(0);
+        this->module_closed(); this->wait(); this->thr_mgr(0);
     }
 
     int
@@ -461,7 +461,7 @@ namespace DAF
             }
         }
 
-        return this->wait();
+        return 0;
     }
 
     /*********************************************************************************/
@@ -517,24 +517,21 @@ namespace DAF
         // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
         // etc.
 
-        if (this->threadAtExit(true) == 0) { // Handle at_exits and if OK - Kill the thread
+        if (this->threadAtExit(true) ? false : thr_mgr->cancel_thr(this, async_cancel)) { // Handle at_exits and if OK - Kill the thread
 
             ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Set THR_DETACHED - Stops waiting on non-existant thread
 
-            if (thr_mgr->cancel_thr(this, async_cancel)) { // Sets ACE_Thread_Manager::ACE_THR_CANCELLED regardless of success
-
-                thr_mgr->wait_on_exit(false);  // Don't wait on exit - Thread will be terminated!!
+            thr_mgr->wait_on_exit(false);  // Don't wait on exit - Thread will be terminated!!
 
 #if defined(ACE_WIN32)
-                ::TerminateThread(this->threadHandle(), DWORD(0xDEAD));
+            ::TerminateThread(this->threadHandle(), DWORD(0xDEAD));
 #endif
 
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->terminate();
+            this->terminate();
 #else
-                thr_mgr->remove_thr(this, async_cancel); // This *may* leave TSS leaking (Fixed with terminate() access)
+            thr_mgr->remove_thr(this, async_cancel); // This *may* leave TSS leaking (Fixed with terminate() access)
 #endif
-            }
         }
 
         return 0;
