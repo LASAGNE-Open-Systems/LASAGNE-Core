@@ -522,7 +522,9 @@ namespace DAF
             ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Set THR_DETACHED - Stops waiting on non-existant thread
 
 #if defined(ACE_WIN32)
-            ::TerminateThread(this->threadHandle(), DWORD(0xDEAD));
+            if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) {
+                DAF_OS::thread_SYNCHTerminate(thr_id);
+            }
 #endif
 
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)

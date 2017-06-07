@@ -86,6 +86,8 @@ namespace DAF_OS
 
     DAF_Export int                  thread_0_SIGSET_T(void);
 
+    DAF_Export int                  thread_SYNCHTerminate(const ACE_thread_t &);
+
    /*
     * The abs() function is required to ensure that the
     * same result in precision is returned across

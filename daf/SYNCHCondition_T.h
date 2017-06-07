@@ -33,6 +33,7 @@
 
 #include "OS.h"
 #include "Exception.h"
+#include "SYNCHThreadRepository.h"
 
 #include <ace/Guard_T.h>
 #include <ace/Atomic_Op.h>
@@ -55,11 +56,9 @@ namespace DAF
     * state.  If interrupted, a broadcast is sent to all waiters with the
     * indication that they have been interrupted.
     */
-    template <typename T> class SYNCHCondition : ACE_Copy_Disabled
+    template <typename T> class SYNCHCondition : SYNCHThreadRepository
     {
         ACE_Condition<T> condition_mutex_; // Use underlying condition variable emulation
-
-        typedef ACE_Atomic_Op<DAF_SYNCH_MUTEX, int> _waiters_type;
 
     public:
         /// Define these meta types
@@ -68,17 +67,16 @@ namespace DAF
 
         /** Constructor - lock Condition into mutex */
         SYNCHCondition(_mutex_type &mutex) : condition_mutex_(mutex)
-            , waiters_(0), interrupted_(false)
+            , interrupted_(false)
         {}
 
         /** Destructor - set condition state to Interrupted */
         ~SYNCHCondition(void)       { this->interrupt(); }
 
+        using SYNCHThreadRepository::waiters;
+
         /** Access the current condition "Interrupted" state */
         int interrupted(void) const { return int(this->interrupted_); }
-
-        /** Access the current condition "waiters" count state */
-        int waiters(void)     const { return int(this->waiters_.value()); }
 
         /** Set the condition to an Interrupted state and notify all possible waiters */
         int interrupt(void);
@@ -105,7 +103,10 @@ namespace DAF
 
     private:
 
-        _waiters_type waiters_;
+        virtual int _terminating(const ACE_thread_t &);
+
+    private:
+
         volatile bool interrupted_;
     };
 
@@ -144,9 +145,9 @@ namespace DAF
         int result = -1;
 
         if (!this->interrupted()) try { // Mutex locked by wait_condition caller
-            ++this->waiters_; result = this->condition_mutex_.wait(abstime); --this->waiters_;
+            this->inc_waiters(); result = this->condition_mutex_.wait(abstime); this->dec_waiters();
         } catch (...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-            --this->waiters_; throw;
+            this->dec_waiters(); throw;
         }
 
         if (this->interrupted()) {
@@ -156,7 +157,13 @@ namespace DAF
         return result;
     }
 
+    template <typename T> int
+    SYNCHCondition<T>::_terminating(const ACE_thread_t &thr_id)
+    {
+        ACE_GUARD_ACTION(_mutex_type, cond_lock, this->condition_mutex_.mutex(), this->remove(thr_id), return (DAF_OS::last_error(ENOLCK), -1)); return 0;
+    }
 }
+
 /// define these condition types dependant on mutex type
 typedef DAF::SYNCHCondition<DAF_SYNCH_MUTEX>            DAF_SYNCH_CONDITION;
 typedef DAF::SYNCHCondition<DAF_SYNCH_NULL_MUTEX>       DAF_SYNCH_NULL_CONDITION;
