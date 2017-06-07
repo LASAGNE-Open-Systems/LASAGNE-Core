@@ -50,6 +50,8 @@ namespace DAF
 
     protected:
 
+        SYNCHThreadRepository(void) {}
+
         int inc_waiters(const ACE_thread_t & = ACE_Thread::self());
         int dec_waiters(const ACE_thread_t & = ACE_Thread::self());
 
@@ -74,6 +76,11 @@ namespace DAF
             }
 
         } condition_repo_;
+
+    private:
+
+        ACE_UNIMPLEMENTED_FUNC(void operator= (const SYNCHThreadRepository &));
+        ACE_UNIMPLEMENTED_FUNC(SYNCHThreadRepository(const SYNCHThreadRepository &));
     };
 
 }   // namespace DAF
