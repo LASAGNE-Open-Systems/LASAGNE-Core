@@ -41,6 +41,8 @@ namespace DAF
 
     public:
 
+        virtual ~SYNCHThreadRepository(void) {}
+
         int waiters(void) const
         {
             return int(this->size());
