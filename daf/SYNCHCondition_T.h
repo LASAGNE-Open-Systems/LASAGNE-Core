@@ -103,10 +103,6 @@ namespace DAF
 
     private:
 
-        virtual int _terminating(const ACE_thread_t &);
-
-    private:
-
         volatile bool interrupted_;
     };
 
@@ -155,12 +151,6 @@ namespace DAF
         }
 
         return result;
-    }
-
-    template <typename T> int
-    SYNCHCondition<T>::_terminating(const ACE_thread_t &thr_id)
-    {
-        ACE_GUARD_ACTION(_mutex_type, cond_lock, this->condition_mutex_.mutex(), this->remove(thr_id), return (DAF_OS::last_error(ENOLCK), -1)); return 0;
     }
 }
 

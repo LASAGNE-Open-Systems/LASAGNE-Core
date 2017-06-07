@@ -28,38 +28,36 @@
 #include <ace/Thread_Mutex.h>
 #include <ace/Synch_Traits.h>
 
-#include <list>
 #include <map>
 
 namespace DAF
 {
-    typedef std::list<ACE_thread_t>   SYNCHThread_list_type;
-
-    class DAF_Export SYNCHThreadRepository : protected SYNCHThread_list_type
+    class DAF_Export SYNCHThreadRepository
     {
         typedef std::map<ACE_thread_t, SYNCHThreadRepository *> SYNCHCondition_map_type;
 
     public:
 
-        virtual ~SYNCHThreadRepository(void) {}
+        SYNCHThreadRepository(void);
+
+        virtual ~SYNCHThreadRepository(void)
+        {
+            /* Ensure Propper destruction */
+        }
 
         int waiters(void) const
         {
-            return int(this->size());
+            return this->waiters_;
         }
 
-        virtual int _terminating(const ACE_thread_t &thr_id) = 0;
-
     protected:
-
-        SYNCHThreadRepository(void) {}
 
         int inc_waiters(const ACE_thread_t & = ACE_Thread::self());
         int dec_waiters(const ACE_thread_t & = ACE_Thread::self());
 
     private:
 
-        friend int DAF_OS::thread_SYNCHTerminate(const ACE_thread_t &);
+        volatile int waiters_;
 
         static class DAF_Export SYNCHConditionRepository : SYNCHCondition_map_type
         {
@@ -67,10 +65,8 @@ namespace DAF
 
         public:
 
-            int _insert(const value_type & val);
+            int _insert(const key_type & thr_id, const mapped_type & val);
             int _remove(const key_type & thr_id);
-
-            int _terminating(const key_type & thr_id);
 
             operator ACE_SYNCH_MUTEX & () const
             {
@@ -79,11 +75,18 @@ namespace DAF
 
         } condition_repo_;
 
+        friend int DAF_OS::thread_SYNCHTerminate(const ACE_thread_t &);
+
     private:
 
         ACE_UNIMPLEMENTED_FUNC(void operator= (const SYNCHThreadRepository &));
         ACE_UNIMPLEMENTED_FUNC(SYNCHThreadRepository(const SYNCHThreadRepository &));
     };
+
+    inline
+    SYNCHThreadRepository::SYNCHThreadRepository(void) : waiters_(0)
+    {
+    }
 
 }   // namespace DAF
 
