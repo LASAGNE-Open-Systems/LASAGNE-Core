@@ -40,7 +40,7 @@ namespace DAF
     {
         ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, *this, (DAF_OS::last_error(ENOLCK), -1));
         try {
-            ++(((*this)[thr_id] = val)->waiters_); return 0;
+            ++((*this)[thr_id] = val)->waiters_; return 0;
         } catch (const std::exception &) {
             // Something went wrong
         }
@@ -52,7 +52,7 @@ namespace DAF
     {
         ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, *this, (DAF_OS::last_error(ENOLCK), -1));
         try {
-            --(this->at(thr_id)->waiters_); this->erase(thr_id); return 0;
+            --this->at(thr_id)->waiters_; this->erase(thr_id); return 0;
         } catch (const std::out_of_range &) {
             return 0; // Not Found - OK
         } catch (const std::exception &) {

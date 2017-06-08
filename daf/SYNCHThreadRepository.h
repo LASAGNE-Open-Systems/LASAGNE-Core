@@ -57,7 +57,7 @@ namespace DAF
 
     private:
 
-        volatile int waiters_;
+        int waiters_;
 
         static class DAF_Export SYNCHConditionRepository : SYNCHCondition_map_type
         {
