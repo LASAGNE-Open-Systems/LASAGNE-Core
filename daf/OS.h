@@ -86,6 +86,7 @@ namespace DAF_OS
 
     DAF_Export int                  thread_0_SIGSET_T(void);
 
+    // Called by TaskExecutor after TerminateThread
     DAF_Export int                  thread_SYNCHTerminate(const ACE_thread_t &);
 
    /*

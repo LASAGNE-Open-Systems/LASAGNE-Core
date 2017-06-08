@@ -33,7 +33,7 @@
 
 #include "OS.h"
 #include "Exception.h"
-#include "SYNCHThreadRepository.h"
+#include "SYNCHConditionBase.h"
 
 #include <ace/Guard_T.h>
 #include <ace/Atomic_Op.h>
@@ -56,7 +56,7 @@ namespace DAF
     * state.  If interrupted, a broadcast is sent to all waiters with the
     * indication that they have been interrupted.
     */
-    template <typename T> class SYNCHCondition : SYNCHThreadRepository
+    template <typename T> class SYNCHCondition : SYNCHConditionBase
     {
         ACE_Condition<T> condition_mutex_; // Use underlying condition variable emulation
 
@@ -73,7 +73,7 @@ namespace DAF
         /** Destructor - set condition state to Interrupted */
         ~SYNCHCondition(void)       { this->interrupt(); }
 
-        using SYNCHThreadRepository::waiters;
+        using SYNCHConditionBase::waiters;
 
         /** Access the current condition "Interrupted" state */
         int interrupted(void) const { return int(this->interrupted_); }

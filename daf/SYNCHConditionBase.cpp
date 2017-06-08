@@ -18,39 +18,23 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#define DAF_SYNCHTHREADREPOSITORY_CPP
+#define DAF_SYNCHCONDITIONBASE_CPP
 
-#include "SYNCHThreadRepository.h"
-
-namespace DAF_OS
-{
-    int
-    thread_SYNCHTerminate(const ACE_thread_t &thr_id)
-    {
-        try {
-            DAF::SYNCHThreadRepository::condition_repo_._remove(thr_id); return 0;
-        } catch (const std::out_of_range &) {
-            return 0; // Not found
-        } catch (const std::exception &) {
-            // Something went wrong 
-        }
-        return -1;
-    }
-}
+#include "SYNCHConditionBase.h"
 
 namespace DAF
 {
-    SYNCHThreadRepository::SYNCHConditionRepository SYNCHThreadRepository::condition_repo_;
+    SYNCHConditionBase::SYNCHConditionRepository    SYNCHConditionBase::condition_repo_;
 
     int
-    SYNCHThreadRepository::SYNCHConditionRepository::_insert(const key_type & thr_id, const mapped_type & val)
+    SYNCHConditionBase::SYNCHConditionRepository::_insert(const key_type & thr_id, const mapped_type & val)
     {
         ACE_Guard<ACE_SYNCH_MUTEX> mon(*this); ACE_UNUSED_ARG(mon);
         return ++((*this)[thr_id] = val)->waiters_;
     }
 
     int
-    SYNCHThreadRepository::SYNCHConditionRepository::_remove(const key_type & thr_id)
+    SYNCHConditionBase::SYNCHConditionRepository::_remove(const key_type & thr_id)
     {
         ACE_Guard<ACE_SYNCH_MUTEX> mon(*this); ACE_UNUSED_ARG(mon);
         int waiters = --this->at(thr_id)->waiters_;
@@ -61,17 +45,17 @@ namespace DAF
     /************************************************************************************************************/
 
     int
-    SYNCHThreadRepository::waiters(void) const
+    SYNCHConditionBase::waiters(void) const
     {
-        ACE_Guard<ACE_SYNCH_MUTEX> mon(SYNCHThreadRepository::condition_repo_); ACE_UNUSED_ARG(mon);
+        ACE_Guard<ACE_SYNCH_MUTEX> mon(SYNCHConditionBase::condition_repo_); ACE_UNUSED_ARG(mon);
         return this->waiters_;
     }
 
     int
-    SYNCHThreadRepository::inc_waiters(const ACE_thread_t &thr_id)
+    SYNCHConditionBase::inc_waiters(const ACE_thread_t &thr_id)
     {
         if (thr_id) try {
-            return SYNCHThreadRepository::condition_repo_._insert(thr_id, this);
+            return SYNCHConditionBase::condition_repo_._insert(thr_id, this);
         } catch (const std::exception &) {
             // Something went wrong
         }
@@ -79,10 +63,10 @@ namespace DAF
     }
 
     int
-    SYNCHThreadRepository::dec_waiters(const ACE_thread_t &thr_id)
+    SYNCHConditionBase::dec_waiters(const ACE_thread_t &thr_id)
     {
         if (thr_id) try {
-            return SYNCHThreadRepository::condition_repo_._remove(thr_id);
+            return SYNCHConditionBase::condition_repo_._remove(thr_id);
         } catch (const std::exception &) {
             // Something went wrong
         }
@@ -90,3 +74,25 @@ namespace DAF
     }
 
 }   // namespace DAF
+
+/*********** Put here to access DAF::SYNCHConditionBase::condition_repo_ directly ************/
+
+namespace DAF_OS
+{
+    int
+    thread_SYNCHTerminate(const ACE_thread_t &thr_id)
+    {
+#if defined(ACE_WIN32)
+        try {
+            DAF::SYNCHConditionBase::condition_repo_._remove(thr_id); return 0;
+        } catch (const std::out_of_range &) {
+            return 0; // Not found
+        } catch (const std::exception &) {
+            // Something went wrong 
+        }
+        return -1;
+#else
+        ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(-1);
+#endif
+    }
+}

@@ -49,7 +49,7 @@ project(DAF) : dafbasedefaults, acelib {
     SignalHandler.h
     SOCKEndpoint_T.h
     SYNCHCondition_T.h
-    SYNCHThreadRepository.h
+    SYNCHConditionBase.h
     SynchronousChannel_T.h
     SynchValue_T.h
     TaskExecutor.h
@@ -81,7 +81,7 @@ project(DAF) : dafbasedefaults, acelib {
     ServiceLoader.cpp
     ShutdownHandler.cpp
     SignalHandler.cpp
-    SYNCHThreadRepository.cpp
+    SYNCHConditionBase.cpp
     TaskExecutor.cpp
     WFMOSignalReactor.cpp
   }

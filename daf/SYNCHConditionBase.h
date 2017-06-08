@@ -18,8 +18,8 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#ifndef DAF_SYNCHTHREADREPOSITORY_H
-#define DAF_SYNCHTHREADREPOSITORY_H
+#ifndef DAF_SYNCHCONDITIONBASE_H
+#define DAF_SYNCHCONDITIONBASE_H
 
 #include "OS.h"
 
@@ -32,15 +32,15 @@
 
 namespace DAF
 {
-    class DAF_Export SYNCHThreadRepository
+    class DAF_Export SYNCHConditionBase
     {
-        typedef std::map<ACE_thread_t, SYNCHThreadRepository *> SYNCHCondition_map_type;
+        typedef std::map<ACE_thread_t, SYNCHConditionBase *>    SYNCHCondition_map_type;
 
     public:
 
-        SYNCHThreadRepository(void);
+        SYNCHConditionBase(void);
 
-        virtual ~SYNCHThreadRepository(void)
+        virtual ~SYNCHConditionBase(void)
         {
             /* Ensure Propper destruction */
         }
@@ -76,15 +76,15 @@ namespace DAF
 
     private:
 
-        ACE_UNIMPLEMENTED_FUNC(void operator= (const SYNCHThreadRepository &));
-        ACE_UNIMPLEMENTED_FUNC(SYNCHThreadRepository(const SYNCHThreadRepository &));
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const SYNCHConditionBase &));
+        ACE_UNIMPLEMENTED_FUNC(SYNCHConditionBase(const SYNCHConditionBase &));
     };
 
     inline
-    SYNCHThreadRepository::SYNCHThreadRepository(void) : waiters_(0)
+    SYNCHConditionBase::SYNCHConditionBase(void) : waiters_(0)
     {
     }
 
 }   // namespace DAF
 
-#endif // DAF_SYNCHTHREADREPOSITORY_H
+#endif // DAF_SYNCHCONDITIONBASE_H
