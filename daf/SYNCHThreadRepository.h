@@ -45,10 +45,7 @@ namespace DAF
             /* Ensure Propper destruction */
         }
 
-        int waiters(void) const
-        {
-            return this->waiters_;
-        }
+        int waiters(void) const;
 
     protected:
 
@@ -57,7 +54,7 @@ namespace DAF
 
     private:
 
-        int waiters_;
+        volatile int waiters_;
 
         static class DAF_Export SYNCHConditionRepository : SYNCHCondition_map_type
         {
