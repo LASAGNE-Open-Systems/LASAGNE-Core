@@ -21,7 +21,7 @@
 #ifndef DAF_SYNCHRONOUSCHANNEL_T_CPP
 #define DAF_SYNCHRONOUSCHANNEL_T_CPP
 
-#include "daf/SynchronousChannel_T.h"
+#include "SynchronousChannel_T.h"
 
 #include <ace/OS_Errno.h>
 
@@ -128,12 +128,6 @@ namespace DAF
             return this->insert(t);
         }
         return -1;
-    }
-
-    template <typename T> int
-    SynchronousChannel<T>::interrupt(void)
-    {
-        return this->itemAvailable_.interrupt() + this->unclaimedTakers_.interrupt() + this->itemTaken_.interrupt() ? -1 : 0;
     }
 
 } // namespace DAF
