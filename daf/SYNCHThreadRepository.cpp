@@ -40,8 +40,10 @@ namespace DAF
     {
         ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, *this, (DAF_OS::last_error(ENOLCK), -1));
         try {
-            ++((*this)[thr_id] = val)->waiters_; return 0;
-        } catch (const std::exception &) { /* Something went wrong */ }
+            ++(((*this)[thr_id] = val)->waiters_); return 0;
+        } catch (const std::exception &) {
+            // Something went wrong
+        }
         return -1;
     }
 
@@ -50,8 +52,12 @@ namespace DAF
     {
         ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, *this, (DAF_OS::last_error(ENOLCK), -1));
         try {
-            --this->at(thr_id)->waiters_; this->erase(thr_id); return 0;
-        } catch (const std::exception &) { /* Something went wrong - Not Found? */ }
+            --(this->at(thr_id)->waiters_); this->erase(thr_id); return 0;
+        } catch (const std::out_of_range &) {
+            return 0; // Not Found - OK
+        } catch (const std::exception &) {
+            // Something went wrong
+        }
         return -1;
     }
 
@@ -61,7 +67,7 @@ namespace DAF
     SYNCHThreadRepository::inc_waiters(const ACE_thread_t &thr_id)
     {
         if (thr_id) {
-            this->condition_repo_._insert(thr_id, this);
+            SYNCHThreadRepository::condition_repo_._insert(thr_id, this);
         }
         return this->waiters();
     }
@@ -70,7 +76,7 @@ namespace DAF
     SYNCHThreadRepository::dec_waiters(const ACE_thread_t &thr_id)
     {
         if (thr_id) {
-            this->condition_repo_._remove(thr_id);
+            SYNCHThreadRepository::condition_repo_._remove(thr_id);
         }
         return this->waiters();
     }
