@@ -86,8 +86,10 @@ namespace DAF_OS
 
     DAF_Export int                  thread_0_SIGSET_T(void);
 
-    // Called by TaskExecutor after TerminateThread
+#if defined(ACE_WIN32)
+    // Called by TaskExecutor after ::TerminateThread (windows only)
     DAF_Export int                  thread_SYNCHTerminate(const ACE_thread_t &);
+#endif
 
    /*
     * The abs() function is required to ensure that the

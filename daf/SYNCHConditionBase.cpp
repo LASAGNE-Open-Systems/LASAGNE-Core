@@ -52,7 +52,7 @@ namespace DAF
     }
 
     int
-    SYNCHConditionBase::inc_waiters(const ACE_thread_t &thr_id)
+    SYNCHConditionBase::inc_waiters(const ACE_thread_t & thr_id)
     {
         if (thr_id) try {
             return SYNCHConditionBase::condition_repo_._insert(thr_id, this);
@@ -63,7 +63,7 @@ namespace DAF
     }
 
     int
-    SYNCHConditionBase::dec_waiters(const ACE_thread_t &thr_id)
+    SYNCHConditionBase::dec_waiters(const ACE_thread_t & thr_id)
     {
         if (thr_id) try {
             return SYNCHConditionBase::condition_repo_._remove(thr_id);
@@ -77,12 +77,9 @@ namespace DAF
 
 /*********** Put here to access DAF::SYNCHConditionBase::condition_repo_ directly ************/
 
-namespace DAF_OS
-{
-    int
-    thread_SYNCHTerminate(const ACE_thread_t &thr_id)
-    {
 #if defined(ACE_WIN32)
+    int DAF_OS::thread_SYNCHTerminate(const ACE_thread_t & thr_id)
+    {
         try {
             DAF::SYNCHConditionBase::condition_repo_._remove(thr_id); return 0;
         } catch (const std::out_of_range &) {
@@ -91,8 +88,5 @@ namespace DAF_OS
             // Something went wrong 
         }
         return -1;
-#else
-        ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(-1);
-#endif
     }
-}
+#endif

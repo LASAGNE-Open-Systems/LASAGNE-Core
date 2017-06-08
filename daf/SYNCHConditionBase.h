@@ -72,7 +72,9 @@ namespace DAF
 
         } condition_repo_;
 
+#if defined(ACE_WIN32)
         friend int DAF_OS::thread_SYNCHTerminate(const ACE_thread_t &);
+#endif
 
     private:
 
