@@ -29,8 +29,10 @@ namespace DAF_OS
     {
         try {
             DAF::SYNCHThreadRepository::condition_repo_._remove(thr_id); return 0;
+        } catch (const std::out_of_range &) {
+            return 0; // Not found
         } catch (const std::exception &) {
-            // Something went wrong - Not found??
+            // Something went wrong 
         }
         return -1;
     }
