@@ -29,33 +29,33 @@ namespace DAF
     int
     SYNCHConditionBase::SYNCHConditionRepository::_insert(const key_type & thr_id, const mapped_type & val)
     {
-        ACE_Guard<ACE_SYNCH_MUTEX> mon(*this); ACE_UNUSED_ARG(mon);
+        ACE_Guard<ACE_SYNCH_MUTEX> guard(*this); ACE_UNUSED_ARG(guard);
         return ++((*this)[thr_id] = val)->waiters_;
     }
 
     int
     SYNCHConditionBase::SYNCHConditionRepository::_remove(const key_type & thr_id)
     {
-        ACE_Guard<ACE_SYNCH_MUTEX> mon(*this); ACE_UNUSED_ARG(mon);
+        ACE_Guard<ACE_SYNCH_MUTEX> guard(*this); ACE_UNUSED_ARG(guard);
         int waiters = --this->at(thr_id)->waiters_;
         this->erase(thr_id);
         return waiters;
     }
 
-    /************************************************************************************************************/
+    /*********************************************************************************/
 
     int
     SYNCHConditionBase::waiters(void) const
     {
-        ACE_Guard<ACE_SYNCH_MUTEX> mon(SYNCHConditionBase::condition_repo_); ACE_UNUSED_ARG(mon);
+        ACE_Guard<ACE_SYNCH_MUTEX> guard(SYNCHConditionBase::condition_repo_); ACE_UNUSED_ARG(guard);
         return this->waiters_;
     }
 
     int
-    SYNCHConditionBase::inc_waiters(const ACE_thread_t & thr_id)
+    SYNCHConditionBase::inc_waiters(void)
     {
-        if (thr_id) try {
-            return SYNCHConditionBase::condition_repo_._insert(thr_id, this);
+        try {
+            return SYNCHConditionBase::condition_repo_._insert(DAF_OS::thr_self(), this);
         } catch (const std::exception &) {
             // Something went wrong
         }
@@ -63,22 +63,20 @@ namespace DAF
     }
 
     int
-    SYNCHConditionBase::dec_waiters(const ACE_thread_t & thr_id)
+    SYNCHConditionBase::dec_waiters(void)
     {
-        if (thr_id) try {
-            return SYNCHConditionBase::condition_repo_._remove(thr_id);
+        try {
+            return SYNCHConditionBase::condition_repo_._remove(DAF_OS::thr_self());
         } catch (const std::exception &) {
             // Something went wrong
         }
         return this->waiters();
     }
 
-}   // namespace DAF
-
-/*********** Put here to access DAF::SYNCHConditionBase::condition_repo_ directly ************/
+    /**********************************************************************************/
 
 #if defined(ACE_WIN32)
-    int DAF_OS::thread_SYNCHTerminate(const ACE_thread_t & thr_id)
+    int threadSYNCHTerminate(const ACE_thread_t & thr_id)
     {
         try {
             DAF::SYNCHConditionBase::condition_repo_._remove(thr_id); return 0;
@@ -90,3 +88,7 @@ namespace DAF
         return -1;
     }
 #endif
+
+}   // namespace DAF
+
+

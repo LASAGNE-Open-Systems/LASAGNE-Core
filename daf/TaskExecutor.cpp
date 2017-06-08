@@ -24,6 +24,10 @@
 #include "ShutdownHandler.h"
 #include "PropertyManager.h"
 
+#if defined(ACE_WIN32)
+# include "SYNCHConditionBase.h"
+#endif
+
 #include <limits>
 
 #if defined (ACE_HAS_SIG_C_FUNC)
@@ -523,7 +527,7 @@ namespace DAF
 
 #if defined(ACE_WIN32)
             if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) {
-                DAF_OS::thread_SYNCHTerminate(thr_id);
+                DAF::threadSYNCHTerminate(thr_id);
             }
 #endif
 

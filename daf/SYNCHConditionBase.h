@@ -23,7 +23,6 @@
 
 #include "OS.h"
 
-#include <ace/Thread.h>
 #include <ace/Guard_T.h>
 #include <ace/Thread_Mutex.h>
 #include <ace/Synch_Traits.h>
@@ -49,8 +48,8 @@ namespace DAF
 
     protected:
 
-        int inc_waiters(const ACE_thread_t & = ACE_Thread::self());
-        int dec_waiters(const ACE_thread_t & = ACE_Thread::self());
+        int inc_waiters(void);
+        int dec_waiters(void);
 
     private:
 
@@ -73,7 +72,7 @@ namespace DAF
         } condition_repo_;
 
 #if defined(ACE_WIN32)
-        friend int DAF_OS::thread_SYNCHTerminate(const ACE_thread_t &);
+        friend int threadSYNCHTerminate(const ACE_thread_t &);
 #endif
 
     private:
