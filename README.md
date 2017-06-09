@@ -42,6 +42,8 @@ AppVeyor is building using:
   * MPC [GitHub](https://github.com/DOCGroup/MPC) (if ACE-TAO is retrieved from GitHub)
 * Optional
   * OpenDDS 3.11      [OpenDDS](http://opendds.org/downloads.html) | [GitHub](https://github.com/objectcomputing/OpenDDS)
+  * RTI DDS 5.2 (plus optional CORBA Compatibility Kit)
+  * CoreDX 3.6.47
 
 ### Installation
 See the instructions in [docs/html](docs/html/index.html) for the appropriate platform
