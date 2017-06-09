@@ -45,13 +45,6 @@ namespace DAF
     /*********************************************************************************/
 
     int
-    SYNCHConditionBase::waiters(void) const
-    {
-        ACE_Guard<ACE_SYNCH_MUTEX> guard(SYNCHConditionBase::condition_repo_); ACE_UNUSED_ARG(guard);
-        return this->waiters_;
-    }
-
-    int
     SYNCHConditionBase::inc_waiters(void)
     {
         try {

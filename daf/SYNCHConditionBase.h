@@ -24,6 +24,7 @@
 #include "OS.h"
 
 #include <ace/Guard_T.h>
+#include <ace/Atomic_Op.h>
 #include <ace/Thread_Mutex.h>
 #include <ace/Synch_Traits.h>
 
@@ -42,7 +43,10 @@ namespace DAF
             /* Ensure Propper destruction */
         }
 
-        int waiters(void) const;
+        int waiters(void) const
+        {
+            return this->waiters_.value();
+        }
 
     protected:
 
@@ -51,7 +55,7 @@ namespace DAF
 
     private:
 
-        volatile int waiters_;
+        ACE_Atomic_Op<ACE_SYNCH_MUTEX,int> waiters_;
 
     private:
 
