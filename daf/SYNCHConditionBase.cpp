@@ -27,10 +27,10 @@ namespace DAF
     SYNCHConditionBase::SYNCHConditionRepository    SYNCHConditionBase::condition_repo_;
 
     int
-    SYNCHConditionBase::SYNCHConditionRepository::_insert(const key_type & thr_id, const mapped_type & val)
+    SYNCHConditionBase::SYNCHConditionRepository::_insert(const key_type & thr_id, const mapped_type & base)
     {
         ACE_Guard<ACE_SYNCH_MUTEX> guard(*this); ACE_UNUSED_ARG(guard);
-        return ++((*this)[thr_id] = val)->waiters_;
+        return ++((*this)[thr_id] = base)->waiters_;
     }
 
     int
@@ -90,5 +90,3 @@ namespace DAF
 #endif
 
 }   // namespace DAF
-
-

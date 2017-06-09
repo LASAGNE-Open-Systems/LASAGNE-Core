@@ -33,8 +33,6 @@ namespace DAF
 {
     class DAF_Export SYNCHConditionBase
     {
-        typedef std::map<ACE_thread_t, SYNCHConditionBase *>    SYNCHCondition_map_type;
-
     public:
 
         SYNCHConditionBase(void);
@@ -55,13 +53,17 @@ namespace DAF
 
         volatile int waiters_;
 
-        static class DAF_Export SYNCHConditionRepository : SYNCHCondition_map_type
+    private:
+
+        typedef std::map<ACE_thread_t, SYNCHConditionBase *>    SYNCHCondition_map_type;
+
+        static class SYNCHConditionRepository : SYNCHCondition_map_type
         {
             mutable ACE_SYNCH_MUTEX lock_;
 
         public:
 
-            int _insert(const key_type & thr_id, const mapped_type & val);
+            int _insert(const key_type & thr_id, const mapped_type & base);
             int _remove(const key_type & thr_id);
 
             operator ACE_SYNCH_MUTEX & () const
