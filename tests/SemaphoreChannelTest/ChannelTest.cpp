@@ -35,7 +35,8 @@
 // - capacity works
 // - size is valid
 //
-const int INITIAL_RESULT_VALUE = -2;
+const int INITIAL_RESULT_VALUE  = -2;
+const int INITIAL_SEED_VALUE    = 12345;
 
 namespace test
 {
@@ -125,7 +126,6 @@ namespace test
             , timeout(0)
             , notfound(0)
             , unknown(0)
-            , result(INITIAL_RESULT_VALUE)
             , sema(sema_in)
             , timevalue(timeout_in)
             , channel(channel_in)
@@ -558,7 +558,7 @@ namespace test
         // Long Assignment Channel
         SyncChannelThrowAss_t channel;
 
-        ThrowAss put_value(123456);
+        ThrowAss put_value(INITIAL_SEED_VALUE);
 
 
         TestTakerGen<ThrowAss> *tester = new TestTakerGen<ThrowAss>(counter, channel);
@@ -568,9 +568,13 @@ namespace test
 
         {
             throw_exception = 1;
+
+#if defined(ACE_WIN32)
+            tester->result = INITIAL_RESULT_VALUE; // Wont be reset when we throw on Windows
+#endif
             DAF::TaskExecutor executor;
 
-            DAF::SingletonExecute(runner); // Ensure tester thread remains after putter thread is terminated!!
+            executor.execute(runner);
 
             counter.acquire();
 
