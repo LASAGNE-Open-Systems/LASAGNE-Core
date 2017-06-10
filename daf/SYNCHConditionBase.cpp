@@ -24,6 +24,8 @@
 
 namespace DAF
 {
+#if defined(ACE_WIN32)
+
     SYNCHConditionBase::SYNCHConditionRepository    SYNCHConditionBase::condition_repo_;
 
     int
@@ -42,33 +44,6 @@ namespace DAF
         return waiters;
     }
 
-    /*********************************************************************************/
-
-    int
-    SYNCHConditionBase::inc_waiters(void)
-    {
-        try {
-            return SYNCHConditionBase::condition_repo_._insert(DAF_OS::thr_self(), this);
-        } catch (const std::exception &) {
-            // Something went wrong
-        }
-        return this->waiters();
-    }
-
-    int
-    SYNCHConditionBase::dec_waiters(void)
-    {
-        try {
-            return SYNCHConditionBase::condition_repo_._remove(DAF_OS::thr_self());
-        } catch (const std::exception &) {
-            // Something went wrong
-        }
-        return this->waiters();
-    }
-
-    /**********************************************************************************/
-
-#if defined(ACE_WIN32)
     int threadSYNCHTerminate(const ACE_thread_t & thr_id)
     {
         try {
@@ -80,6 +55,39 @@ namespace DAF
         }
         return -1;
     }
+
 #endif
+
+    /*********************************************************************************/
+
+    int
+    SYNCHConditionBase::inc_waiters(void)
+    {
+#if defined(ACE_WIN32)
+        try {
+            return SYNCHConditionBase::condition_repo_._insert(DAF_OS::thr_self(), this);
+        } catch (const std::exception &) {
+            // Something went wrong
+        }
+        return this->waiters();
+#else
+        return ++this->waiters_;
+#endif
+    }
+
+    int
+    SYNCHConditionBase::dec_waiters(void)
+    {
+#if defined(ACE_WIN32)
+        try {
+            return SYNCHConditionBase::condition_repo_._remove(DAF_OS::thr_self());
+        } catch (const std::exception &) {
+            // Something went wrong
+        }
+        return this->waiters();
+#else
+        return --this->waiters_;
+#endif
+    }
 
 }   // namespace DAF

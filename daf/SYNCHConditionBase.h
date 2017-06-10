@@ -59,6 +59,14 @@ namespace DAF
 
     private:
 
+#if defined(ACE_WIN32)
+
+        /*
+         * On Windows we maintain a cache of active waiters so if we need to terminate
+         * the thread we will have to go back and correct the waiter count so that we
+         * can unwind concurrency elements.  This approach is not satisfy ALL windows 
+         * thread unwind issues, but does allow blocked threads to mostly continue.
+        */
         typedef std::map<ACE_thread_t, SYNCHConditionBase *>    SYNCHCondition_map_type;
 
         static class SYNCHConditionRepository : SYNCHCondition_map_type
@@ -77,7 +85,6 @@ namespace DAF
 
         } condition_repo_;
 
-#if defined(ACE_WIN32)
         friend int threadSYNCHTerminate(const ACE_thread_t &);
 #endif
 
