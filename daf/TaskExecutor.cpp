@@ -37,8 +37,6 @@ extern "C" void DAF_TaskExecutor_cleanup(void *obj, void *args)
 }
 #endif /* ACE_HAS_SIG_C_FUNC */
 
-//#define DAF_USES_TERMINATE_THREAD  /* Breaks ACE_Object_Manager Singleton */
-
 namespace DAF
 {
     namespace { // Ananomous
