@@ -288,6 +288,8 @@ namespace DAF
             ACE_CLR_BITS(flags, (THR_DETACHED | THR_DAEMON));
         }
 
+        ACE_SET_BITS(flags, (THR_NEW_LWP | THR_JOINABLE)); // Ensure all threads in pool have consistant attributes
+
         if (this->isAvailable()) do {
 
             { // Scope Lock
