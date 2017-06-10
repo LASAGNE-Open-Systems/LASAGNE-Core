@@ -86,17 +86,31 @@ namespace TAF
 {
     namespace {
 
-        int sendIORReply(const TAF::IORQueryServant &servant, const ACE_INET_Addr &address, u_short flags)
+        class IORReplySender : public DAF::Runnable
         {
-            ACE_UNUSED_ARG(flags);
-            const CORBA::Object_ptr obj(servant.in());
+        public:
+            IORReplySender(const TAF::IORQueryServant &servant, const ACE_INET_Addr &address, u_short flags)
+                : servant_(servant), address_(address), flags_(flags)
+            {}
+        protected:
+            virtual int run(void);
+        private:
+            const TAF::IORQueryServant  servant_;
+            const ACE_INET_Addr         address_;
+            const u_short               flags_; // Unused
+        };
+
+        int
+        IORReplySender::run(void)
+        {
+            const CORBA::Object_ptr obj(this->servant_.in());
 
             if (CORBA::is_nil(obj)) {
                 return -1;
             }
 
             const taf::IORReply ior_reply = {
-                servant.ident().c_str(), CORBA::Object::_duplicate(obj)
+                this->servant_.ident().c_str(), CORBA::Object::_duplicate(obj)
             };
 
             TAF::OutputCDR io_cdr(TAF::MAX_IOR_REPLY_LENGTH);
@@ -114,9 +128,9 @@ namespace TAF
 
                         DAF_OS::sleep(ACE_Time_Value(0, suseconds_t(DAF_OS::rand(500, 5000))));  // Stagger replies
 
-                        const ACE_Time_Value send_timeout(3);
+                        const ACE_Time_Value send_timeout(DiscoveryService::SEND_QUERYREPLY_TIMEOUT);
 
-                        if (dgram.send(io_ptr, io_len, address, 0, &send_timeout) != ssize_t(io_len)) {
+                        if (dgram.send(io_ptr, io_len, this->address_, 0, &send_timeout) != ssize_t(io_len)) {
                             switch (errno) {
                             case ETIME:
                                 ACE_DEBUG((LM_ERROR,
@@ -127,7 +141,7 @@ namespace TAF
                             }
                         }
                         else if (TAF::debug() > 1) {
-                            char addr[BUFSIZ]; if (address.addr_to_string(addr, sizeof(addr))) *addr = 0;
+                            char addr[BUFSIZ]; if (this->address_.addr_to_string(addr, sizeof(addr))) *addr = 0;
                             ACE_DEBUG((LM_DEBUG,
                                 ACE_TEXT("TAF (%04P | %04t) INFO: - CORBA::Object successfully sent to address '%s'\n"), addr));
                         }
@@ -144,18 +158,13 @@ namespace TAF
 
     /******************************************************************************************/
 
-    DiscoveryService::DiscoveryService(void) : active_(false)
+    DiscoveryService::DiscoveryService(void) : DAF::TaskExecutor()
+        , active_(false)
     {
     }
 
     DiscoveryService::~DiscoveryService(void)
     {
-    }
-
-    const ACE_TCHAR *
-    DiscoveryService::svc_ident(void)
-    {
-        return taf::TAFDISCOVERY_OID;
     }
 
     int
@@ -183,18 +192,6 @@ namespace TAF
         }
 
         return -1; // Force Unload of service
-    }
-
-    int
-    DiscoveryService::suspend(void)
-    {
-        ACE_NOTSUP_RETURN(-1);
-    }
-
-    int
-    DiscoveryService::resume(void)
-    {
-        ACE_NOTSUP_RETURN(-1);
     }
 
     int
@@ -279,7 +276,7 @@ namespace TAF
                             for (TAF::IORServantRepository::iterator it(queryRepository->begin()); it != queryRepository->end();) {
                                 if (this->isActive()) try {
                                     if (it->is_ident(ident)) { // Hand Off For UDP Send
-                                        if (sendIORReply(*it, reply_address, u_short(ior_query.svc_flags))) {
+                                        if (this->execute(new IORReplySender(*it, reply_address, u_short(ior_query.svc_flags)))) {
                                             throw "Discovery-Failed-Send-Reply";
                                         }
                                     }
