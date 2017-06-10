@@ -67,12 +67,10 @@ namespace DAF
         try {
             return SYNCHConditionBase::condition_repo_._insert(DAF_OS::thr_self(), this);
         } catch (const std::exception &) {
-            // Something went wrong
+            // Something went wrong??
         }
-        return this->waiters();
-#else
-        return ++this->waiters_;
 #endif
+        return ++this->waiters_;
     }
 
     int
@@ -82,12 +80,10 @@ namespace DAF
         try {
             return SYNCHConditionBase::condition_repo_._remove(DAF_OS::thr_self());
         } catch (const std::exception &) {
-            // Something went wrong
+            // Something went wrong??
         }
-        return this->waiters();
-#else
-        return --this->waiters_;
 #endif
+        return --this->waiters_;
     }
 
 }   // namespace DAF
