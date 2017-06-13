@@ -28,6 +28,8 @@
 # include "SYNCHConditionBase.h"
 #endif
 
+#include <ace/Singleton.h>
+
 #include <limits>
 
 #if defined (ACE_HAS_SIG_C_FUNC)
@@ -581,15 +583,31 @@ namespace DAF
 
     /*********************************************************************************/
 
-    int SingletonExecute(const DAF::Runnable_ref &command)
+    int SingletonExecute(const DAF::Runnable_ref & command)
     {
-        static struct _TaskExecutor : DAF::TaskExecutor {
-            _TaskExecutor(void) : DAF::TaskExecutor() {
-                this->setDecayTimeout(THREAD_DECAY_TIMEOUT / 2);
-            }
-        } taskExecutor_;
+        struct SingletonExecutor : DAF::TaskExecutor
+        {
+            enum {
+                SINGLETON_THREAD_TIMEOUT = (THREAD_DECAY_TIMEOUT / 2) // 15 Seconds
+            };
 
-        return taskExecutor_.execute(command);
+            SingletonExecutor(void) : DAF::TaskExecutor()
+            {
+                this->setDecayTimeout(SINGLETON_THREAD_TIMEOUT);
+            }
+
+            const ACE_TCHAR * dll_name(void) const
+            {
+                return DAF_DLL_NAME;
+            }
+
+            const ACE_TCHAR * name(void) const
+            {
+                return typeid(*this).name();
+            }
+        };
+
+        return ACE_DLL_Singleton_T<SingletonExecutor, ACE_SYNCH_MUTEX>::instance()->execute(command);
     }
 
 }  // namespace DAF
