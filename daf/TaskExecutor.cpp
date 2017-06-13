@@ -525,9 +525,9 @@ namespace DAF
 
         if (this->threadAtExit(true) ? false : thr_mgr->cancel_thr(this, async_cancel)) { // Handle at_exits and if OK - Kill the thread
 
-//            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Set THR_DETACHED - Stops waiting on non-existant thread
-
 #if defined(ACE_WIN32)
+            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Set THR_DETACHED - Stops waiting on non-existant thread
+
             if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) {
                 DAF::threadSYNCHTerminate(this->self());
             }
