@@ -23,12 +23,11 @@
 #include "DiscoveryService.h"
 
 #include <taf/IORQueryRepository.h>
-
 #include <taf/ORBManager.h>
 #include <taf/CDRStream.h>
-
 #include <taf/TAFDebug.h>
 
+#include <daf/TaskExecutor.h>
 #include <daf/PropertyManager.h>
 
 #include <ace/Service_Config.h>
@@ -158,7 +157,7 @@ namespace TAF
 
     /******************************************************************************************/
 
-    DiscoveryService::DiscoveryService(void) : DAF::TaskExecutor()
+    DiscoveryService::DiscoveryService(void) : ACE_Service_Object()
         , active_(false)
     {
     }
@@ -276,7 +275,7 @@ namespace TAF
                             for (TAF::IORServantRepository::iterator it(queryRepository->begin()); it != queryRepository->end();) {
                                 if (this->isActive()) try {
                                     if (it->is_ident(ident)) { // Hand Off For UDP Send
-                                        if (this->execute(new IORReplySender(*it, reply_address, u_short(ior_query.svc_flags)))) {
+                                        if (DAF::SingletonExecute(new IORReplySender(*it, reply_address, u_short(ior_query.svc_flags)))) {
                                             throw "Discovery-Failed-Send-Reply";
                                         }
                                     }

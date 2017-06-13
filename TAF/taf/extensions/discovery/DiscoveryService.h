@@ -25,14 +25,12 @@
 
 #include "DiscoveryHandler.h"
 
-#include <daf/TaskExecutor.h>
-
 #include <ace/Service_Config.h>
 #include <ace/Service_Object.h>
 
 namespace TAF
 {
-    class TAFDiscovery_Export DiscoveryService : public DAF::TaskExecutor
+    class TAFDiscovery_Export DiscoveryService : public ACE_Service_Object
     {
         TAFDiscoveryHandler handler_;
 
@@ -59,6 +57,16 @@ namespace TAF
 
         /// Initializes object when dynamic linking occurs.
         virtual int init(int argc, ACE_TCHAR *argv[]);
+
+        virtual int suspend(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
+
+        virtual int resume(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
 
         /// Terminates object when dynamic unlinking occurs.
         virtual int fini(void);
