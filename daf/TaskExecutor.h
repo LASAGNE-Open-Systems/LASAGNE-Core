@@ -346,7 +346,6 @@ namespace DAF
 
             ACE_hthread_t   threadHandle(void)  const   { return this->thr_handle_; }
             long          & threadFlags(void)           { return this->flags_; }
-            ACE_thread_t    threadID(void)      const   { return this->thr_id_; }
             ACE_Task_Base * taskBase(void)      const   { return this->task_; }
             ACE_UINT32    & threadState(void)           { return this->thr_state_; }
         };
@@ -354,7 +353,6 @@ namespace DAF
         struct Thread_Manager : ACE_Thread_Manager
         {
             using ACE_Thread_Manager::thread_desc_self;
-            using ACE_Thread_Manager::wait_on_exit;
             using ACE_Thread_Manager::remove_thr;
             using ACE_Thread_Manager::cancel_thr;
 
@@ -374,7 +372,7 @@ namespace DAF
     };
 
     /// Execute a DAF::Runnable within the context of the singleton TaskExecutor.
-    DAF_Export int SingletonExecute(const DAF::Runnable_ref &command);
+    DAF_Export int SingletonExecute(const DAF::Runnable_ref & command);
 
 } // namespace DAF
 

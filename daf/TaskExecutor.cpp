@@ -165,7 +165,7 @@ namespace DAF
 
             if (task) do {
 
-                ACE_thread_t thr_self = ACE_Thread::self();
+                ACE_thread_t thr_id = DAF_OS::thr_self(), thr_self(0);
 
                 {
 
@@ -176,7 +176,7 @@ namespace DAF
                             thr_self = td->self();
                             if (DAF::debug() > 2) {
                                 ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %t) TaskExecutor::cleanup; ")
-                                    ACE_TEXT("grp_id=%d,thr_count=%d,ThreadID=%d[0x%X],ThreadState=0x%X\n")
+                                    ACE_TEXT("grp_id=%d,thr_count=%d,thr_self=%d[0x%X],ThreadState=0x%X\n")
                                     , task->grp_id()
                                     , task->thr_count()
                                     , unsigned(thr_self), unsigned(thr_self)
@@ -188,13 +188,15 @@ namespace DAF
 
                     // Ensure we don't go negative (i.e. maybe because we are terminating threads)
                     if (0 == --task->thr_count_) {
-                        task->last_thread_id_ = thr_self;
+                        task->last_thread_id_ = (thr_self ? thr_self : thr_id);
                     }
 
                     task->zero_condition_.broadcast(); // Signal thread is leaving
                 }
 
-                task->close(0); // *task* is undefined here. close() could have deleted it.
+                if (thr_id == thr_self) { // Only call close here if we ARE the closing thread
+                    task->close(0); // *task* is undefined here. close() could have deleted it.
+                }
 
             } while (false);
         }
@@ -511,8 +513,6 @@ namespace DAF
     int
     TaskExecutor::Thread_Descriptor::threadTerminate(Thread_Manager *thr_mgr, int async_cancel)
     {
-        const ACE_thread_t thr_id = this->threadID(); ACE_UNUSED_ARG(thr_id); // Save Thread ID for debug reporting
-
         // ACE_Thread::cancel under pthread will result in a pthread_cancel being
         // called. (See 'man pthread_cancel') which results in an async
         // roll back through the thread's stack via the abi::__forced_unwind
@@ -523,11 +523,11 @@ namespace DAF
 
         if (this->threadAtExit(true) ? false : thr_mgr->cancel_thr(this, async_cancel)) { // Handle at_exits and if OK - Kill the thread
 
-            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Set THR_DETACHED - Stops waiting on non-existant thread
+//            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Set THR_DETACHED - Stops waiting on non-existant thread
 
 #if defined(ACE_WIN32)
             if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) {
-                DAF::threadSYNCHTerminate(thr_id);
+                DAF::threadSYNCHTerminate(this->self());
             }
 #endif
 
