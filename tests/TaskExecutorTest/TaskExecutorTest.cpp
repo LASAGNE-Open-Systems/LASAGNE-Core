@@ -1020,8 +1020,6 @@ int main(int argc, char *argv[])
 
     ACE::debug(test::debug ? 1 : 0);
 
-//    std::cout << test::TEST_NAME << std::endl;
-
     result &= test::test_TaskExecutorSize(threadCount);
     result &= test::test_TaskExecutorSize_Svc_Dec(threadCount);
     //result &= test::test_TaskExecutorSize_WorkerDecay(threadCount); // TOO LONG!
@@ -1032,11 +1030,14 @@ int main(int argc, char *argv[])
 
     result &= test::test_TaskExecutor_Dtor_Time(threadCount);
 
-//#ifndef ACE_WIN32
     result &= test::test_TaskExecutor_Dtor_Block(threadCount);
-    //result &= test::test_TaskExecutor_Sync_Block(threadCount);
-//#endif
-    //result &= test::test_ACE_Task_Base(threadCount );
+
+#if defined(ACE_WIN32)  // Make sure we unblock on Windows even when we dont throw the excption (aka Linux)
+    result &= (test::test_TaskExecutor_Sync_Block(threadCount), 1);
+#else
+    result &= test::test_TaskExecutor_Sync_Block(threadCount);
+#endif
+//    result &= test::test_ACE_Task_Base(threadCount);
 
     return !result;
 }
