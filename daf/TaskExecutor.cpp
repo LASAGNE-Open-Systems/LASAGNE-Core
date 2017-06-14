@@ -452,12 +452,12 @@ namespace DAF
 
             try {
 
-                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, throw DAF::ResourceExhaustionException());
+                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, DAF_THROW_EXCEPTION(DAF::LockFailureException));
 
                 for (const ACE_Time_Value tv(DAF_OS::gettimeofday(this->getEvictTimeout())); this->thr_count() > 0;) {
                     if (this->zero_condition_.wait(&tv) && DAF_OS::last_error() == ETIME) {
                         if (this->thr_count() > 0) { // DCL
-                            throw DAF::TimeoutException();  // Throw to terminate_task(release locks)
+                            DAF_THROW_EXCEPTION(DAF::TimeoutException);  // Throw to terminate_task(release locks)
                         } else break;
                     }
                 }
