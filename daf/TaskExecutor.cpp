@@ -21,6 +21,8 @@
 #define DAF_TASKEXECUTOR_CPP
 
 #include "TaskExecutor.h"
+
+#include "Exception.h"
 #include "ShutdownHandler.h"
 #include "PropertyManager.h"
 
@@ -448,17 +450,15 @@ namespace DAF
 
             ACE_Task_Base::module_closed(); this->taskChannel_.interrupt();
 
-            const ACE_Time_Value tv(DAF_OS::gettimeofday(this->getEvictTimeout()));
-
             try {
 
-                ACE_GUARD_RETURN(ACE_Thread_Mutex, mon, this->lock_, (DAF_OS::last_error(ENOLCK), -1));
+                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, throw DAF::ResourceExhaustionException());
 
-                while (this->thr_count() > 0) {
+                for (const ACE_Time_Value tv(DAF_OS::gettimeofday(this->getEvictTimeout())); this->thr_count() > 0;) {
                     if (this->zero_condition_.wait(&tv) && DAF_OS::last_error() == ETIME) {
                         if (this->thr_count() > 0) { // DCL
-                            throw "Threads-Not-Exiting";  // Throw to terminate_task(release locks)
-                        }
+                            throw DAF::TimeoutException();  // Throw to terminate_task(release locks)
+                        } else break;
                     }
                 }
 
