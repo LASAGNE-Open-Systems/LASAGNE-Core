@@ -22,6 +22,8 @@
 
 #include "SYNCHConditionBase.h"
 
+#include "Exception.h"
+
 namespace DAF
 {
 #if defined(ACE_WIN32)
@@ -31,14 +33,14 @@ namespace DAF
     int
     SYNCHConditionBase::SYNCHConditionRepository::_insert(const key_type & thr_id, const mapped_type & base)
     {
-        ACE_Guard<ACE_SYNCH_MUTEX> guard(*this); ACE_UNUSED_ARG(guard);
+        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(DAF::LockFailureException));
         return ++((*this)[thr_id] = base)->waiters_;
     }
 
     int
     SYNCHConditionBase::SYNCHConditionRepository::_remove(const key_type & thr_id)
     {
-        ACE_Guard<ACE_SYNCH_MUTEX> guard(*this); ACE_UNUSED_ARG(guard);
+        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(DAF::LockFailureException));
         int waiters = --this->at(thr_id)->waiters_;
         this->erase(thr_id);
         return waiters;
