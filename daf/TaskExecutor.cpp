@@ -446,7 +446,7 @@ namespace DAF
     {
         this->executorAvailable_ = false; // Say we are no longer available
 
-        if (this->executorClosed_ ? false : this->executorClosed_ = true) {
+        if (this->executorClosed_ ? false : (this->executorClosed_ = true)) {
 
             ACE_Task_Base::module_closed(); this->taskChannel_.interrupt();
 
