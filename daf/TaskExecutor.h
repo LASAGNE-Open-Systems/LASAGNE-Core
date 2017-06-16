@@ -76,8 +76,6 @@ namespace DAF
 
         ACE_Auto_Ptr<ACE_Thread_Manager> thread_mgr_; // Declared first so destructed last
 
-        ACE_Atomic_Op<ACE_SYNCH_MUTEX, size_t &>    thread_count_; // Set up a locked local instance of thread_count
-
     public:
 
         /// default timeout values
