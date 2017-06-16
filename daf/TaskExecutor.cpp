@@ -33,6 +33,7 @@
 #include <ace/Singleton.h>
 
 #include <limits>
+#include <typeinfo>
 
 #if defined (ACE_HAS_SIG_C_FUNC)
 extern "C" void DAF_TaskExecutor_cleanup(void *obj, void *args)
@@ -43,14 +44,14 @@ extern "C" void DAF_TaskExecutor_cleanup(void *obj, void *args)
 
 namespace DAF
 {
-    namespace { // Ananomous
+    namespace { // Anonymous
 
         int make_grp_id(void *p)
         {
             return int(reinterpret_cast<size_t>(p) & size_t(std::numeric_limits<int>::max()));
         }
 
-    } // Ananomous
+    } // Anonymous
 
     template <> inline DAF::Runnable_ref
     SynchronousChannel<DAF::Runnable_ref>::extract(void)
@@ -229,7 +230,13 @@ namespace DAF
 
     TaskExecutor::~TaskExecutor(void)
     {
-        this->module_closed(); this->wait(); this->thr_mgr(0);
+        this->module_closed(); this->wait(); this->thr_mgr(0); // Close-and-Wait for threads to exit cleanly
+    }
+
+    size_t
+    TaskExecutor::thr_count(void) const
+    {
+        return this->thr_count_;
     }
 
     int
@@ -251,10 +258,17 @@ namespace DAF
     bool
     TaskExecutor::isAvailable(void) const
     {
-        if (this->executorAvailable_ && DAF::ShutdownHandler::has_shutdown()) {
-            this->executorAvailable_ = false;
-        }
-        return this->executorAvailable_;
+        if (this->executorAvailable_.value()) do {
+
+            if (DAF::ShutdownHandler::has_shutdown()) {
+                this->executorAvailable_ = false; break;
+            }
+
+            return true;
+
+        } while (false);
+
+        return false;
     }
 
     void
@@ -489,7 +503,7 @@ namespace DAF
     int
     TaskExecutor::Thread_Descriptor::threadAtExit(bool force_at_exit)
     {
-        if (ACE_BIT_DISABLED(this->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) {
+        if (ACE_BIT_DISABLED(this->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) try {
 
             // Skip if thread has already been cancelled (terminated)
 
@@ -507,6 +521,9 @@ namespace DAF
             }
 
             return 0;
+
+        } DAF_CATCH_ALL {
+            // Encountered a User Code Error
         }
 
         return -1;

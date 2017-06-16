@@ -29,6 +29,7 @@
 #include <ace/Synch_Traits.h>
 
 #include <map>
+#include <typeinfo>
 
 namespace DAF
 {
@@ -69,11 +70,13 @@ namespace DAF
         */
         typedef std::map<ACE_thread_t, SYNCHConditionBase *>    SYNCHCondition_map_type;
 
-        static class SYNCHConditionRepository : SYNCHCondition_map_type
+        class SYNCHConditionRepository : SYNCHCondition_map_type
         {
             mutable ACE_SYNCH_MUTEX lock_;
 
         public:
+
+            static SYNCHConditionRepository * instance(void);
 
             int _insert(const key_type & thr_id, const mapped_type & base);
             int _remove(const key_type & thr_id);
@@ -83,7 +86,17 @@ namespace DAF
                 return this->lock_;
             }
 
-        } condition_repo_;
+            const ACE_TCHAR * dll_name(void) const
+            {
+                return DAF_DLL_NAME;
+            }
+
+            const ACE_TCHAR * name(void) const
+            {
+                return typeid(*this).name();
+            }
+
+        };
 
         friend int threadSYNCHTerminate(const ACE_thread_t &);
 #endif

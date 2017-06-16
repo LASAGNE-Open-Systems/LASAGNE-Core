@@ -24,11 +24,17 @@
 
 #include "Exception.h"
 
+#include <ace/Singleton.h>
+
 namespace DAF
 {
 #if defined(ACE_WIN32)
 
-    SYNCHConditionBase::SYNCHConditionRepository    SYNCHConditionBase::condition_repo_;
+    SYNCHConditionBase::SYNCHConditionRepository *
+    SYNCHConditionBase::SYNCHConditionRepository::instance(void)
+    {
+        return ACE_DLL_Singleton_T<SYNCHConditionRepository, ACE_SYNCH_MUTEX>::instance();
+    }
 
     int
     SYNCHConditionBase::SYNCHConditionRepository::_insert(const key_type & thr_id, const mapped_type & base)
@@ -49,7 +55,7 @@ namespace DAF
     int threadSYNCHTerminate(const ACE_thread_t & thr_id)
     {
         try {
-            DAF::SYNCHConditionBase::condition_repo_._remove(thr_id); return 0;
+            DAF::SYNCHConditionBase::SYNCHConditionRepository::instance()->_remove(thr_id); return 0;
         } catch (const std::out_of_range &) {
             return 0; // Not found
         } catch (const std::exception &) {
@@ -67,7 +73,7 @@ namespace DAF
     {
 #if defined(ACE_WIN32)
         try {
-            return SYNCHConditionBase::condition_repo_._insert(DAF_OS::thr_self(), this);
+            return SYNCHConditionRepository::instance()->_insert(DAF_OS::thr_self(), this);
         } catch (const std::exception &) {
             // Something went wrong??
         }
@@ -80,7 +86,7 @@ namespace DAF
     {
 #if defined(ACE_WIN32)
         try {
-            return SYNCHConditionBase::condition_repo_._remove(DAF_OS::thr_self());
+            return SYNCHConditionRepository::instance()->_remove(DAF_OS::thr_self());
         } catch (const std::exception &) {
             // Something went wrong??
         }

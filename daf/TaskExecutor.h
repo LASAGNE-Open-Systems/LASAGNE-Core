@@ -23,14 +23,6 @@
 
 /**
 * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
-*
-* @file     TaskExecutor.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
 */
 
 #include "DAF.h"
@@ -39,7 +31,7 @@
 
 #include <ace/Task.h>
 #include <ace/Auto_Ptr.h>
-#include <ace/Singleton.h>
+#include <ace/Atomic_Op.h>
 #include <ace/Thread_Manager.h>
 
 namespace DAF
@@ -93,12 +85,12 @@ namespace DAF
             THREAD_DECAY_TIMEOUT    = time_t(DAF_MSECS_ONE_SECOND * 30) // 30 Seconds
         };
 
-        /** Constructor
-        * \param thr_mgr: if 0 then the Singleton thread manager is used
-        */
         TaskExecutor(void);
 
         virtual ~TaskExecutor(void);
+
+        /// Return the current thread count.  NOTE: ACE_Task_Base::thr_count() causes unnecessary locking;
+        size_t  thr_count(void) const;  // ACE_Task_Base interface compatability
 
         // = Active object activation method.
         /**
@@ -154,8 +146,9 @@ namespace DAF
                                 ACE_thread_t thread_ids[] = 0,
                                 const char * thr_name[] = 0);
 
-        // = Active object activation method through DAF::Executor abstract interface.
         /**
+        * Active object activation method through DAF::Executor abstract interface.
+        *
         * Turn the task into an active object, i.e., having a single thread of
         * control, all running at the priority level set through the DAF::Runnable.
         * All threads created within this TaskExecutor have the same grp_id which
@@ -165,10 +158,7 @@ namespace DAF
         virtual int     execute(const DAF::Runnable_ref &);
 
         /// Return the current thread count.  NOTE: support for the DAF::Executor interface
-        virtual size_t  size(void) const    { return this->thr_count_;  }
-
-        /// Return the current thread count.  NOTE: ACE_Task_Base::thr_count() causes unnecessary locking;
-        size_t  thr_count(void) const       { return this->thr_count_;  }   // ACE_Task_Base interface compatability
+        virtual size_t  size(void) const    { return this->thr_count();  }
 
         /// Return the current grp_id. NOTE: grp_id is derived from *this*.
         int     grp_id(void) const          { return this->grp_id_;     }   // ACE_Task_Base interface compatability
@@ -366,7 +356,7 @@ namespace DAF
         time_t  evict_timeout_;  // Time for closing threads    (milliseconds)
         time_t  handoff_timeout_;// Time for handing off to existing threads before creating a new one (milliseconds)
 
-        mutable volatile bool executorAvailable_;
+        mutable ACE_Atomic_Op<ACE_SYNCH_MUTEX, bool>    executorAvailable_;
 
         bool executorClosed_;
     };
