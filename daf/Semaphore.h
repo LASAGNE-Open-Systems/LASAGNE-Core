@@ -23,11 +23,17 @@
 
 /**
 * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
+*
+* @file     Semaphore.h
+* @author   Derek Dominish
+* @author   $LastChangedBy$
+* @date     1st September 2011
+* @version  $Revision$
+* @ingroup
+* @namespace DAF
 */
 
 #include "Monitor.h"
-
-#include <ace/Min_Max.h>
 
 namespace DAF
 {
@@ -59,69 +65,35 @@ namespace DAF
     * --> Doug Lee
     */
 
-    typedef class DAF_Export Semaphore : protected Monitor
+    typedef class DAF_Export Semaphore : protected DAF::Monitor
     {
-        int permits_;
+        volatile int permits_;
 
     public:
 
         /** \todo{Fill this in} */
         Semaphore(int permits = 1); // Set default as unlocked
-        virtual ~Semaphore(void);
 
-        using Monitor::waiters;
-        using Monitor::interrupt;
-        using Monitor::interrupted;
+        using DAF::Monitor::waiters;
+        using DAF::Monitor::interrupt;
+        using DAF::Monitor::interrupted;
 
         /** \todo{Fill this in} */
-        int permits(void) const;
+        int permits(void) const
+        {
+            return this->permits_;
+        }
 
-        /**
-        * If @a abstime == 0 the call acquire() directly.  Otherwise, Block the
-        * thread until we acquire a permit or until @a abstime times out, in
-        * which case -1 is returned with @c errno == @c ETIME.  Note that
-        * @a abstime is assumed to be in "absolute" rather than "relative" time.
-        */
-        int acquire(const ACE_Time_Value * abstime = 0);
-        int acquire(const ACE_Time_Value & abstime);
-
-        /** Same as acquire, however a conversion of @a msecs to absolute time.
-        * A @a msecs <= 0 will result in the current absolute time and if
-        * a permit is not imedaitely available, a -1 is returned with
-        * @c errno == @c ETIME
-        * @deprecated
-        */
-        int attempt(time_t msecs);
-
+        /** \todo{Fill this in} */
+        virtual int acquire(void);
+        /** \todo{Fill this in} */
+        virtual int attempt(time_t msecs);
         /** \todo{Fill this in} */
         virtual int release(void);
         /** \todo{Fill this in} */
         virtual int release(int n);
 
     } WaiterPreferenceSemaphore;
-
-    inline
-    Semaphore::Semaphore(int permits) : permits_(permits)
-    {
-    }
-
-    inline
-    Semaphore::~Semaphore(void)
-    {
-        this->interrupt();
-    }
-
-    inline int
-    Semaphore::acquire(const ACE_Time_Value & tv)
-    {
-        return this->acquire(&tv);
-    }
-
-    inline int
-    Semaphore::attempt(time_t msecs)
-    {
-        return this->acquire(DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
-    }
 
 } // namespace DAF
 
