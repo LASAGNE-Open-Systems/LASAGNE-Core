@@ -192,7 +192,7 @@ namespace DAF
                     }
 
                     // Ensure we don't go negative (i.e. maybe because we are terminating threads)
-                    if (0 == --task->thr_count_) {
+                    if (0 == --task->thread_count_) {
                         task->last_thread_id_ = (thr_self ? thr_self : thr_id);
                     }
 
@@ -211,6 +211,7 @@ namespace DAF
 
     TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new TaskExecutor::Thread_Manager())
         , thread_mgr_       (this->thr_mgr()) // Contains lifecycle of local ACE_Thread_Manager
+        , thread_count_     (this->thr_count_)
         , zero_condition_   (this->lock_)
         , decay_timeout_    (THREAD_DECAY_TIMEOUT)
         , evict_timeout_    (THREAD_EVICT_TIMEOUT)
@@ -236,7 +237,7 @@ namespace DAF
     size_t
     TaskExecutor::thr_count(void) const
     {
-        return this->thr_count_;
+        return this->thread_count_.value();
     }
 
     int
@@ -318,7 +319,7 @@ namespace DAF
                     break; // Not available OR already active without being forced
                 }
 
-                this->thr_count_ += n_threads;
+                this->thread_count_ += n_threads;
 
                 int grp_spawned = -1;
 
@@ -351,7 +352,7 @@ namespace DAF
                 }
 
                 if (grp_spawned == -1) {
-                    this->thr_count_ -= n_threads; break;
+                    this->thread_count_ -= n_threads; break;
                 }
 
                 this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
@@ -424,7 +425,7 @@ namespace DAF
 
                 if (this->isAvailable()) { // DCL
 
-                    ++this->thr_count_;
+                    ++this->thread_count_;
 
                     int grp_spawned = this->thr_mgr()->spawn_n(1
                         , &TaskExecutor::execute_run
@@ -436,7 +437,7 @@ namespace DAF
                     );
 
                     if (grp_spawned == -1) {
-                        --this->thr_count_; WorkerExTask::intrusive_remove_ref(tp); break; // Clean up command after failed handoff
+                        --this->thread_count_; WorkerExTask::intrusive_remove_ref(tp); break; // Clean up command after failed handoff
                     }
 
                     this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
