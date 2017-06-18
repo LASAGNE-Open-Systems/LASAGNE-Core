@@ -69,14 +69,11 @@ namespace DAF
     class DAF_Export TaskExecutor : public ACE_Task_Base
         , public DAF::Executor // Ensure we extend DAF::Executor abstract base
     {
-        using ACE_Task_Base::activate;      // make this private - Use this->execute()
-        using ACE_Task_Base::thr_count;     // make this private - Use this->size() const
-        using ACE_Task_Base::thr_count_;    // make this private - Use this->thread_count_
-        using ACE_Task_Base::grp_id;        // make this private - Use this->grp_id() const
+        using ACE_Task_Base::activate;  // make this private - Use this->execute()
+        using ACE_Task_Base::thr_count; // make this private - Use this->size() const
+        using ACE_Task_Base::grp_id;    // make this private - Use this->grp_id() const
 
         ACE_Auto_Ptr<ACE_Thread_Manager> thread_mgr_; // Declared first so destructed last
-
-        ACE_Atomic_Op<ACE_SYNCH_MUTEX, size_t &>    thread_count_; // Set up a locked local instance of thread_count
 
     public:
 
