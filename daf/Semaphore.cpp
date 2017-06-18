@@ -38,14 +38,6 @@
 * parties, copied or duplicated in any form, in whole or in
 * part, without the express prior written permission of DSTO.
 *
-*
-* @file     Semaphore.cpp
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-*
 * Conceptually, a semaphore maintains a set of permits.
 * Each acquire() blocks if necessary
 * until a permit is available, and then takes it.
@@ -75,64 +67,62 @@
 
 namespace DAF
 {
-    Semaphore::Semaphore(int permits)
-        : permits_(permits)
+    int
+    Semaphore::permits(void) const
     {
+        return this->permits_;
     }
 
-    int Semaphore::acquire(void)
+    int
+    Semaphore::acquire(const ACE_Time_Value * abstime)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-
-        if (this->interrupted()) {
-            DAF_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
-        } else if (this->permits_ > this->waiters()) {
-            --this->permits_; return 0;
-        }
-
         for (;;) {
-            this->wait();
-            if (this->permits_ > 0) {
-                --this->permits_; return 0;
+
+            if (this->interrupted()) {
+                DAF_THROW_EXCEPTION(DAF::InterruptedException);
+            }
+
+            { // Scope Lock
+
+                ACE_GUARD_RETURN(_mutex_type, guard, *this, (DAF_OS::last_error(ENOLCK), -1));
+
+                if (this->interrupted()) { // DCL
+                    DAF_THROW_EXCEPTION(DAF::InterruptedException);
+                }
+
+                else if (this->permits() > this->waiters()) { // Preference any waiters
+                    --this->permits_; break;
+                }
+
+                else if (this->wait(abstime)) {
+
+                    // Here if possible we will preference this thread
+                    // for a permit rather than issue a timeout.
+                    if (DAF_OS::last_error() == ETIME && this->permits() > 0) {
+                        --this->permits_; break;
+                    }
+
+                    return -1; // Report as error
+
+                } else if (this->permits() > 0) {
+                    --this->permits_; break;
+                }
             }
         }
 
-        return 0;
+        return 0; // Return all good
     }
 
-    int Semaphore::attempt(time_t msecs)
+    int
+    Semaphore::release(void)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-
-        if (this->interrupted()) {
-            DAF_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
-        } else if (this->permits_ > this->waiters()) {
-            --this->permits_; return 0;
-        }
-
-        if (msecs > time_t(0)) {
-
-            const ACE_Time_Value end_time(DAF_OS::gettimeofday(msecs));
-
-            do {
-                this->wait(end_time);
-                if (this->permits_ > 0) {
-                    --this->permits_; return 0;
-                }
-            } while (end_time > DAF_OS::gettimeofday());
-        }
-
-        DAF_OS::last_error(ETIME); return -1;
-    }
-
-    int Semaphore::release(void)
-    {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
+        ACE_GUARD_REACTION(_mutex_type, guard, *this, (DAF_OS::last_error(ENOLCK), -1));
         ++this->permits_;
-        return this->notify();
+        return this->signal();
     }
 
-    int Semaphore::release(int n)
+    int
+    Semaphore::release(int n)
     {
         while (n-- > 0) {
             this->release(); // Always call our release (i.e. it may be overloaded)
