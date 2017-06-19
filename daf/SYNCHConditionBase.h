@@ -65,8 +65,9 @@ namespace DAF
         /*
          * On Windows we maintain a cache of active waiters so if we need to terminate
          * the thread we will have to go back and correct the waiter count so that we
-         * can unwind concurrency elements.  This approach is not satisfy ALL windows 
-         * thread unwind issues, but does allow blocked threads to mostly continue.
+         * can unwind concurrency elements. This approach will not satisfy ALL windows 
+         * thread unwind issues, but does allow blocked threads to be interrupted,
+         * and to mostly continue after a colaborating thread has been terminated.
         */
         typedef std::map<ACE_thread_t, SYNCHConditionBase *>    SYNCHCondition_map_type;
 
