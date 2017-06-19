@@ -36,9 +36,9 @@
 #include <typeinfo>
 
 #if defined (ACE_HAS_SIG_C_FUNC)
-extern "C" void DAF_TaskExecutor_cleanup(void *obj, void *args)
+extern "C" void DAF_TaskExecutor_threadCleanup(void *obj, void *args)
 {
-    DAF::TaskExecutor::cleanup(obj, args);
+    DAF::TaskExecutor::threadCleanup(obj, args);
 }
 #endif /* ACE_HAS_SIG_C_FUNC */
 
@@ -53,13 +53,13 @@ namespace DAF
 
     } // Anonymous
 
-    template <> inline DAF::Runnable_ref
-    SynchronousChannel<DAF::Runnable_ref>::extract(void)
+    template <> inline Runnable_ref
+    SynchronousChannel<Runnable_ref>::extract(void)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException));
-        DAF::Runnable_ref t(this->item_._retn()); this->itemTaken_.release();
+        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
+        Runnable_ref t(this->item_._retn()); this->itemTaken_.release();
         if (this->itemError_) {
-            this->itemError_ = false; DAF_THROW_EXCEPTION(DAF::InternalException);
+            this->itemError_ = false; DAF_THROW_EXCEPTION(InternalException);
         }
         return t._retn();
     }
@@ -67,26 +67,26 @@ namespace DAF
     /*********************************************************************************/
 
     ACE_THR_FUNC_RETURN
-    TaskExecutor::execute_run(void *args)
+    TaskExecutor::threadExecute(void * args)
     {
         DAF_OS::thread_0_SIGSET_T(); // Ignore all signals to avoid ERROR:
 
-        TaskExecutor::WorkerExTask_ref worker(reinterpret_cast<TaskExecutor::WorkerExTask_ptr>(args));
+        WorkerTask_ref worker(reinterpret_cast<WorkerTask_ptr>(args));
 
         // This is exactly the same logics as ACE_Task_Base::svc_run however it works through a svc proxy
 
-        if (worker) for (ACE_Task_Base * task(worker->task_base()); task;) {
+        if (worker) for (TaskExecutor * task(worker->taskExecutor()); task;) {
 
-            ACE_Thread_Descriptor * td = static_cast<TaskExecutor::Thread_Manager *>(task->thr_mgr())->thread_desc_self();
+            ACE_Thread_Descriptor * td = static_cast<Thread_Manager *>(task->thr_mgr())->thread_desc_self();
 
             // Register ourself with our <Thread_Manager>'s thread exit hook
             // mechanism so that our close() hook will be sure to get invoked
             // when this thread exits.
 
 #if defined(ACE_HAS_SIG_C_FUNC)
-            td->at_exit(task, DAF_TaskExecutor_cleanup, td);
+            td->at_exit(task, DAF_TaskExecutor_threadCleanup, td);
 #else
-            td->at_exit(task, DAF::TaskExecutor::cleanup, td);
+            td->at_exit(task, DAF::TaskExecutor::threadCleanup, td);
 #endif /* ACE_HAS_SIG_C_FUNC */
 
             ACE_THR_FUNC_RETURN status = 0;
@@ -115,69 +115,26 @@ namespace DAF
         return ACE_THR_FUNC_RETURN(-1);
     }
 
-    ACE_THR_FUNC_RETURN
-    TaskExecutor::execute_svc(void *args)
-    {
-        DAF_OS::thread_0_SIGSET_T(); // Ignore all signals to avoid ERROR:
-
-        for (ACE_Task_Base * task(reinterpret_cast<ACE_Task_Base *>(args)); task;) {
-
-            ACE_Thread_Descriptor * td = static_cast<TaskExecutor::Thread_Manager *>(task->thr_mgr())->thread_desc_self();
-
-            // Register ourself with our <Thread_Manager>'s thread exit hook
-            // mechanism so that our close() hook will be sure to get invoked
-            // when this thread exits.
-
-#if defined(ACE_HAS_SIG_C_FUNC)
-            td->at_exit(task, DAF_TaskExecutor_cleanup, td);
-#else
-            td->at_exit(task, DAF::TaskExecutor::cleanup, td);
-#endif /* ACE_HAS_SIG_C_FUNC */
-
-            ACE_THR_FUNC_RETURN status = 0;
-
-            try {  // Stop Application code from killing Server
-
-                // Call the Task's run() hook method.
-#if defined(ACE_HAS_INTEGRAL_TYPE_THR_FUNC_RETURN)
-                // Reinterpret case between integral types is not mentioned in the C++ spec
-                status = static_cast<ACE_THR_FUNC_RETURN>(task->svc());
-#else
-                status = reinterpret_cast<ACE_THR_FUNC_RETURN>(task->svc());
-#endif /* ACE_HAS_INTEGRAL_TYPE_THR_FUNC_RETURN */
-
-            } DAF_CATCH_ALL {
-                if (ACE::debug() || DAF::debug()) {
-                    ACE_DEBUG((LM_ERROR, ACE_TEXT("DAF (%P | %t) TaskExecutor ERROR: ")
-                        ACE_TEXT("Unhandled exception caught from execute_svc() : TaskExecutor=0x%@.\n"), task));
-                }
-            }
-
-            static_cast<Thread_Descriptor *>(td)->threadAtExit(false);
-
-            return status;
-        }
-
-        return ACE_THR_FUNC_RETURN(-1);
-    }
-
     void
-    TaskExecutor::cleanup(void *obj, void *args)
+    TaskExecutor::threadCleanup(void * obj, void * args)
     {
         if (obj) {
 
-            TaskExecutor * task = dynamic_cast<TaskExecutor *>(reinterpret_cast<ACE_Task_Base *>(obj));
+            TaskExecutor * task(reinterpret_cast<TaskExecutor *>(obj));
 
-            if (task) do {
+            if (task) {
 
-                ACE_thread_t thr_id = DAF_OS::thr_self(), thr_self(0);
+                ACE_thread_t thr_mine = DAF_OS::thr_self(), thr_self(0);
 
-                {
+                do {
 
                     ACE_GUARD_REACTION(ACE_Thread_Mutex, ace_mon, task->lock_, break);
 
                     if (args) {
-                        for (Thread_Descriptor * td = reinterpret_cast<Thread_Descriptor*>(args); td;) {
+
+                        Thread_Descriptor * td = reinterpret_cast<Thread_Descriptor *>(args);
+
+                        if (td) {
                             thr_self = td->self();
                             if (DAF::debug() > 2) {
                                 ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %t) TaskExecutor::cleanup; ")
@@ -187,35 +144,34 @@ namespace DAF
                                     , unsigned(thr_self), unsigned(thr_self)
                                     , unsigned(td->threadState())));
                             }
-                            break;
                         }
+
                     }
 
-                    // Ensure we don't go negative (i.e. maybe because we are terminating threads)
                     if (0 == --task->thr_count_) {
-                        task->last_thread_id_ = (thr_self ? thr_self : thr_id);
+                        task->last_thread_id_ = (thr_self ? thr_self : thr_mine);
                     }
 
-                    task->zero_condition_.broadcast(); // Signal thread is leaving
-                }
+                    task->zeroCondition_.signal(); // Signal thread is leaving (only 1 waiter)
 
-                if (thr_id == thr_self) { // Only call close here if we ARE the closing thread
+                } while (false);
+
+                if (thr_mine == thr_self) { // Only call close here if we ARE the closing thread
                     task->close(0); // *task* is undefined here. close() could have deleted it.
                 }
-
-            } while (false);
+            }
         }
     }
 
     /*********************************************************************************/
 
-    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new TaskExecutor::Thread_Manager())
-        , thread_mgr_       (this->thr_mgr()) // Contains lifecycle of local ACE_Thread_Manager
-        , zero_condition_   (this->lock_)
+    TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new Thread_Manager())
+        , threadManager_    (this->thr_mgr()) // Contains lifecycle of local ACE_Thread_Manager
+        , zeroCondition_    (this->lock_)
+        , executorAvailable_(true)
         , decay_timeout_    (THREAD_DECAY_TIMEOUT)
         , evict_timeout_    (THREAD_EVICT_TIMEOUT)
         , handoff_timeout_  (THREAD_HANDOFF_TIMEOUT)
-        , executorAvailable_(true)
         , executorClosed_   (false)
     {
         this->grp_id(make_grp_id(this));
@@ -250,9 +206,9 @@ namespace DAF
     }
 
     int
-    TaskExecutor::svc(const DAF::Runnable_ref &cmd)
+    TaskExecutor::svc(const Runnable_ref & command)
     {
-        return (DAF::is_nil(cmd) ? 0 : cmd->run()); // Run the Command
+        return (DAF::is_nil(command) ? 0 : command->run()); // Run the Command
     }
 
     bool
@@ -290,15 +246,15 @@ namespace DAF
     }
 
     int
-    TaskExecutor::execute(size_t  n_threads,
-        bool    force_active,
-        long    flags,
-        long    priority,
-        ACE_hthread_t thread_handles[],
-        void *  stack[],
-        size_t  stack_size[],
-        ACE_thread_t thread_ids[],
-        const char* thr_name[])
+    TaskExecutor::execute(size_t n_threads,
+        bool            force_active,
+        long            flags,
+        long            priority,
+        ACE_hthread_t   thread_handles[],
+        void *          stack[],
+        size_t          stack_size[],
+        ACE_thread_t    thread_ids[],
+        const char *    thr_name[])
     {
         if (ACE_BIT_ENABLED(flags, (THR_DETACHED | THR_DAEMON))) {
             ACE_DEBUG((LM_WARNING, ACE_TEXT("(%P | %t) DAF::TaskExecutor::execute; ")
@@ -308,50 +264,57 @@ namespace DAF
 
         ACE_SET_BITS(flags, (THR_NEW_LWP | THR_JOINABLE)); // Ensure all threads in pool have consistant attributes
 
-        if (this->isAvailable()) do {
+        if (n_threads && this->isAvailable()) do {
+
+            WorkerTask_ref tp(new WorkerTask(this));
 
             { // Scope Lock
 
                 ACE_GUARD_RETURN(ACE_Thread_Mutex, mon, this->lock_, (DAF_OS::last_error(ENOLCK), -1));
 
-                if (this->isAvailable() ? (force_active ? false : this->thr_count() > 0) : true) {  // DCL
+                if (this->isAvailable() ? (force_active ? false : this->thr_count()) : true) {  // DCL
                     break; // Not available OR already active without being forced
                 }
 
-                this->thr_count_ += n_threads;
+                for (size_t thr_count = n_threads; thr_count--;) {
+                    ++this->thr_count_; WorkerTask::intrusive_add_ref(tp);  // Increment refcount by n_threads
+                }
 
                 int grp_spawned = -1;
 
                 if (thread_ids) {
                     // thread names were specified
-                    grp_spawned = this->thr_mgr_->spawn_n(thread_ids, n_threads,
-                        &TaskExecutor::execute_svc,
-                        this,
-                        flags,
-                        priority,
-                        this->grp_id(),
-                        stack,
-                        stack_size,
-                        thread_handles,
-                        this,
-                        thr_name);
+                    grp_spawned = this->thr_mgr_->spawn_n(thread_ids, n_threads
+                        , TaskExecutor::threadExecute
+                        , tp // Give the cmd to the thread (it will delete)
+                        , flags
+                        , priority
+                        , this->grp_id()
+                        , stack
+                        , stack_size
+                        , thread_handles
+                        , this
+                        , thr_name);
                 } else {
                     // Thread Ids were not specified
-                    grp_spawned = this->thr_mgr_->spawn_n(n_threads,
-                        &TaskExecutor::execute_svc,
-                        this,
-                        flags,
-                        priority,
-                        this->grp_id(),
-                        this,
-                        thread_handles,
-                        stack,
-                        stack_size,
-                        thr_name);
+                    grp_spawned = this->thr_mgr_->spawn_n(n_threads
+                        , TaskExecutor::threadExecute
+                        , tp // Give the cmd to the thread (it will delete)
+                        , flags
+                        , priority
+                        , this->grp_id()
+                        , this
+                        , thread_handles
+                        , stack
+                        , stack_size
+                        , thr_name);
                 }
 
                 if (grp_spawned == -1) {
-                    this->thr_count_ -= n_threads; break;
+                    for (size_t thr_count = n_threads; thr_count--;) {
+                        --this->thr_count_; WorkerTask::intrusive_remove_ref(tp);
+                    }
+                    break;
                 }
 
                 this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
@@ -367,15 +330,15 @@ namespace DAF
     }
 
     int
-    TaskExecutor::execute(const DAF::Runnable_ref &cmd)
+    TaskExecutor::execute(const Runnable_ref & command)
     {
         if (this->isAvailable()) try {
 
-            if (!DAF::is_nil(cmd)) { // Empty command then we are all done!
+            if (!DAF::is_nil(command)) { // Empty command then we are all done!
 
                 // What happens here is we attempt to offer the Runnable to an existing thread
                 // We allow up to 'handoff_timeout_' milliseconds before creating a new thread for the pool
-                if (this->taskChannel_.offer(cmd,this->handoff_timeout_) && this->task_handOff(cmd)) {
+                if (this->taskChannel_.offer(command,this->handoff_timeout_) && this->task_handOff(command)) {
                     throw "Failed-Thread-HandOff";
                 }
             }
@@ -385,50 +348,50 @@ namespace DAF
         } DAF_CATCH_ALL {
             ACE_DEBUG((LM_ERROR,
                 ACE_TEXT("DAF (%P | %t) ERROR: TaskExecutor:")
-                ACE_TEXT(" Unable to hand-off executable command 0x%@.\n"), cmd.ptr()));
+                ACE_TEXT(" Unable to hand-off executable command 0x%@.\n"), command.ptr()));
         }
 
         return -1;
     }
 
     int
-    TaskExecutor::task_dispatch(DAF::Runnable_ref cmd)
+    TaskExecutor::task_dispatch(Runnable_ref command)
     {
         for (const ACE_Sched_Priority default_prio(DAF_OS::thread_PRIORITY()); this->isAvailable();) {
 
-            if (DAF::is_nil(cmd)) try {
-                cmd = this->taskChannel_.poll(this->getDecayTimeout())._retn(); continue;
+            if (DAF::is_nil(command)) try {
+                command = this->taskChannel_.poll(this->getDecayTimeout())._retn(); continue;
             } catch (const std::runtime_error &) {
                 break;
             }
 
-            DAF_OS::thr_setprio(ACE_Sched_Priority(cmd->runPriority())); // Set the requested priority
+            DAF_OS::thr_setprio(ACE_Sched_Priority(command->runPriority())); // Set the requested priority
 
-            DAF_OS::last_error(0); this->svc(cmd._retn()); // Dispatch The Command
+            DAF_OS::last_error(0); this->svc(command._retn()); // Dispatch The Command
 
             DAF_OS::thr_setprio(default_prio);  // Reset Priority
         }
 
-        cmd = DAF::Runnable::_nil(); return 0;
+        command = Runnable::_nil(); return 0;
     }
 
     int
-    TaskExecutor::task_handOff(const DAF::Runnable_ref &command)
+    TaskExecutor::task_handOff(const Runnable_ref & command)
     {
         if (DAF::is_nil(command) ? false : this->isAvailable()) do {
 
-            WorkerExTask_ref tp(new WorkerExTask(this, command));
+            WorkerTask_ref tp(new WorkerTaskExtended(this, command));
 
             {
                 ACE_GUARD_RETURN(ACE_Thread_Mutex, mon, this->lock_, (DAF_OS::last_error(ENOLCK), -1));
 
                 if (this->isAvailable()) { // DCL
 
-                    ++this->thr_count_;
+                    ++this->thr_count_; WorkerTask::intrusive_add_ref(tp); // Increment permits by threadcount
 
                     int grp_spawned = this->thr_mgr()->spawn_n(1
-                        , &TaskExecutor::execute_run
-                        , WorkerExTask::_duplicate(tp) // Give the cmd to the thread (it will delete)
+                        , TaskExecutor::threadExecute
+                        , tp // Give the cmd to the thread (it will delete)
                         , (THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED)
                         , ACE_DEFAULT_THREAD_PRIORITY
                         , this->grp_id()
@@ -436,18 +399,16 @@ namespace DAF
                     );
 
                     if (grp_spawned == -1) {
-                        --this->thr_count_; WorkerExTask::intrusive_remove_ref(tp); break; // Clean up command after failed handoff
+                        --this->thr_count_; WorkerTask::intrusive_remove_ref(tp); break; // Clean up command after failed handoff
                     }
 
                     this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
 
                 } else break; // Not Available
             }
-#if 1
+
             DAF_OS::thr_yield(); // Let the thread start up
-#else
-            tp->_waitActive(THREAD_START_TIMEOUT); // Synchronise thread startup when supported (soon)
-#endif
+
             return 0;
 
         } while (false);
@@ -466,12 +427,12 @@ namespace DAF
 
             try {
 
-                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, DAF_THROW_EXCEPTION(DAF::LockFailureException));
+                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, throw LockFailureException());
 
                 for (const ACE_Time_Value tv(DAF_OS::gettimeofday(this->getEvictTimeout())); this->thr_count() > 0;) {
-                    if (this->zero_condition_.wait(&tv) && DAF_OS::last_error() == ETIME) {
+                    if (this->zeroCondition_.wait(&tv) && DAF_OS::last_error() == ETIME) {
                         if (this->thr_count() > 0) { // DCL
-                            DAF_THROW_EXCEPTION(DAF::TimeoutException);  // Throw to terminate_task(release locks)
+                            throw TimeoutException();  // Throw to terminate_task(release locks)
                         } else break;
                     }
                 }
@@ -489,13 +450,15 @@ namespace DAF
     /*********************************************************************************/
 
     int
-    TaskExecutor::WorkerExTask::run(void)
+    TaskExecutor::WorkerTask::run(void)
     {
-        for (TaskExecutor *tex(dynamic_cast<TaskExecutor*>(this->task_base())); tex;) {
-            return tex->task_dispatch(this->cmd_._retn());
-        }
+        return this->taskExecutor()->svc();
+    }
 
-        this->cmd_ = DAF::Runnable::_nil(); return -1;
+    int
+    TaskExecutor::WorkerTaskExtended::run(void)
+    {
+        return this->taskExecutor()->task_dispatch(this->command_._retn());
     }
 
     /*********************************************************************************/
@@ -516,7 +479,7 @@ namespace DAF
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
                 this->do_at_exit();
 #else
-                this->at_exit(this->taskBase(), 0, 0); TaskExecutor::cleanup(this->taskBase(), this);
+                this->at_exit(this->taskBase(), 0, 0); TaskExecutor::threadCleanup(this->taskBase(), this);
 #endif
             }
 
@@ -530,7 +493,7 @@ namespace DAF
     }
 
     int
-    TaskExecutor::Thread_Descriptor::threadTerminate(Thread_Manager *thr_mgr, int async_cancel)
+    TaskExecutor::Thread_Descriptor::threadTerminate(Thread_Manager * thr_mgr, int async_cancel)
     {
         // ACE_Thread::cancel under pthread will result in a pthread_cancel being
         // called. (See 'man pthread_cancel') which results in an async
@@ -600,17 +563,17 @@ namespace DAF
 
     /*********************************************************************************/
 
-    int SingletonExecute(const DAF::Runnable_ref & command)
+    int SingletonExecute(const Runnable_ref & command)
     {
-        struct SingletonExecutor : DAF::TaskExecutor
+        struct SingletonExecutor : TaskExecutor
         {
             enum {
-                SINGLETON_THREAD_TIMEOUT = (THREAD_DECAY_TIMEOUT / 2) // 15 Seconds
+                SINGLETON_DECAY_TIMEOUT = (THREAD_DECAY_TIMEOUT / 2) // 15 Seconds
             };
 
-            SingletonExecutor(void) : DAF::TaskExecutor()
+            SingletonExecutor(void) : TaskExecutor()
             {
-                this->setDecayTimeout(SINGLETON_THREAD_TIMEOUT);
+                this->setDecayTimeout(SINGLETON_DECAY_TIMEOUT);
             }
 
             const ACE_TCHAR * dll_name(void) const

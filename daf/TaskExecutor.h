@@ -73,14 +73,13 @@ namespace DAF
         using ACE_Task_Base::thr_count; // make this private - Use this->size() const
         using ACE_Task_Base::grp_id;    // make this private - Use this->grp_id() const
 
-        ACE_Auto_Ptr<ACE_Thread_Manager> thread_mgr_; // Declared first so destructed last
+        ACE_Auto_Ptr<ACE_Thread_Manager> threadManager_; // Declared first so destructed last
 
     public:
 
         /// default timeout values
         enum {
             THREAD_HANDOFF_TIMEOUT  = time_t(1),    // 1 millisecond
-            THREAD_START_TIMEOUT    = time_t(DAF_MSECS_ONE_SECOND), // 1 Second
             THREAD_EVICT_TIMEOUT    = time_t(DAF_MSECS_ONE_SECOND * 6), // 6 Seconds
             THREAD_DECAY_TIMEOUT    = time_t(DAF_MSECS_ONE_SECOND * 30) // 30 Seconds
         };
@@ -155,7 +154,7 @@ namespace DAF
         * is an adaptation of "this", all of which invoke <DAF::Runnable::run>.
         * Returns -1 if handoff failure occurs otherwise 0.
         */
-        virtual int     execute(const DAF::Runnable_ref &);
+        virtual int     execute(const Runnable_ref &);
 
         /// Return the current thread count.  NOTE: support for the DAF::Executor interface
         virtual size_t  size(void) const    { return this->thr_count();  }
@@ -257,7 +256,7 @@ namespace DAF
         * Thread svc routine for all threads created through TaskExecutor::execute() with
         * a DAF::Runnable argument.  This is invoked internally through the worker thread.
         */
-        virtual int svc(const DAF::Runnable_ref &);
+        virtual int svc(const Runnable_ref &);
 
         /**
         * Handoff a Runnable to possibly an existing (waiting) thread already resident
@@ -267,19 +266,14 @@ namespace DAF
         * the new thread will coallesce back into the pool after the DAF::Runnable request
         * has been completed.
         */
-        virtual int task_handOff(const DAF::Runnable_ref &);
+        virtual int task_handOff(const Runnable_ref &);
 
         /**
         * Dispatch a DAF::Runnable within the context of an existing pool thread.
         * This clears thread state (i.e. errno etc) as well as requested thread prorities
         * to that required by the DAF::Runnable instance being dispatched.
         */
-        virtual int task_dispatch(DAF::Runnable_ref = DAF::Runnable::_nil());
-
-    protected:
-
-        /// Thread pool condition - used to notify the eviction process as threads become removed.
-        DAF_SYNCH_CONDITION  zero_condition_;
+        virtual int task_dispatch(Runnable_ref = Runnable::_nil());
 
         /**
         * Hook called from ACE_Thread_Exit when during thread exit and from
@@ -292,38 +286,56 @@ namespace DAF
         */
         using ACE_Task_Base::close;
 
+    protected:
+
+        /// Positive (coupled) handoff channel for DAF::Runnable to a waiting pool thread.
+        SynchronousChannel<Runnable_ref>    taskChannel_;
+
     private:
 
-        /** Worker Task */
-        class DAF_Export WorkerExTask : public DAF::Runnable
-        {
-        public:
-            WorkerExTask(ACE_Task_Base *task, const DAF::Runnable_ref &cmd)
-                : task_(task), cmd_(cmd) {}
-            virtual int run(void);
-            ACE_Task_Base * task_base(void) const { return this->task_; }
-        private:
-            ACE_Task_Base  * task_;
-            DAF::Runnable_ref cmd_;
-        public:
-            DAF_DEFINE_REFCOUNTABLE(WorkerExTask);
-        };
-
-        DAF_DECLARE_REFCOUNTABLE(WorkerExTask);
+        /// Thread pool condition - used to notify the eviction process as threads become removed.
+        ACE_Condition<ACE_Thread_Mutex>     zeroCondition_; // Must Use the ACE Version as it uses ACE_Task_Base::lock_
 
     private:
 
         /// Routine that runs the service execute routine as a daemon thread.
-        static  ACE_THR_FUNC_RETURN execute_run(void *workerExTask);
-        static  ACE_THR_FUNC_RETURN execute_svc(void *aceTaskBase);
+        static ACE_THR_FUNC_RETURN threadExecute(void * workerTask);
 
         /// Routine that cleans up the manager hooks and thread state to reflect a thread closing
-        static  void cleanup(void *obj, void *args = 0);
+        static void threadCleanup(void * obj, void * args = 0);
 
-    protected:
+    private:
 
-        /// Positive (coupled) handoff channel for DAF::Runnable to a waiting pool thread.
-        DAF::SynchronousChannel<DAF::Runnable_ref>   taskChannel_;
+        class WorkerTask : public Runnable
+        {
+            TaskExecutor * taskExecutor_;
+
+        public:
+
+            WorkerTask(TaskExecutor *);
+
+            virtual int run(void);
+
+            TaskExecutor * taskExecutor(void) const
+            {
+                return this->taskExecutor_;
+            }
+
+            DAF_DEFINE_REFCOUNTABLE(WorkerTask);
+        };
+
+        DAF_DECLARE_REFCOUNTABLE(WorkerTask);
+
+        class WorkerTaskExtended : public WorkerTask
+        {
+            Runnable_ref command_;
+
+        public:
+
+            WorkerTaskExtended(TaskExecutor *, const Runnable_ref &);
+
+            virtual int run(void);
+        };
 
     private:
 
@@ -352,17 +364,35 @@ namespace DAF
 
     private:
 
+        mutable ACE_Atomic_Op<ACE_SYNCH_MUTEX, bool>    executorAvailable_;
+
         time_t  decay_timeout_;  // Decay Time for Threads      (milliseconds)
         time_t  evict_timeout_;  // Time for closing threads    (milliseconds)
         time_t  handoff_timeout_;// Time for handing off to existing threads before creating a new one (milliseconds)
 
-        mutable ACE_Atomic_Op<ACE_SYNCH_MUTEX, bool>    executorAvailable_;
-
         bool executorClosed_;
     };
 
+    /**********************************************************************************/
+
+    inline
+    TaskExecutor::WorkerTask::WorkerTask(TaskExecutor * taskExecutor) : Runnable()
+        , taskExecutor_(taskExecutor)
+    {
+    }
+
+    /**********************************************************************************/
+
+    inline
+    TaskExecutor::WorkerTaskExtended::WorkerTaskExtended(TaskExecutor * taskExecutor, const Runnable_ref & command)
+        : WorkerTask(taskExecutor), command_(command)
+    {
+    }
+
+    /**********************************************************************************/
+
     /// Execute a DAF::Runnable within the context of the singleton TaskExecutor.
-    DAF_Export int SingletonExecute(const DAF::Runnable_ref & command);
+    DAF_Export int SingletonExecute(const Runnable_ref & command);
 
 } // namespace DAF
 
