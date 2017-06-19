@@ -189,18 +189,15 @@ namespace test
       counter.release();
       counter.acquire();
 
-
-
+      // Let the thread exit runnable
+      DAF_OS::sleep(1);  // Stops intermittent race condition with thread touching channel after delete
 
       // Kill the TaskExecutor - This should lead to a hard thread kill
       // Can the Barrier recover?
       if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Killing the Channel\n"));
       delete channel;
 
-      DAF_OS::sleep(ACE_Time_Value(1,0));
-
-
-
+      DAF_OS::sleep(1);
     }
     catch ( const DAF::IllegalThreadStateException& )
     {
