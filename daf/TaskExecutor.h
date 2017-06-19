@@ -235,12 +235,12 @@ namespace DAF
 
         virtual int suspend(void)
         {
-            ACE_NOTSUP_RETURN(-1);
+            DAF_OS::last_error(ENOTSUP); return -1;
         }
 
         virtual int resume(void)
         {
-            ACE_NOTSUP_RETURN(-1);
+            DAF_OS::last_error(ENOTSUP); return -1;
         }
 
     protected:

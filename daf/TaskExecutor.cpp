@@ -56,10 +56,10 @@ namespace DAF
     template <> inline Runnable_ref
     SynchronousChannel<Runnable_ref>::extract(void)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
+        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, throw LockFailureException());
         Runnable_ref t(this->item_._retn()); this->itemTaken_.release();
         if (this->itemError_) {
-            this->itemError_ = false; DAF_THROW_EXCEPTION(InternalException);
+            this->itemError_ = false; throw InternalException();
         }
         return t._retn();
     }
@@ -122,12 +122,11 @@ namespace DAF
 
             TaskExecutor * task(reinterpret_cast<TaskExecutor *>(obj));
 
-            if (task) {
+            if (task) do {
 
                 ACE_thread_t thr_mine = DAF_OS::thr_self(), thr_self(0);
 
-                do {
-
+                {
                     ACE_GUARD_REACTION(ACE_Thread_Mutex, ace_mon, task->lock_, break);
 
                     if (args) {
@@ -153,13 +152,13 @@ namespace DAF
                     }
 
                     task->zeroCondition_.signal(); // Signal thread is leaving (only 1 waiter)
-
-                } while (false);
+                }
 
                 if (thr_mine == thr_self) { // Only call close here if we ARE the closing thread
                     task->close(0); // *task* is undefined here. close() could have deleted it.
                 }
-            }
+
+            } while (false);
         }
     }
 
@@ -267,7 +266,7 @@ namespace DAF
 
             { // Scope Lock
 
-                ACE_GUARD_RETURN(ACE_Thread_Mutex, mon, this->lock_, (DAF_OS::last_error(ENOLCK), -1));
+                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, break);
 
                 if (this->isAvailable() ? (force_active ? false : this->thr_count()) : true) {  // DCL
                     break; // Not available OR already active without being forced
@@ -348,7 +347,7 @@ namespace DAF
                 ACE_TEXT(" Unable to hand-off executable command 0x%@.\n"), command.ptr()));
         }
 
-        return -1;
+        DAF_OS::last_error(ENOEXEC); return -1;
     }
 
     int
@@ -380,7 +379,7 @@ namespace DAF
             WorkerTask_ref tp(new WorkerTaskExtended(this, command));
 
             {
-                ACE_GUARD_RETURN(ACE_Thread_Mutex, mon, this->lock_, (DAF_OS::last_error(ENOLCK), -1));
+                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, break);
 
                 if (this->isAvailable()) { // DCL
 
@@ -410,7 +409,7 @@ namespace DAF
 
         } while (false);
 
-        DAF_OS::last_error(ENOEXEC); return -1;
+        return -1;
     }
 
     int
