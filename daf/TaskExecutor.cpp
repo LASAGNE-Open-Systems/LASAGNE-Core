@@ -168,10 +168,10 @@ namespace DAF
     TaskExecutor::TaskExecutor(void) : ACE_Task_Base(new Thread_Manager())
         , threadManager_    (this->thr_mgr()) // Contains lifecycle of local ACE_Thread_Manager
         , zeroCondition_    (this->lock_)
-        , executorAvailable_(true)
         , decay_timeout_    (THREAD_DECAY_TIMEOUT)
         , evict_timeout_    (THREAD_EVICT_TIMEOUT)
         , handoff_timeout_  (THREAD_HANDOFF_TIMEOUT)
+        , executorAvailable_(true)
         , executorClosed_   (false)
     {
         this->grp_id(make_grp_id(this));
@@ -214,16 +214,13 @@ namespace DAF
     bool
     TaskExecutor::isAvailable(void) const
     {
-        if (this->executorAvailable_.value()) do {
-
+        if (this->executorAvailable_) {
             if (DAF::ShutdownHandler::has_shutdown()) {
-                this->executorAvailable_ = false; break;
+                this->executorAvailable_ = false;
+            } else {
+                return true;
             }
-
-            return true;
-
-        } while (false);
-
+        }
         return false;
     }
 
@@ -421,7 +418,7 @@ namespace DAF
     {
         this->executorAvailable_ = false; // Say we are no longer available
 
-        if (this->executorClosed_ ? false : this->executorClosed_ = true) {
+        if (this->executorClosed_ ? false : (this->executorClosed_ = true)) {
 
             ACE_Task_Base::module_closed(); this->taskChannel_.interrupt();
 

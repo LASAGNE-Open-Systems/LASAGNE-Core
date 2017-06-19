@@ -31,7 +31,6 @@
 
 #include <ace/Task.h>
 #include <ace/Auto_Ptr.h>
-#include <ace/Atomic_Op.h>
 #include <ace/Thread_Manager.h>
 
 namespace DAF
@@ -364,13 +363,12 @@ namespace DAF
 
     private:
 
-        mutable ACE_Atomic_Op<ACE_SYNCH_MUTEX, bool>    executorAvailable_;
-
         time_t  decay_timeout_;  // Decay Time for Threads      (milliseconds)
         time_t  evict_timeout_;  // Time for closing threads    (milliseconds)
         time_t  handoff_timeout_;// Time for handing off to existing threads before creating a new one (milliseconds)
 
-        bool executorClosed_;
+        mutable bool    executorAvailable_;
+        bool            executorClosed_;
     };
 
     /**********************************************************************************/
