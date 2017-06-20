@@ -273,15 +273,17 @@ namespace TAF
                             ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, taf_mon, *queryRepository, break);
 
                             for (TAF::IORServantRepository::iterator it(queryRepository->begin()); it != queryRepository->end();) {
-                                if (this->isActive()) try {
-                                    if (it->is_ident(ident)) { // Hand Off For UDP Send
-                                        if (DAF::SingletonExecute(new IORReplySender(*it, reply_address, u_short(ior_query.svc_flags)))) {
-                                            throw "Discovery-Failed-Send-Reply";
+                                if (this->isActive()) {
+                                    try {
+                                        if (it->is_ident(ident)) { // Hand Off For UDP Send (can throw CORBA Exception)
+                                            if (DAF::SingletonExecute(new IORReplySender(*it, reply_address, u_short(ior_query.svc_flags)))) {
+                                                break; // Not able to spawn (not Available?)
+                                            }
                                         }
+                                        ++it;
+                                    } catch (const CORBA::Exception &) { // Could not contact endpoint
+                                        it = TheIORQueryRepository()->erase(it);
                                     }
-                                    it++;
-                                } DAF_CATCH_ALL {
-                                    it = TheIORQueryRepository()->erase(it);
                                 } else break;
                             }
                         }
