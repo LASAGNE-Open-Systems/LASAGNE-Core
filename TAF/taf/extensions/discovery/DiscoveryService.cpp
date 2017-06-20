@@ -130,7 +130,7 @@ namespace TAF
                         const ACE_Time_Value send_timeout(DiscoveryService::SEND_QUERYREPLY_TIMEOUT);
 
                         if (dgram.send(io_ptr, io_len, this->address_, 0, &send_timeout) != ssize_t(io_len)) {
-                            switch (errno) {
+                            switch (DAF_OS::last_error()) {
                             case ETIME:
                                 ACE_DEBUG((LM_ERROR,
                                     ACE_TEXT("TAF(% 04P | % 04t) ERROR: IORReplySender - UDP reply timeout\n"))); break;
