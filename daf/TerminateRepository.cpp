@@ -121,32 +121,55 @@ namespace { // Anonymous
 
 } // Anonymous
 
-namespace DAF_OS
+int
+DAF_OS::insertTerminateEvent(ACE_thread_t thr_id)
 {
-    int
-    insertTerminateEvent(ACE_thread_t thr_id)
-    {
-        return TerminateRepository::instance()->insertTerminateEvent(thr_id);
-    }
+    return TerminateRepository::instance()->insertTerminateEvent(thr_id);
+}
 
-    int
-    removeTerminateEvent(ACE_thread_t thr_id)
-    {
-        return TerminateRepository::instance()->removeTerminateEvent(thr_id);
-    }
+int
+DAF_OS::removeTerminateEvent(ACE_thread_t thr_id)
+{
+    return TerminateRepository::instance()->removeTerminateEvent(thr_id);
+}
 
-    int
-    signalTerminateEvent(ACE_thread_t thr_id)
-    {
-        return TerminateRepository::instance()->signalTerminateEvent(thr_id);
-    }
+int
+DAF_OS::signalTerminateEvent(ACE_thread_t thr_id)
+{
+    return TerminateRepository::instance()->signalTerminateEvent(thr_id);
+}
 
-    ACE_HANDLE
-    locateTerminateEvent(ACE_thread_t thr_id)
-    {
-        return TerminateRepository::instance()->locateTerminateEvent(thr_id);
-    }
+ACE_HANDLE
+DAF_OS::locateTerminateEvent(ACE_thread_t thr_id)
+{
+    return TerminateRepository::instance()->locateTerminateEvent(thr_id);
+}
 
-}  // namespace DAF_OS
+int
+DAF_OS::sleep(const ACE_Time_Value & tv)
+{
+#if defined(ACE_WIN32)
+    for (ACE_HANDLE hTerminate = DAF_OS::locateTerminateEvent(DAF_OS::thr_self()); hTerminate != ACE_INVALID_HANDLE;)
+    {
+        switch (::WaitForSingleObject(hTerminate, DWORD(tv.msec())))
+        {
+        case WAIT_TIMEOUT:  return 0;
+
+        case WAIT_OBJECT_0:
+#if defined(DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION) && (DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION > 0)
+            throw ::abi::__forced_unwind();
+#else
+            DAF_OS::last_error(EINTR); break;
+#endif
+
+        default: DAF_OS::last_error(::GetLastError()); break;
+        }
+
+        return -1;
+    }
+#endif
+
+    return ACE_OS::sleep(tv);
+}
 
 #endif // defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)

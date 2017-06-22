@@ -569,16 +569,11 @@ namespace test
         {
             throw_exception = 1;
 
-#if defined(ACE_WIN32)
-            tester->result = INITIAL_RESULT_VALUE; // Wont be reset when we throw on Windows
-#endif
             DAF::TaskExecutor executor;
 
             executor.execute(runner);
 
             counter.acquire();
-
-
 
             executor.execute(putter);
 
@@ -589,23 +584,6 @@ namespace test
         }
 
         value = tester->result;
-
-#if defined(ACE_WIN32)
-        if (value != expected) {
-            if (value == INITIAL_RESULT_VALUE) {  // Initial Value
-                std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " FAILED" << std::endl;
-
-                ACE_DEBUG((LM_DEBUG,
-                    ACE_TEXT("* On Windows (only) this test intentionally terminates the putter thread and therefore\n")
-                    ACE_TEXT("* is subsequently unable to do the expected 'throw'. This 'throw' would have resulted\n")
-                    ACE_TEXT("* in an Expected value of %d being set. In this particular test case the resulting\n")
-                    ACE_TEXT("* value will remain unchanged from its initial value of %d and is therefore OK.\n")
-                    , expected, INITIAL_RESULT_VALUE));
-
-                expected = INITIAL_RESULT_VALUE;   // Set Expected value OK (same as initially set).
-            }
-        }
-#endif
 
         result &= (value == expected);
 

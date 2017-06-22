@@ -326,7 +326,7 @@ namespace DAF
                 this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
             }
 
-            DAF_OS::thr_yield(); // Let the thread(s) start up
+            ACE_OS::thr_yield(); // Let the thread(s) start up - Use ACE's native thr_yield here!!
 
             return 0;
 
@@ -413,7 +413,7 @@ namespace DAF
                 } else break; // Not Available
             }
 
-            DAF_OS::thr_yield(); // Let the thread start up
+            ACE_OS::thr_yield(); // Let the thread start up - Use ACE's native thr_yield here!!
 
             return 0;
 
@@ -549,7 +549,7 @@ namespace DAF
 
         // Must terminate threads after we have traversed the thr_list_ to prevent clobbering thr_to_be_removed_'s integrity.
 
-        for (ACE_Thread_Descriptor * td = 0; this->thr_to_be_removed_.dequeue_head(td) == 0; DAF_OS::thr_yield()) {
+        for (ACE_Thread_Descriptor * td = 0; this->thr_to_be_removed_.dequeue_head(td) == 0; ACE_OS::thr_yield()) { // Use ACE's native thr_yield here!!
             static_cast<Thread_Descriptor *>(td)->threadTerminate(this, async_cancel);
         }
 

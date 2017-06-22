@@ -77,7 +77,21 @@ namespace DAF_OS
     DAF_Export int                  thread_0_SIGSET_T(void);
 
 #if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+
     DAF_Export int                  cond_timedwait(ACE_cond_t *, ACE_thread_mutex_t *, ACE_Time_Value *);
+
+    DAF_Export int                  sleep(const ACE_Time_Value &);
+
+    ACE_INLINE int                  sleep(u_int seconds)
+    {
+        return DAF_OS::sleep(ACE_Time_Value(seconds));
+    }
+
+    ACE_INLINE void                 thr_yield(void)
+    {
+        DAF_OS::sleep(ACE_Time_Value::zero); ACE_OS::thr_yield();
+    }
+
 #endif
 
    /*
