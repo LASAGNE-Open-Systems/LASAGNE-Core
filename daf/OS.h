@@ -21,16 +21,6 @@
 #ifndef DAF_OS_H
 #define DAF_OS_H
 
-/**
-* @file     OS.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF_OS
-*/
-
 #include "DAF_export.h"
 
 #include <ace/OS.h>
@@ -85,6 +75,10 @@ namespace DAF_OS
     DAF_Export long                 thread_PRIORITY(ACE_hthread_t ht_id = thread_HANDLE());
 
     DAF_Export int                  thread_0_SIGSET_T(void);
+
+#if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+    DAF_Export int                  cond_timedwait(ACE_cond_t *, ACE_thread_mutex_t *, ACE_Time_Value *);
+#endif
 
    /*
     * The abs() function is required to ensure that the

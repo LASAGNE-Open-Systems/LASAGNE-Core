@@ -25,10 +25,7 @@
 #include "Exception.h"
 #include "ShutdownHandler.h"
 #include "PropertyManager.h"
-
-#if defined(ACE_WIN32)
-# include "SYNCHConditionBase.h"
-#endif
+#include "TerminateRepository.h"
 
 #include <ace/Singleton.h>
 
@@ -79,6 +76,8 @@ namespace DAF
 
             ACE_Thread_Descriptor * td = static_cast<Thread_Manager *>(task->thr_mgr())->thread_desc_self();
 
+            const ACE_thread_t thr_id = td->self(); DAF_OS::insertTerminateEvent(thr_id);
+
             // Register ourself with our <Thread_Manager>'s thread exit hook
             // mechanism so that our close() hook will be sure to get invoked
             // when this thread exits.
@@ -100,14 +99,25 @@ namespace DAF
                 status = reinterpret_cast<ACE_THR_FUNC_RETURN>(worker->run());
 #endif /* ACE_HAS_INTEGRAL_TYPE_THR_FUNC_RETURN */
 
-            } DAF_CATCH_ALL {
+            }
+#if defined(DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION) && (DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION > 0)
+            catch (const ::abi::__forced_unwind &) {
+                status = ACE_THR_FUNC_RETURN(0xDEAD); // Signify that we were forced closed
+# if !defined(ACE_WIN32)
+                DAF_OS::removeTerminateEvent(thr_id); throw;  // Cannot rethrow on Windows because it breaks ThreadAdapter's use of Structured-Exceptions
+# endif
+            }
+#endif
+            catch (...) {
                 if (ACE::debug() || DAF::debug()) {
                     ACE_DEBUG((LM_ERROR, ACE_TEXT("DAF (%P | %t) TaskExecutor ERROR: ")
-                        ACE_TEXT("Unhandled exception caught from execute_run() : TaskExecutor=0x%@.\n"), task));
+                        ACE_TEXT("Unhandled exception caught from executeThread() : TaskExecutor=0x%@.\n"), task));
                 }
             }
 
             static_cast<Thread_Descriptor *>(td)->threadAtExit(false);
+
+            DAF_OS::removeTerminateEvent(thr_id);
 
             return status;
         }
@@ -155,7 +165,7 @@ namespace DAF
                 }
 
                 if (thr_mine == thr_self) { // Only call close here if we ARE the closing thread
-                    task->close(0); // *task* is undefined here. close() could have deleted it.
+                    task->close(0);
                 }
 
             } while (false);
@@ -491,6 +501,8 @@ namespace DAF
     int
     TaskExecutor::Thread_Descriptor::threadTerminate(Thread_Manager * thr_mgr, int async_cancel)
     {
+        const ACE_thread_t thr_id = this->self();
+
         // ACE_Thread::cancel under pthread will result in a pthread_cancel being
         // called. (See 'man pthread_cancel') which results in an async
         // roll back through the thread's stack via the abi::__forced_unwind
@@ -501,19 +513,15 @@ namespace DAF
 
         if (this->threadAtExit(true) ? false : thr_mgr->cancel_thr(this, async_cancel)) { // Handle at_exits and if OK - Kill the thread
 
-#if defined(ACE_WIN32)
-            ACE_SET_BITS(this->threadFlags(), THR_DETACHED); // Set THR_DETACHED - Stops waiting on non-existant thread
-
-            if (::TerminateThread(this->threadHandle(), DWORD(0xDEAD))) {
-                DAF::threadSYNCHTerminate(this->self());
-            }
-#endif
+            if (DAF_OS::signalTerminateEvent(thr_id)) {
 
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-            this->terminate();
+                this->terminate();
 #else
-            thr_mgr->remove_thr(this, async_cancel); // This *may* leave TSS leaking (Fixed with terminate() access)
+                thr_mgr->remove_thr(this, async_cancel); // This *may* leave TSS leaking (Fixed with terminate() access)
 #endif
+            }
+
         }
 
         return 0;
