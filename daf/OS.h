@@ -82,12 +82,12 @@ namespace DAF_OS
 
     DAF_Export int                  sleep(const ACE_Time_Value &);
 
-    ACE_INLINE int                  sleep(u_int seconds)
+    inline int                      sleep(u_int seconds)
     {
         return DAF_OS::sleep(ACE_Time_Value(time_t(seconds)));
     }
 
-    ACE_INLINE void                 thr_yield(void)
+    inline void                     thr_yield(void)
     {
         DAF_OS::sleep(ACE_Time_Value::zero); ACE_OS::thr_yield();
     }
