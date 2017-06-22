@@ -78,6 +78,8 @@ namespace DAF_OS
 
 #if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
 
+    /* These are implemented in <daf/TerminateRepository.cpp> */
+
     DAF_Export int                  cond_timedwait(ACE_cond_t *, ACE_thread_mutex_t *, ACE_Time_Value *);
 
     DAF_Export int                  sleep(const ACE_Time_Value &);
