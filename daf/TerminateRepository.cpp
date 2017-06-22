@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -22,14 +22,15 @@
 
 #include "TerminateRepository.h"
 
+#if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+
 #include <ace/Thread_Mutex.h>
 #include <ace/Synch_Traits.h>
 #include <ace/Singleton.h>
+#include <ace/Event.h>
 
 #include <map>
 #include <typeinfo>
-
-#if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
 
 namespace { // Anonymous
 
@@ -122,37 +123,10 @@ namespace { // Anonymous
 } // Anonymous
 
 int
-DAF_OS::insertTerminateEvent(ACE_thread_t thr_id)
-{
-    return TerminateRepository::instance()->insertTerminateEvent(thr_id);
-}
-
-int
-DAF_OS::removeTerminateEvent(ACE_thread_t thr_id)
-{
-    return TerminateRepository::instance()->removeTerminateEvent(thr_id);
-}
-
-int
-DAF_OS::signalTerminateEvent(ACE_thread_t thr_id)
-{
-    return TerminateRepository::instance()->signalTerminateEvent(thr_id);
-}
-
-ACE_HANDLE
-DAF_OS::locateTerminateEvent(ACE_thread_t thr_id)
-{
-    return TerminateRepository::instance()->locateTerminateEvent(thr_id);
-}
-
-int
 DAF_OS::sleep(const ACE_Time_Value & tv)
 {
-#if defined(ACE_WIN32)
-    for (ACE_HANDLE hTerminate = DAF_OS::locateTerminateEvent(DAF_OS::thr_self()); hTerminate != ACE_INVALID_HANDLE;)
-    {
-        switch (::WaitForSingleObject(hTerminate, DWORD(tv.msec())))
-        {
+    for (ACE_HANDLE handle = DAF_OS::locateTerminateEvent(DAF_OS::thr_self()); handle != ACE_INVALID_HANDLE;) {
+        switch (::WaitForSingleObject(handle, DWORD(tv.msec()))) {
         case WAIT_TIMEOUT:  return 0;
 
         case WAIT_OBJECT_0:
@@ -167,9 +141,49 @@ DAF_OS::sleep(const ACE_Time_Value & tv)
 
         return -1;
     }
-#endif
 
     return ACE_OS::sleep(tv);
 }
 
 #endif // defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+
+int
+DAF_OS::insertTerminateEvent(ACE_thread_t thr_id)
+{
+#if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+    return TerminateRepository::instance()->insertTerminateEvent(thr_id);
+#else
+    ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(-1);
+#endif
+}
+
+int
+DAF_OS::removeTerminateEvent(ACE_thread_t thr_id)
+{
+#if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+    return TerminateRepository::instance()->removeTerminateEvent(thr_id);
+#else
+    ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(-1);
+#endif
+}
+
+int
+DAF_OS::signalTerminateEvent(ACE_thread_t thr_id)
+{
+#if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+    return TerminateRepository::instance()->signalTerminateEvent(thr_id);
+#else
+    ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(-1);
+#endif
+}
+
+ACE_HANDLE
+DAF_OS::locateTerminateEvent(ACE_thread_t thr_id)
+{
+#if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+    return TerminateRepository::instance()->locateTerminateEvent(thr_id);
+#else
+    ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(ACE_INVALID_HANDLE);
+#endif
+}
+

@@ -23,44 +23,14 @@
 
 #include "OS.h"
 
-#include <ace/Event.h>
-
 namespace DAF_OS
 {
-#if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
 
     int         insertTerminateEvent(ACE_thread_t thr_id);
     int         removeTerminateEvent(ACE_thread_t thr_id);
     int         signalTerminateEvent(ACE_thread_t thr_id);
     ACE_HANDLE  locateTerminateEvent(ACE_thread_t thr_id);
 
-#else
-
-    ACE_INLINE int
-    insertTerminateEvent(ACE_thread_t thr_id)
-    {
-        ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(-1);
-    }
-
-    ACE_INLINE int
-    removeTerminateEvent(ACE_thread_t thr_id)
-    {
-        ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(-1);
-    }
-
-    ACE_INLINE int
-    signalTerminateEvent(ACE_thread_t thr_id)
-    {
-        ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(-1);
-    }
-
-    ACE_INLINE ACE_HANDLE
-    locateTerminateEvent(ACE_thread_t thr_id)
-    {
-        ACE_UNUSED_ARG(thr_id); ACE_NOTSUP_RETURN(ACE_INVALID_HANDLE);
-    }
-
-#endif
 }  // namespace DAF_OS
 
 #endif // DAF_TERMINATEREPOSITORY_H

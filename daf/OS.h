@@ -84,7 +84,7 @@ namespace DAF_OS
 
     ACE_INLINE int                  sleep(u_int seconds)
     {
-        return DAF_OS::sleep(ACE_Time_Value(seconds));
+        return DAF_OS::sleep(ACE_Time_Value(time_t(seconds)));
     }
 
     ACE_INLINE void                 thr_yield(void)
