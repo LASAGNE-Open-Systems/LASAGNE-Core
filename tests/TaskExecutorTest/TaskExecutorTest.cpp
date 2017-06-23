@@ -961,7 +961,7 @@ namespace test
 
                 ~SynchBlockTest(void)
                 {
-                    this->module_closed(); this->wait(); this->result_ = 1;
+                    this->module_closed(); this->wait(); this->result_ = (this->thr_count() == 0);
                 }
 
                 virtual int svc(void) {
