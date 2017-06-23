@@ -945,23 +945,23 @@ namespace test
 
     int test_TaskExecutor_Sync_Block(int threads)
     {
-        //terminate_handler   oldterminatefunction    = set_terminate(terminatefunction);
-        //unexpected_handler  oldunexpectedfunction   = set_unexpected(unexpectedfunction);
+        int expected = 1, value = -1;
 
         do try {
             class SynchBlockTest : public DAF::TaskExecutor
             {
                 DAF::Semaphore semaphore;
+                int & result_;
 
             public:
-                SynchBlockTest(int threads) : semaphore(0)
+                SynchBlockTest(int threads, int & result) : semaphore(0), result_(result)
                 {
                     this->execute(threads);
                 }
 
                 ~SynchBlockTest(void)
                 {
-                    this->module_closed();
+                    this->module_closed(); this->wait(); this->result_ = 1;
                 }
 
                 virtual int svc(void) {
@@ -973,19 +973,20 @@ namespace test
                     return -1;
                 }
 
-            } synchExecutor_(threads); DAF_OS::sleep(10);
+            } synchExecutor_(threads, value);
 
         } catch (const std::exception &ex) {
-            ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("(%P | %t) Exception %s\n"), ex.what()), -3);
+            ACE_DEBUG((LM_INFO, ACE_TEXT("(%P | %t) Exception %s\n"), ex.what()));
         } DAF_CATCH_ALL {
-            ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("(%P | %t) Exception - Unknown\n")), -2);
+            ACE_DEBUG((LM_INFO, ACE_TEXT("(%P | %t) Exception - Unknown\n")));
 
         } while (false);
 
-        //set_terminate(oldterminatefunction);
-        //set_unexpected(oldunexpectedfunction);
+        int result = (value == expected);
 
-        return 0;
+        std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
+
+        return result;
     }
 
 }//namespace test
@@ -1032,11 +1033,8 @@ int main(int argc, char *argv[])
 
     result &= test::test_TaskExecutor_Dtor_Block(threadCount);
 
-#if defined(ACE_WIN32)  // Make sure we unblock on Windows even when we dont throw the excption (aka Linux)
-    result &= (test::test_TaskExecutor_Sync_Block(threadCount), 1);
-#else
     result &= test::test_TaskExecutor_Sync_Block(threadCount);
-#endif
+
 //    result &= test::test_ACE_Task_Base(threadCount);
 
     return !result;
