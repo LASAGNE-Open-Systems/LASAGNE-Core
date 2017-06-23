@@ -448,6 +448,8 @@ namespace DAF
                     thr_mgr->terminate_task(this, true); break;
                 }
             }
+
+            this->wait(); // Wait for all threads to exit
         }
 
         return 0;
