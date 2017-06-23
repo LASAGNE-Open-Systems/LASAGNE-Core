@@ -947,7 +947,8 @@ namespace test
     {
         int expected = 1, value = -1;
 
-        do try {
+        try {
+
             class SynchBlockTest : public DAF::TaskExecutor
             {
                 DAF::Semaphore semaphore;
@@ -968,7 +969,8 @@ namespace test
 
                     try {
                         return this->semaphore.acquire();
-                    } DAF_CATCH_ALL{}
+                    } DAF_CATCH_ALL {
+                    }
 
                     return -1;
                 }
@@ -979,8 +981,7 @@ namespace test
             ACE_DEBUG((LM_INFO, ACE_TEXT("(%P | %t) Exception %s\n"), ex.what()));
         } DAF_CATCH_ALL {
             ACE_DEBUG((LM_INFO, ACE_TEXT("(%P | %t) Exception - Unknown\n")));
-
-        } while (false);
+        }
 
         int result = (value == expected);
 
