@@ -195,7 +195,7 @@ namespace DAF
 
     TaskExecutor::~TaskExecutor(void)
     {
-        this->module_closed(); this->wait(); this->thr_mgr(0); // Close-and-Wait for threads to exit cleanly
+        this->module_closed(); this->thr_mgr(0); // Close-and-Wait for threads to exit cleanly
     }
 
     size_t

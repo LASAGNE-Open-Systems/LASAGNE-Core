@@ -125,18 +125,13 @@ namespace { // Anonymous
 int
 DAF_OS::cond_timedwait(ACE_cond_t * cv, ACE_thread_mutex_t * external_mutex, ACE_Time_Value * timeout)
 {
-    do {  // Prevent race conditions on the <waiters_> count.
-
-        if (ACE_OS::thread_mutex_lock(&cv->waiters_lock_) == 0) {
-            ++cv->waiters_;
-            if (ACE_OS::thread_mutex_unlock(&cv->waiters_lock_) == 0) {
-                break;
-            }
+    {  // Prevent race conditions - try for lock on the <waiters_> count.
+        bool waiters_locked = (ACE_OS::thread_mutex_lock(&cv->waiters_lock_) == 0);
+        ++cv->waiters_; // Update waiters
+        if (waiters_locked) {
+            ACE_OS::thread_mutex_unlock(&cv->waiters_lock_);
         }
-
-        return -1;
-
-    } while (false);
+    }
 
     // We keep the lock held just long enough to increment the count of
     // waiters by one.  Note that we can't keep it held across the call
@@ -144,7 +139,8 @@ DAF_OS::cond_timedwait(ACE_cond_t * cv, ACE_thread_mutex_t * external_mutex, ACE
     // ACE_OS::cond_signal().
 
     if (ACE_OS::thread_mutex_unlock(external_mutex)) {
-        return -1;
+        // Just reverse the waiters (unlocked!!)
+        --cv->waiters_; return -1;
     }
 
     int result = 0, error = 0, msec_timeout = 0;
@@ -175,22 +171,17 @@ DAF_OS::cond_timedwait(ACE_cond_t * cv, ACE_thread_mutex_t * external_mutex, ACE
 
     bool last_waiter = false;
 
-    do {  // Prevent race conditions on the <waiters_> count.
+    {  // Prevent race conditions on the <waiters_> count.
+        bool waiters_locked = (ACE_OS::thread_mutex_lock(&cv->waiters_lock_) == 0);
 
-        if (ACE_OS::thread_mutex_lock(&cv->waiters_lock_) == 0) {
-
-            if (--cv->waiters_ == 0) {
-                last_waiter = (cv->was_broadcast_ ? true : false);
-            }
-
-            if (ACE_OS::thread_mutex_unlock(&cv->waiters_lock_) == 0) {
-                break;
-            }
+        if (--cv->waiters_ == 0) {
+            last_waiter = (cv->was_broadcast_ ? true : false);
         }
 
-        return -1;
-
-    } while (false);
+        if (waiters_locked) {
+            ACE_OS::thread_mutex_unlock(&cv->waiters_lock_);
+        }
+    }
 
     const int WAIT_TERMINATE = int(WAIT_OBJECT_0 + 1);
 
@@ -203,17 +194,16 @@ DAF_OS::cond_timedwait(ACE_cond_t * cv, ACE_thread_mutex_t * external_mutex, ACE
         result = -1;
     }
 
-    if (last_waiter) {
-        // Release the signaler/broadcaster if we're the last waiter.
+    if (last_waiter) { // Release the signaler/broadcaster if we're the last waiter.
         if (ACE_OS::event_signal(&cv->waiters_done_)) {
-            return -1;
+            result = -1; // Return an Error indication
         }
     }
 
     // We must always regain the <external_mutex>, even when errors
     // occur because that's the guarantee that we give to our callers.
     if (ACE_OS::thread_mutex_lock(external_mutex)) {
-        result = -1;
+        result = -1; // Return an Error indication
     }
 
     if (error) switch (DAF_OS::last_error(error)) {

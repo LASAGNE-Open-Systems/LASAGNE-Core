@@ -38,28 +38,37 @@
 #define DAF_UNUSED_STATIC(ID) \
 template <typename T> inline void ID ## _UNUSED(const T& = (ID)) {}
 
-/**** Make Windows behave linke Linux when in wait ***/
+/**** Make Windows behave like Linux when in cancellable event (ie wait/sleep) ***/
 
-#if defined(ACE_WIN32) && defined(ACE_HAS_WTHREADS)
+#if defined(ACE_HAS_THREADS)
 
-# if !defined(ACE_USES_WINCE_SEMA_SIMULATION) && !defined (ACE_HAS_WTHREADS_CONDITION_VARIABLE)
-#  define DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD    1
+# if defined(ACE_LACKS_COND_T)
+#  define DAF_USES_COND_T_WAITERS
 # endif
 
-# if defined(DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+# if defined(ACE_WIN32)
+
+#  if defined(ACE_USES_WINCE_SEMA_SIMULATION) || defined (ACE_HAS_WTHREADS_CONDITION_VARIABLE)
+#   undef DAF_USES_COND_T_WAITERS
+#  else
+#   define DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD   1
 #   define DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION  1
-    namespace abi {
+    namespace abi
+    {
         struct __forced_unwind {};
     }
-# endif
+#  endif
 
     // Exception catching for abi (linux)
-#elif defined(ACE_HAS_PTHREADS)
+# elif defined(ACE_HAS_PTHREADS)
 
-# include <cxxabi.h>
-# define DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION 1
+#  include <cxxabi.h>
+#  define DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION 1
+
+# endif
 
 #endif
+
 
 #if defined(DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION) && (DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION > 0)
 # define DAF_CATCH_ALL catch (const abi::__forced_unwind &) { throw; } catch(...) 

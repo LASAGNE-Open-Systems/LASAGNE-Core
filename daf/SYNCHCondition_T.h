@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -53,6 +53,9 @@ namespace DAF
 
             int wait(const ACE_Time_Value * abstime);
 
+#if defined(DAF_USES_COND_T_WAITERS)
+            int waiters(void);
+#endif
         } condition_mutex_; // Use underlying condition variable emulation
 
         ACE_UNIMPLEMENTED_FUNC(void operator = (const SYNCHCondition<T> &))
@@ -71,10 +74,7 @@ namespace DAF
         /** Destructor - set condition state to Interrupted */
         ~SYNCHCondition(void)       { this->interrupt(); }
 
-        int waiters(void) const
-        {
-            return this->waiters_.value();
-        }
+        int waiters(void) const;
 
         /** Access the current condition "Interrupted" state */
         int interrupted(void) const { return int(this->interrupted_); }
@@ -104,7 +104,9 @@ namespace DAF
 
     private:
 
-        ACE_Atomic_Op<ACE_SYNCH_MUTEX, int> waiters_;
+#if !defined(DAF_USES_COND_T_WAITERS)
+        ACE_Atomic_Op<ACE_SYNCH_MUTEX, int> waiters_; // Prevent race conditions on the <waiters_> count.
+#endif
 
     private:
 
@@ -117,12 +119,38 @@ namespace DAF
         return DAF_OS::cond_timedwait(&this->cond_, &this->mutex().lock(), const_cast <ACE_Time_Value *>(abstime));
     }
 
+#if defined(DAF_USES_COND_T_WAITERS)
+    template <typename T> inline int
+    SYNCHCondition<T>::ConditionMutex::waiters(void)
+    {
+        long waiter_count = this->cond_.waiters(); // Grab the waiters initially
+
+        // Prevent race conditions on the <waiters_> count.
+        if (ACE_OS::thread_mutex_lock(&this->cond_.waiters_lock_) == 0) {
+            waiter_count = this->cond_.waiters(); // Update under lock
+            ACE_OS::thread_mutex_unlock(&this->cond_.waiters_lock_);
+        }
+
+        return int(waiter_count);
+    }
+#endif
+
+    template <typename T> int
+    SYNCHCondition<T>::waiters(void) const
+    {
+#if defined(DAF_USES_COND_T_WAITERS)
+        return const_cast<SYNCHCondition<T> *>(this)->condition_mutex_.waiters();
+#else
+        return this->waiters_.value();
+#endif
+    }
+
     template <typename T> int
     SYNCHCondition<T>::interrupt(void)
     {
         if (this->interrupted() ? this->waiters() > 0 : true) {
 
-            this->interrupted_ = true; DAF_OS::thr_yield(); // Set our flag.
+            this->interrupted_ = true; //DAF_OS::thr_yield(); // Set our flag.
 
             const int REMOVE_RETRY_MAXIMUM = 3; // Retry's before throw on condition
 
@@ -152,13 +180,20 @@ namespace DAF
         int result = -1, last_error = 0;
 
         if (!this->interrupted()) try { // Mutex locked by wait_condition caller
-            ++this->waiters_; 
+#if !defined(DAF_USES_COND_T_WAITERS)
+            ++this->waiters_;
+#endif
             if ((result = this->condition_mutex_.wait(abstime)) != 0) {
                 last_error = DAF_OS::last_error();
             }
+#if !defined(DAF_USES_COND_T_WAITERS)
             --this->waiters_;
+#endif
         } catch (...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-            --this->waiters_; throw;
+#if !defined(DAF_USES_COND_T_WAITERS)
+            --this->waiters_;
+#endif
+            throw;
         }
 
         if (this->interrupted()) {
