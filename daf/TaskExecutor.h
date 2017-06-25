@@ -235,12 +235,12 @@ namespace DAF
 
         virtual int suspend(void)
         {
-            DAF_OS::last_error(ENOTSUP); return -1;
+            ACE_NOTSUP_RETURN(-1);
         }
 
         virtual int resume(void)
         {
-            DAF_OS::last_error(ENOTSUP); return -1;
+            ACE_NOTSUP_RETURN(-1);
         }
 
     protected:
@@ -289,6 +289,8 @@ namespace DAF
 
         /// Positive (coupled) handoff channel for DAF::Runnable to a waiting pool thread.
         SynchronousChannel<Runnable_ref>    taskChannel_;
+
+        static void close_singleton(void);
 
     private:
 

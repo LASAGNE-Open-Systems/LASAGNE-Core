@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -39,16 +39,41 @@ extern "C" void DAF_TaskExecutor_threadCleanup(void *obj, void *args)
 }
 #endif /* ACE_HAS_SIG_C_FUNC */
 
-namespace DAF
-{
-    namespace { // Anonymous
+namespace { // Anonymous
 
-        int make_grp_id(void *p)
+    struct SingletonExecutor : DAF::TaskExecutor {
+
+        SingletonExecutor(void) : DAF::TaskExecutor()
         {
-            return int(reinterpret_cast<size_t>(p) & size_t(std::numeric_limits<int>::max()));
+            this->setDecayTimeout(this->getDecayTimeout() / 2); // Make timeout 1/2 the normal default
         }
 
-    } // Anonymous
+        const ACE_TCHAR * dll_name(void) const
+        {
+            return DAF_DLL_NAME;
+        }
+
+        const ACE_TCHAR * name(void) const
+        {
+            return typeid(*this).name();
+        }
+    };
+
+    int make_grp_id(void *p)
+    {
+        return int(reinterpret_cast<size_t>(p) & size_t(std::numeric_limits<int>::max()));
+    }
+
+} // Anonymous
+
+namespace DAF
+{
+    int SingletonExecute(const Runnable_ref & command)
+    {
+        return ACE_DLL_Singleton_T<SingletonExecutor, ACE_SYNCH_MUTEX>::instance()->execute(command);
+    }
+
+    /*********************************************************************************/
 
     template <> inline Runnable_ref
     SynchronousChannel<Runnable_ref>::extract(void)
@@ -170,6 +195,12 @@ namespace DAF
 
             } while (false);
         }
+    }
+
+    void
+    TaskExecutor::close_singleton(void)
+    {
+        ACE_DLL_Singleton_T<SingletonExecutor, ACE_SYNCH_MUTEX>::close_singleton();
     }
 
     /*********************************************************************************/
@@ -565,35 +596,6 @@ namespace DAF
             return this->thr_to_be_removed_.enqueue_tail(td);
         }
         return -1;
-    }
-
-    /*********************************************************************************/
-
-    int SingletonExecute(const Runnable_ref & command)
-    {
-        struct SingletonExecutor : TaskExecutor
-        {
-            enum {
-                SINGLETON_DECAY_TIMEOUT = (THREAD_DECAY_TIMEOUT / 2) // 15 Seconds
-            };
-
-            SingletonExecutor(void) : TaskExecutor()
-            {
-                this->setDecayTimeout(SINGLETON_DECAY_TIMEOUT);
-            }
-
-            const ACE_TCHAR * dll_name(void) const
-            {
-                return DAF_DLL_NAME;
-            }
-
-            const ACE_TCHAR * name(void) const
-            {
-                return typeid(*this).name();
-            }
-        };
-
-        return ACE_DLL_Singleton_T<SingletonExecutor, ACE_SYNCH_MUTEX>::instance()->execute(command);
     }
 
 }  // namespace DAF

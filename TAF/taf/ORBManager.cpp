@@ -82,10 +82,13 @@ namespace TAF {
 
     ORB::~ORB(void)
     {
-        this->module_closed(); this->wait();
+        this->module_closed();
+
         if (!CORBA::is_nil(this->orb_.in())) {
             this->orb_->destroy(); this->orb_ = 0;
         }
+
+        TaskExecutor::close_singleton(); // Close the Underlying TaskExecutor Singleton
     }
 
     void
@@ -436,14 +439,15 @@ namespace TAF {
 
     ORBManager::ORBManager(int argc, ACE_TCHAR *argv[]) : orbThreads_(DEFAULT_ORBTHREADS)
     {
-        this->instance_i() = this; if (argc && ORBManager::init(argc, argv)) {
+        this->instance_i() = this;
+        if (argc && ORBManager::init(argc, argv)) {
             throw CORBA::BAD_OPERATION();
         }
     }
 
     ORBManager::~ORBManager(void)
     {
-        this->module_closed(); this->wait(); this->instance_i() = 0;
+        this->module_closed(); this->instance_i() = 0;
     }
 
     size_t
