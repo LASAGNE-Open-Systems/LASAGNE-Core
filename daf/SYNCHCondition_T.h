@@ -51,10 +51,10 @@ namespace DAF
         {
             ConditionMutex(T &mutex) : ACE_Condition<T>(mutex) {}
 
-            int wait(const ACE_Time_Value * abstime);
+            int     wait(const ACE_Time_Value * abstime);
 
 #if defined(DAF_USES_COND_T_WAITERS)
-            int waiters(void);
+            long    waiters(void) const { return this->cond_.waiters(); }
 #endif
         } condition_mutex_; // Use underlying condition variable emulation
 
@@ -105,7 +105,7 @@ namespace DAF
     private:
 
 #if !defined(DAF_USES_COND_T_WAITERS)
-        ACE_Atomic_Op<ACE_SYNCH_MUTEX, int> waiters_; // Prevent race conditions on the <waiters_> count.
+        ACE_Atomic_Op<ACE_Thread_Mutex, long>   waiters_; // Prevent race conditions on the <waiters_> count.
 #endif
 
     private:
@@ -119,29 +119,13 @@ namespace DAF
         return DAF_OS::cond_timedwait(&this->cond_, &this->mutex().lock(), const_cast <ACE_Time_Value *>(abstime));
     }
 
-#if defined(DAF_USES_COND_T_WAITERS)
     template <typename T> inline int
-    SYNCHCondition<T>::ConditionMutex::waiters(void)
-    {
-        long waiter_count = this->cond_.waiters(); // Grab the waiters initially
-
-        // Prevent race conditions on the <waiters_> count.
-        if (ACE_OS::thread_mutex_lock(&this->cond_.waiters_lock_) == 0) {
-            waiter_count = this->cond_.waiters(); // Update under lock
-            ACE_OS::thread_mutex_unlock(&this->cond_.waiters_lock_);
-        }
-
-        return int(waiter_count);
-    }
-#endif
-
-    template <typename T> int
     SYNCHCondition<T>::waiters(void) const
     {
 #if defined(DAF_USES_COND_T_WAITERS)
-        return const_cast<SYNCHCondition<T> *>(this)->condition_mutex_.waiters();
+        return int(this->condition_mutex_.waiters());
 #else
-        return this->waiters_.value();
+        return int(this->waiters_.value());
 #endif
     }
 
@@ -150,7 +134,7 @@ namespace DAF
     {
         if (this->interrupted() ? this->waiters() > 0 : true) {
 
-            this->interrupted_ = true; //DAF_OS::thr_yield(); // Set our flag.
+            this->interrupted_ = true; ACE_OS::thr_yield(); // Set our flag.
 
             const int REMOVE_RETRY_MAXIMUM = 3; // Retry's before throw on condition
 
@@ -162,7 +146,7 @@ namespace DAF
 
             const ACE_Time_Value remove_delay(0, 5000); // Delay 5ms after the broadcast
 
-            for (int i = REMOVE_RETRY_MAXIMUM; i--; DAF_OS::sleep(remove_delay)) {  // Allow threads to exit wait
+            for (int i = REMOVE_RETRY_MAXIMUM; i--; ACE_OS::sleep(remove_delay)) {  // Allow threads to exit wait
                 if (this->waiters() > 0) {
                     ACE_GUARD_ACTION(_mutex_type, cond_lock, this->condition_mutex_.mutex(), this->broadcast(), break);
                 } else return 0;
