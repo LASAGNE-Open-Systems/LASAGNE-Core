@@ -70,7 +70,20 @@ namespace DAF
 {
     int SingletonExecute(const Runnable_ref & command)
     {
-        return ACE_DLL_Singleton_T<SingletonExecutor, ACE_SYNCH_MUTEX>::instance()->execute(command);
+        static SingletonExecutor * singleton_executor = 0;
+
+        // Stops multiple AFR registrations warnings in ACE (go-figure) ???
+        do {
+            static ACE_Thread_Mutex singleton_lock; // Stops thread Race Condition
+            if (singleton_executor == 0) {
+                ACE_GUARD_REACTION(ACE_Thread_Mutex, guard, singleton_lock, break);
+                if (singleton_executor == 0) { // DCL
+                    singleton_executor = ACE_DLL_Singleton_T<SingletonExecutor, ACE_SYNCH_MUTEX>::instance();
+                }
+            }
+        } while (false);
+
+        return singleton_executor ? singleton_executor->execute(command) : -1;
     }
 
     /*********************************************************************************/

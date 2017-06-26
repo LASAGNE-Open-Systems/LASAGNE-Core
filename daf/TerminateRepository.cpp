@@ -54,7 +54,7 @@ namespace { // Anonymous
 
         operator _mutex_type & () const
         {
-            return this->lock_;
+            return this->repo_lock_;
         }
 
         const ACE_TCHAR * dll_name(void) const
@@ -69,19 +69,38 @@ namespace { // Anonymous
 
     private:
 
-        mutable _mutex_type  lock_;
+        mutable _mutex_type  repo_lock_;
     };
 
     TerminateRepository *
     TerminateRepository::instance(void)
     {
-        return ACE_DLL_Singleton_T<TerminateRepository, ACE_SYNCH_MUTEX>::instance();
+        static TerminateRepository * terminate_repo = 0;
+
+        // Stops multiple AFR registrations warnings in ACE (go-figure) ???
+        do {
+            static ACE_Thread_Mutex singleton_lock; // Stops thread Race Condition
+            if (terminate_repo == 0) {
+                ACE_GUARD_REACTION(ACE_Thread_Mutex, guard, singleton_lock, break);
+                if (terminate_repo == 0) { // DCL
+                    terminate_repo = ACE_DLL_Singleton_T<TerminateRepository, ACE_SYNCH_MUTEX>::instance();
+                }
+            }
+        } while (false);
+
+        return terminate_repo;
     }
 
     int
     TerminateRepository::insertTerminateEvent(ACE_thread_t thr_id)
     {
-        ACE_WRITE_GUARD_RETURN(_mutex_type, guard, *this, -1); return ((*this)[thr_id].handle()) ? 0 : (this->erase(thr_id), -1);
+        ACE_WRITE_GUARD_RETURN(_mutex_type, guard, *this, -1);
+
+        if ((*this)[thr_id].handle()) {
+            return 0;
+        }
+
+        this->erase(thr_id); return -1;
     }
 
     int
