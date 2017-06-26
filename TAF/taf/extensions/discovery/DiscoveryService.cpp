@@ -27,7 +27,6 @@
 #include <taf/CDRStream.h>
 #include <taf/TAFDebug.h>
 
-#include <daf/TaskExecutor.h>
 #include <daf/PropertyManager.h>
 
 #include <ace/Service_Config.h>
@@ -139,10 +138,10 @@ namespace TAF
                                     ACE_TEXT("TAF(% 04P | % 04t) ERROR: IORReplySender - UDP reply failed\n"))); break;
                             }
                         }
-                        else if (TAF::debug() > 1) {
-                            char addr[BUFSIZ]; if (this->address_.addr_to_string(addr, sizeof(addr))) *addr = 0;
+                        else if (TAF::debug() > 2) {
+                            char addr[BUFSIZ]; if (this->address_.addr_to_string(addr, sizeof(addr))) { *addr = 0; }
                             ACE_DEBUG((LM_DEBUG,
-                                ACE_TEXT("TAF (%04P | %04t) INFO: - CORBA::Object successfully sent to address '%s'\n"), addr));
+                                ACE_TEXT("TAF (%04P | %04t) INFO: - IORQuery Response sent to address '%s'\n"), addr));
                         }
 
                         dgram.close(); return 0;
@@ -286,11 +285,6 @@ namespace TAF
                                     }
                                 } else break;
                             }
-                        }
-
-                        if (TAF::debug() > 2) {
-                            ACE_DEBUG((LM_INFO, ACE_TEXT("IORQuery Response sent to '%s:%d'\n")
-                                , reply_address.get_host_name(), int(reply_address.get_port_number())));
                         }
 
                     } while (false);
