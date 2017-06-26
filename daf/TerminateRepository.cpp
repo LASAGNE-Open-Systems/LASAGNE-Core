@@ -40,9 +40,23 @@ namespace { // Anonymous
 
     class TerminateRepository : std::map<ACE_thread_t, TerminateEvent>
     {
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const TerminateRepository &))
+        ACE_UNIMPLEMENTED_FUNC(TerminateRepository(const TerminateRepository &))
+
     public:
 
+        typedef ACE_DLL_Singleton_T<TerminateRepository, ACE_SYNCH_MUTEX>   _singleton_type;
+
         typedef ACE_SYNCH_RW_MUTEX  _mutex_type;
+
+        TerminateRepository(void)
+        {
+        }
+
+        virtual ~TerminateRepository(void)
+        {
+            TerminateRepository::repo_instance_ = 0;
+        }
 
         static TerminateRepository * instance(void);
 
@@ -70,25 +84,29 @@ namespace { // Anonymous
     private:
 
         mutable _mutex_type  repo_lock_;
+
+    private:
+
+        static TerminateRepository * repo_instance_;
     };
+
+    TerminateRepository * TerminateRepository::repo_instance_ = 0;
 
     TerminateRepository *
     TerminateRepository::instance(void)
     {
-        static TerminateRepository * terminate_repo = 0;
-
         // Stops multiple AFR registrations warnings in ACE (go-figure) ???
         do {
             static ACE_Thread_Mutex singleton_lock; // Stops thread Race Condition
-            if (terminate_repo == 0) {
+            if (TerminateRepository::repo_instance_ == 0) {
                 ACE_GUARD_REACTION(ACE_Thread_Mutex, guard, singleton_lock, break);
-                if (terminate_repo == 0) { // DCL
-                    terminate_repo = ACE_DLL_Singleton_T<TerminateRepository, ACE_SYNCH_MUTEX>::instance();
+                if (TerminateRepository::repo_instance_ == 0) { // DCL
+                    TerminateRepository::repo_instance_ = TerminateRepository::_singleton_type::instance();
                 }
             }
         } while (false);
 
-        return terminate_repo;
+        return TerminateRepository::repo_instance_;
     }
 
     int

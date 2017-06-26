@@ -41,12 +41,26 @@ extern "C" void DAF_TaskExecutor_threadCleanup(void *obj, void *args)
 
 namespace { // Anonymous
 
-    struct SingletonExecutor : DAF::TaskExecutor {
+    class SingletonExecutor : public DAF::TaskExecutor
+    {
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const SingletonExecutor &))
+        ACE_UNIMPLEMENTED_FUNC(SingletonExecutor(const SingletonExecutor &))
+
+    public:
+
+        typedef ACE_DLL_Singleton_T<SingletonExecutor, ACE_SYNCH_MUTEX> _singleton_type;
 
         SingletonExecutor(void) : DAF::TaskExecutor()
         {
             this->setDecayTimeout(this->getDecayTimeout() / 2); // Make timeout 1/2 the normal default
         }
+
+        virtual ~SingletonExecutor(void)
+        {
+            SingletonExecutor::executor_instance_ = 0;
+        }
+
+        static SingletonExecutor * instance(void);
 
         const ACE_TCHAR * dll_name(void) const
         {
@@ -57,7 +71,30 @@ namespace { // Anonymous
         {
             return typeid(*this).name();
         }
+
+    private:
+
+        static SingletonExecutor * executor_instance_;
     };
+
+    SingletonExecutor * SingletonExecutor::executor_instance_ = 0;
+
+    SingletonExecutor *
+    SingletonExecutor::instance(void)
+    {
+        // Stops multiple AFR registrations warnings in ACE (go-figure) ???
+        do {
+            static ACE_Thread_Mutex singleton_lock; // Stops thread Race Condition
+            if (SingletonExecutor::executor_instance_ == 0) {
+                ACE_GUARD_REACTION(ACE_Thread_Mutex, guard, singleton_lock, break);
+                if (SingletonExecutor::executor_instance_ == 0) { // DCL
+                    SingletonExecutor::executor_instance_ = SingletonExecutor::_singleton_type::instance();
+                }
+            }
+        } while (false);
+
+        return SingletonExecutor::executor_instance_;
+    }
 
     int make_grp_id(void *p)
     {
@@ -70,20 +107,7 @@ namespace DAF
 {
     int SingletonExecute(const Runnable_ref & command)
     {
-        static SingletonExecutor * singleton_executor = 0;
-
-        // Stops multiple AFR registrations warnings in ACE (go-figure) ???
-        do {
-            static ACE_Thread_Mutex singleton_lock; // Stops thread Race Condition
-            if (singleton_executor == 0) {
-                ACE_GUARD_REACTION(ACE_Thread_Mutex, guard, singleton_lock, break);
-                if (singleton_executor == 0) { // DCL
-                    singleton_executor = ACE_DLL_Singleton_T<SingletonExecutor, ACE_SYNCH_MUTEX>::instance();
-                }
-            }
-        } while (false);
-
-        return singleton_executor ? singleton_executor->execute(command) : -1;
+        return SingletonExecutor::instance()->execute(command);
     }
 
     /*********************************************************************************/
