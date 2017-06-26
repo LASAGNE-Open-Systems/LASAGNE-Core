@@ -237,7 +237,7 @@ namespace DAF
     void
     TaskExecutor::close_singleton(void)
     {
-        ACE_DLL_Singleton_T<SingletonExecutor, ACE_SYNCH_MUTEX>::close_singleton();
+        SingletonExecutor::_singleton_type::close_singleton();
     }
 
     /*********************************************************************************/
