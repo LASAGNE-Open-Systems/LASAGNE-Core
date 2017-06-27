@@ -174,6 +174,12 @@ namespace DAF
 #if defined(DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION) && (DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION > 0)
             catch (const ::abi::__forced_unwind &) {
                 status = ACE_THR_FUNC_RETURN(0xDEAD); // Signify that we were forced closed and swallow exception
+# if !defined(ACE_WIN32)
+#  if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
+                static_cast<Thread_Descriptor *>(td)->threadAtExit();
+#  endif
+                DAF_OS::removeTerminateEvent(thr_id); throw;
+# endif
             }
 #endif
             catch (...) {
