@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -290,6 +290,8 @@ namespace DAF
         /// Positive (coupled) handoff channel for DAF::Runnable to a waiting pool thread.
         SynchronousChannel<Runnable_ref>    taskChannel_;
 
+    protected:
+
         static void close_singleton(void);
 
     private:
@@ -344,7 +346,7 @@ namespace DAF
 
         struct Thread_Descriptor : ACE_Thread_Descriptor
         {
-            int threadAtExit(bool force_at_exit);
+            int threadAtExit(void);
             int threadTerminate(Thread_Manager *, int async_cancel);
 
             ACE_hthread_t   threadHandle(void)  const   { return this->thr_handle_; }

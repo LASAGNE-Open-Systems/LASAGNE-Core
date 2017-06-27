@@ -103,6 +103,21 @@ namespace { // Anonymous
 
 } // Anonymous
 
+/*********************************************************************************/
+
+template <> inline DAF::Runnable_ref
+DAF::SynchronousChannel<DAF::Runnable_ref>::extract(void)
+{
+    ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, throw DAF::LockFailureException());
+    DAF::Runnable_ref t(this->item_._retn()); this->itemTaken_.release();
+    if (this->itemError_) {
+        this->itemError_ = false; throw DAF::InternalException();
+    }
+    return t._retn();
+}
+
+/*********************************************************************************/
+
 namespace DAF
 {
     int SingletonExecute(const Runnable_ref & command)
@@ -110,17 +125,10 @@ namespace DAF
         return SingletonExecutor::instance()->execute(command);
     }
 
-    /*********************************************************************************/
-
-    template <> inline Runnable_ref
-    SynchronousChannel<Runnable_ref>::extract(void)
+    void
+    TaskExecutor::close_singleton(void)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, throw LockFailureException());
-        Runnable_ref t(this->item_._retn()); this->itemTaken_.release();
-        if (this->itemError_) {
-            this->itemError_ = false; throw InternalException();
-        }
-        return t._retn();
+        SingletonExecutor::_singleton_type::close_singleton();
     }
 
     /*********************************************************************************/
@@ -162,12 +170,10 @@ namespace DAF
 #endif /* ACE_HAS_INTEGRAL_TYPE_THR_FUNC_RETURN */
 
             }
+
 #if defined(DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION) && (DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION > 0)
             catch (const ::abi::__forced_unwind &) {
-                status = ACE_THR_FUNC_RETURN(0xDEAD); // Signify that we were forced closed
-# if !defined(ACE_WIN32)
-                DAF_OS::removeTerminateEvent(thr_id); throw;  // Cannot rethrow on Windows because it breaks ThreadAdapter's use of Structured-Exceptions
-# endif
+                status = ACE_THR_FUNC_RETURN(0xDEAD); // Signify that we were forced closed and swallow exception
             }
 #endif
             catch (...) {
@@ -177,8 +183,9 @@ namespace DAF
                 }
             }
 
-            static_cast<Thread_Descriptor *>(td)->threadAtExit(false);
-
+#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
+            static_cast<Thread_Descriptor *>(td)->threadAtExit();
+#endif
             DAF_OS::removeTerminateEvent(thr_id);
 
             return status;
@@ -232,12 +239,6 @@ namespace DAF
 
             } while (false);
         }
-    }
-
-    void
-    TaskExecutor::close_singleton(void)
-    {
-        SingletonExecutor::_singleton_type::close_singleton();
     }
 
     /*********************************************************************************/
@@ -540,32 +541,14 @@ namespace DAF
     /*********************************************************************************/
 
     int
-    TaskExecutor::Thread_Descriptor::threadAtExit(bool force_at_exit)
+    TaskExecutor::Thread_Descriptor::threadAtExit(void)
     {
-        if (ACE_BIT_DISABLED(this->threadState(), ACE_Thread_Manager::ACE_THR_CANCELLED)) try {
-
-            // Skip if thread has already been cancelled (terminated)
-
-#if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
-            ACE_UNUSED_ARG(force_at_exit);
-#else
-            if (force_at_exit) // Set by threadTerminate()
-#endif
-            {
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->do_at_exit();
+        this->do_at_exit();
 #else
-                this->at_exit(this->taskBase(), 0, 0); TaskExecutor::threadCleanup(this->taskBase(), this);
+        this->at_exit(this->taskBase(), 0, 0); TaskExecutor::threadCleanup(this->taskBase(), this);
 #endif
-            }
-
-            return 0;
-
-        } DAF_CATCH_ALL {
-            // Encountered a User Code Error
-        }
-
-        return -1;
+        return 0;
     }
 
     int
@@ -581,17 +564,15 @@ namespace DAF
         // which generally includes the ACE_Log_Msg, Service_Config, TAO POA elements
         // etc.
 
-        if (this->threadAtExit(true) ? false : thr_mgr->cancel_thr(this, async_cancel)) { // Handle at_exits and if OK - Kill the thread
+        if (thr_mgr->cancel_thr(this, async_cancel) && DAF_OS::signalTerminateEvent(thr_id)) { // Try and cancel the thread
 
-            if (DAF_OS::signalTerminateEvent(thr_id)) {
+            DAF_OS::removeTerminateEvent(thr_id); // Clean this thread from repository (last Chance)
 
 #if defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && (ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS > 0)
-                this->terminate();
+            this->terminate();
 #else
-                thr_mgr->remove_thr(this, async_cancel); // This *may* leave TSS leaking (Fixed with terminate() access)
+            thr_mgr->remove_thr(this, async_cancel); // This *may* leave TSS leaking (Fixed with terminate() access)
 #endif
-            }
-
         }
 
         return 0;
@@ -629,10 +610,7 @@ namespace DAF
     int
     TaskExecutor::Thread_Manager::terminate_thr(Thread_Descriptor * td, int /* async_cancel */)
     {
-        if (ACE_BIT_DISABLED(td->threadState(), (ACE_THR_JOINING | ACE_THR_CANCELLED | ACE_THR_TERMINATED))) {
-            return this->thr_to_be_removed_.enqueue_tail(td);
-        }
-        return -1;
+        return this->thr_to_be_removed_.enqueue_tail(td);
     }
 
 }  // namespace DAF
