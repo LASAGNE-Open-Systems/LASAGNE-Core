@@ -222,11 +222,11 @@ namespace DAF
                         if (td) {
                             thr_self = td->self();
                             if (DAF::debug() > 2) {
-                                ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %t) TaskExecutor::cleanup; ")
-                                    ACE_TEXT("grp_id=%d,thr_count=%d,thr_self=%d[0x%X],ThreadState=0x%X\n")
-                                    , task->grp_id()
-                                    , task->thr_count()
-                                    , unsigned(thr_self), unsigned(thr_self)
+                                ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %08Q) TaskExecutor::cleanup; ")
+                                    ACE_TEXT("grp_id=%u,thr_count=%03d,ThreadState=0x%08X\n")
+                                    , static_cast<unsigned long long>(thr_self)
+                                    , unsigned(task->grp_id())
+                                    , int(task->thr_count())
                                     , unsigned(td->threadState())));
                             }
                         }
