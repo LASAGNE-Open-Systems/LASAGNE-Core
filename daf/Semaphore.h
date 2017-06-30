@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,14 +23,6 @@
 
 /**
 * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
-*
-* @file     Semaphore.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
 */
 
 #include "Monitor.h"
@@ -65,35 +57,86 @@ namespace DAF
     * --> Doug Lee
     */
 
-    typedef class DAF_Export Semaphore : protected DAF::Monitor
+    class DAF_Export Semaphore : protected Monitor
     {
-        volatile int permits_;
+        using Monitor::wait; // Hide wait.
 
     public:
 
-        /** \todo{Fill this in} */
-        Semaphore(int permits = 1); // Set default as unlocked
+        typedef typename Monitor::_mutex_type _mutex_type;
 
-        using DAF::Monitor::waiters;
-        using DAF::Monitor::interrupt;
-        using DAF::Monitor::interrupted;
+        /** Construct with initial permit count */
+        Semaphore(int permits = 1); // Set default == 1 (Unlocked)
 
-        /** \todo{Fill this in} */
-        int permits(void) const
-        {
-            return this->permits_;
-        }
+        virtual ~Semaphore(void);
 
-        /** \todo{Fill this in} */
-        virtual int acquire(void);
-        /** \todo{Fill this in} */
-        virtual int attempt(time_t msecs);
-        /** \todo{Fill this in} */
-        virtual int release(void);
-        /** \todo{Fill this in} */
-        virtual int release(int n);
+        /** Access to current permit count */
+        int permits(void) const;
 
-    } WaiterPreferenceSemaphore;
+        /**
+        * If @a abstime == 0 the call acquire() directly.  Otherwise, Block the
+        * thread until we acquire a permit or until @a abstime times out, in
+        * which case -1 is returned with @c errno == @c ETIME.  Note that
+        * @a abstime is assumed to be in "absolute" rather than "relative" time.
+        */
+        int acquire(const ACE_Time_Value * abstime = 0);
+        int acquire(const ACE_Time_Value & abstime);
+
+        /** Same as acquire, however a conversion of @a msecs to absolute time.
+        * A @a msecs <= 0 will result in the current absolute time and if 
+        * a permit is not imedaitely available, a -1 is returned with
+        * @c errno == @c ETIME
+        * @deprecated
+        */
+        int attempt(time_t msecs);
+
+        /** Release a single permit. NOTE: permits can legally go negative! */
+        int release(void);
+
+        /** Release multiple @a n permits. NOTE: permits can legally go negative! */
+        int release(int n);
+
+        using Monitor::waiters;
+        using Monitor::interrupt;
+        using Monitor::interrupted;
+
+    private:
+
+        int permits_;
+    };
+
+
+    /*
+     * Documented within Doug Lee's book on Concurrency in Java
+     * @deprecated
+     */
+
+    typedef class DAF::Semaphore    WaiterPreferenceSemaphore;
+
+
+    inline
+    Semaphore::Semaphore(int permits) : permits_(permits)
+    {
+    }
+
+    inline
+    Semaphore::~Semaphore(void)
+    {
+    }
+
+    inline
+    int
+    Semaphore::acquire(const ACE_Time_Value & tv)
+    {
+        return this->acquire(&tv);
+    }
+
+    inline
+    int
+    Semaphore::attempt(time_t msecs)
+    {
+        return this->acquire(DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
+    }
 
 } // namespace DAF
 

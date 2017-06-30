@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -22,7 +22,11 @@
 #define DAF_SYNCHRONOUSCHANNEL_T_H
 
 #include "Channel_T.h"
-#include "Semaphore.h"
+
+#include "RefCount.h"
+#include "Semaphore.h" // Not Used Yet, but dependants may require it
+
+#include <list>
 
 namespace DAF
 {
@@ -41,45 +45,35 @@ namespace DAF
     * consider using a Barrier. If you need bi-directional exchanges, consider
     * using a Rendezvous.
     */
+
     template <typename T>
-    class SynchronousChannel : public DAF::Channel<T>
+    class SynchronousChannel : public Channel<T>
     {
-        DAF_SYNCH_MUTEX putLock_;
-        DAF::Semaphore  itemAvailable_, unclaimedTakers_, itemTaken_;
-        T               item_;
-        volatile bool   itemError_;
-
-        // Assignment protocol is:
-        // 1. Wait until no other puts are active (via putLock_)
-        // 2. Insert the item value, and signal item that it is ready
-        //       (via underlying WaiterPreferenceSemaphore).
-        // 3. Wait for item to be taken (via itemTaken_ semaphore).
-        // 4. Allow another put to insert item (by releasing putLock_).
-        virtual int insert(const T &t);
-
-        // Item value overload protocol is:
-        // 1. This item has previously been acquired by caller
-        // 2. Insert the item value, and signal item that it is ready
-        // 3. Return item value.
-        virtual T   extract(void);
+        enum {
+            CANCELLED = EOF, EMPTY = false, FULL = true
+        };
 
     public:
 
-        SynchronousChannel(void);  // Set Up initial State
+        typedef typename Channel<T>::_mutex_type    _mutex_type;
+
+        using Channel<T>::interrupt;
+        using Channel<T>::interrupted;
+
+        enum {
+            DEFAULT_CAPACITY_LIMIT  = size_t(100) // Currently Not Honoured - Maybe Later
+        };
+
+        SynchronousChannel(size_t capacity = DEFAULT_CAPACITY_LIMIT);  // Set Up initial State
+
+        virtual ~SynchronousChannel(void);
 
         /**
         * Basic protocol is:
         * -# Wait until a taker arrives (via unclaimedTakers_ semaphore)
         * -# Assign item value using overloaded item assignment operator.
         */
-        virtual int put(const T &t);
-
-        /**
-        * Protocol is the same as put() except:
-        * Backouts due to timeouts are allowed only during the wait
-        * for takers. Upon claiming a taker, puts are forced to proceed.
-        */
-        virtual int offer(const T &t, time_t msecs = 0);
+        virtual int     put(const T &t, const ACE_Time_Value * abstime = 0);
 
         /**
         * Basic protocol is:
@@ -88,36 +82,61 @@ namespace DAF
         * -# Wait until the item has a value.
         * -# Get the item value through item cast operator overload.
         */
-        virtual T   take(void);
-
-        /**
-        * Protocol is the same as take() except:
-        *   Backouts due to timeouts are allowed
-        *   only during the wait for the item to be available. However,
-        *   even here, if the put of an item we should get has already
-        *   begun, we ignore the timeout and proceed.
-        */
-        virtual T   poll(time_t msecs = 0);
+        virtual T       take(const ACE_Time_Value * abstime = 0);
 
         /**
         * Return the number of items currently in the channel.
         * This value may change immediately upon return, and therefore
         * is only an instantanous value.
         */
-        virtual size_t  capacity(void) const
-        {
-            return size_t(1);
-        }
+        virtual size_t  capacity(void) const;
 
         /**
         * Return the number of items currently in the channel.
         * This value may change immediately upon return, and therefore
         * is only an instantanous value.
         */
-        virtual size_t  size(void) const
+        virtual size_t  size(void) const;
+
+    private:
+
+        class SYNCHNode : virtual public Monitor, virtual public RefCount
         {
-            return size_t(this->itemAvailable_.permits());
-        }
+            T item_;
+
+        public:
+
+            DAF_DEFINE_REFCOUNTABLE( SYNCHNode );
+
+            SYNCHNode(void);
+            SYNCHNode(const T &t);
+
+            int put_item(const T &t);
+            int get_item(T &t);
+
+            int state(void) const;
+
+            int isFULL(void)        const { return this->state() == FULL; }
+            int isEMPTY(void)       const { return this->state() == EMPTY; }
+            int isCANCELLED(void)   const { return this->state() == CANCELLED; }
+
+            int state(int state);
+
+        private:
+
+            int state_;
+        };
+
+        DAF_DECLARE_REFCOUNTABLE( SYNCHNode );
+
+        typedef std::list<SYNCHNode_ref>    _waiter_list_type;
+
+        struct WaiterQueue : _waiter_list_type
+        {
+            int deque(typename SYNCHNode::_out_type node);
+            int enque(const SYNCHNode_ref & node);
+
+        } waitingPuts, waitingTakes;
     };
 
 }  // namespace DAF

@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -22,21 +22,10 @@
 #define DAF_MONITOR_H
 
 /**
-*
 * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
-*
-* @file     Monitor.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
 */
 
 #include "SYNCHCondition_T.h"
-
-#include <ace/Copy_Disabled.h>
 
 namespace DAF
 {
@@ -45,7 +34,7 @@ namespace DAF
     *
     * Details \todo{Detailed description}
     */
-    class DAF_Export Monitor : ACE_Copy_Disabled
+    class DAF_Export Monitor
     {
         mutable DAF_SYNCH_MUTEX     mutex_;
         mutable DAF_SYNCH_CONDITION cond_mutex_;
@@ -129,44 +118,13 @@ namespace DAF
         {
             return this->cond_mutex_.interrupt();
         }
+
+    private:
+
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const Monitor &))
+        ACE_UNIMPLEMENTED_FUNC(Monitor(const Monitor &))
     };
 
-    /** @class SynchLatch
-    *@brief Brief \todo{Fill this in}
-    *
-    * Details \todo{Detailed description}
-    */
-    class DAF_Export SynchLatch : protected DAF::Monitor
-    {
-        volatile bool latch_;
-
-    public:
-
-        /** \todo{Fill this in}   */
-        SynchLatch(bool latch) : latch_ (latch) {}
-
-        /** \todo{Fill this in}   */
-        virtual int set(bool latch = true) {
-            if (this->latch_ != latch) { // DCL
-                ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-                if (this->latch_ != latch) {
-                    this->latch_ = latch; this->notifyAll();
-                }
-            }
-            return 0;
-        }
-
-        /** \todo{Fill this in}   */
-        virtual int wait(bool latch = true) {
-            if (this->latch_ != latch) { // DCL
-                ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-                while (this->latch_ != latch) {
-                    this->wait();
-                }
-            }
-            return 0;
-        }
-    };
 }  // namespace DAF
 
 #endif

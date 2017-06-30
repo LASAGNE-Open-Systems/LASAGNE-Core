@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,14 +23,6 @@
 
 /**
 * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
-*
-* @file     SemaphoreControlledChannel_T.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
 */
 
 #include "Channel_T.h"
@@ -44,35 +36,36 @@ namespace DAF
     * Details \todo{Detailed description}
     */
     template <typename T>
-    class SemaphoreControlledChannel : public DAF::Channel<T>
+    class SemaphoreControlledChannel : public Channel<T>
     {
-        DAF::Semaphore  putGuard_, takeGuard_;
-
-        virtual int insert(const T&) = 0;
-        virtual T   extract(void) = 0;
-
     public:
+
+        typedef typename Monitor::_mutex_type   _mutex_type;
+
         /** \todo{Fill this in} */
         SemaphoreControlledChannel(size_t capacity);
 
-        /** \todo{Fill this in} */
-        virtual int put(const T&);
-        /** \todo{Fill this in} */
-        virtual int offer(const T&, time_t msecs = 0);
-        /** \todo{Fill this in} */
-        virtual T   take(void);
-        /** \todo{Fill this in} */
-        virtual T   poll(time_t msecs = 0);
+        virtual ~SemaphoreControlledChannel(void);
 
+        /** \todo{Fill this in} */
+        virtual int put(const T&, const ACE_Time_Value * abstime = 0);
+        /** \todo{Fill this in} */
+        virtual T   take(const ACE_Time_Value * abstime = 0);
 
         /** \todo{Fill this in} */
         virtual size_t  capacity(void) const;
         /** \todo{Fill this in} */
         virtual size_t  size(void) const;
 
-        /** \todo{Fill this in} */
-        virtual int interrupt(void);
-  };
+    protected:
+
+        Semaphore  putGuard_, takeGuard_;
+
+    private:
+
+        virtual int insert(const T&) = 0;
+        virtual int extract(T&) = 0;
+    };
 } // namespace DAF
 
 #if defined (ACE_TEMPLATES_REQUIRE_SOURCE)

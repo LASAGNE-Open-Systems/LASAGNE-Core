@@ -36,6 +36,7 @@
 // - size is valid
 //
 const int INITIAL_RESULT_VALUE  = -2;
+const int CHANNEL_PUTTER_VALUE  = 456;
 const int INITIAL_SEED_VALUE    = 12345;
 
 namespace test
@@ -348,7 +349,7 @@ namespace test
     {
         int capacity = (threadCount > 10 ? threadCount+5 : 10);
         int result = 1;
-        int expected = 12345;
+        int expected = INITIAL_SEED_VALUE;
         int value = 0;
 
 
@@ -401,7 +402,7 @@ namespace test
     int test_SyncChannel_ThreadKill_LostSample(int )
     {
         int result = 1;
-        int expected = 12345;
+        int expected = CHANNEL_PUTTER_VALUE;
         int value = 0;
 
 
@@ -431,7 +432,7 @@ namespace test
 
             counter.acquire();
 
-            executor.execute(new TestPutter(counter, channel, 500, 456));
+            executor.execute(new TestPutter(counter, channel, 500, CHANNEL_PUTTER_VALUE));
 
             counter.acquire();
 
@@ -460,7 +461,7 @@ namespace test
     int test_SyncChannel_ThreadKill_LostSample_Poll(int )
     {
         int result = 1;
-        int expected = 12345;
+        int expected = CHANNEL_PUTTER_VALUE;
         int value = 0;
 
 
@@ -488,7 +489,7 @@ namespace test
 
             counter.acquire();
 
-            executor.execute(new TestPutter(counter, channel, 1500, 456));
+            executor.execute(new TestPutter(counter, channel, 1500, CHANNEL_PUTTER_VALUE));
 
             counter.acquire();
 
@@ -637,7 +638,7 @@ namespace test
         // Long Assignment Channel
         SyncChannelLongAss_t channel;
 
-        LongAss put_value(123456);
+        LongAss put_value(INITIAL_SEED_VALUE);
 
         wait_time = DAF::TaskExecutor::THREAD_EVICT_TIMEOUT * 2;
 
