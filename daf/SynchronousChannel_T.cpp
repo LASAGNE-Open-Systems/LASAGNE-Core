@@ -247,8 +247,11 @@ namespace DAF
     {
         while (!this->empty()) {
             typename _waiter_list_type::value_type item(this->front()._retn()); this->pop_front();
-            if (item->isCANCELLED() ? false : (node = item._retn())) {
-                return 0;
+            if (item) {
+                if (item->isCANCELLED()) {
+                    continue;
+                }
+                node = item._retn(); return 0;
             }
         }
         node = 0; return -1;

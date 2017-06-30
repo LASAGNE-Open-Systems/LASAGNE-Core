@@ -48,7 +48,10 @@ namespace DAF
         Monitor(void) : cond_mutex_(mutex_) {}
 
         /** \todo{Fill this in}   */
-        virtual ~Monitor(void) {} /* Force inheriters to destruction appropriately */
+        virtual ~Monitor(void)
+        {
+            this->interrupt();
+        }
 
         /** \todo{Fill this in}   */
         operator _mutex_type & () const

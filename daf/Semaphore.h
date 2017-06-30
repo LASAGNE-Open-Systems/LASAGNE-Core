@@ -68,8 +68,6 @@ namespace DAF
         /** Construct with initial permit count */
         Semaphore(int permits = 1); // Set default == 1 (Unlocked)
 
-        virtual ~Semaphore(void);
-
         /** Access to current permit count */
         int permits(void) const;
 
@@ -116,11 +114,6 @@ namespace DAF
 
     inline
     Semaphore::Semaphore(int permits) : permits_(permits)
-    {
-    }
-
-    inline
-    Semaphore::~Semaphore(void)
     {
     }
 
