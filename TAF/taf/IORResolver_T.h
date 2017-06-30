@@ -29,7 +29,7 @@ License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 namespace TAF
 {
     template <typename T>
-    class IORResolver_T : protected DAF::Runnable
+    class IORResolver_T : public virtual DAF::Runnable
     {
     public:
         DAF_DEFINE_REFCOUNTABLE(IORResolver_T<T>);
@@ -60,7 +60,7 @@ namespace TAF
         typedef typename IORResolver_T<T>::_ref_type    _resolver_ref_type;
 
         enum {
-            DEFAULT_RESOLVE_TIMEOUT = time_t(2000); // milliseconds
+            DEFAULT_RESOLVE_TIMEOUT = time_t(2000) // milliseconds
         };
 
         IORResolverChain_T(void);

@@ -100,9 +100,9 @@ namespace TAF
 
     template <typename T>
     typename T::_var_type
-        IORResolverChain_T<T>::resolve(time_t timeout)
+    IORResolverChain_T<T>::resolve(time_t timeout)
     {
-        typename T::_var_type result(T::_nil);
+        typename T::_var_type result;
 
         for (typename IORResolverChain_T<T>::iterator resolver(this->begin()); resolver != this->end(); resolver++)
         {
@@ -116,7 +116,7 @@ namespace TAF
         {
             while (CORBA::is_nil(result.in()))
             {
-                ACE_GUARD(DAF_SYNCH_MUTEX, resultGuard, this->resultMonitor_);
+                ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, resultGuard, this->resultMonitor_, DAF_THROW_EXCEPTION(DAF::InternalException));
                 this->resultMonitor_.wait(timeout);
 
                 for (typename IORResolverChain_T<T>::iterator resolver(this->begin()); resolver != this->end(); resolver++)
@@ -143,6 +143,169 @@ namespace TAF
 
         return T::_nil();
     }
+
+
+    template <typename T>
+    FileResolver_T<T>::FileResolver_T(const std::string &name, DAF::Monitor &mon, const std::string &directory)
+        : TAF::IORResolver_T<T>(name, mon)
+        , filename_(name)
+    {
+        std::string bindDirectory(DAF::format_args(directory, true, false));
+
+        if (bindDirectory.length())
+        {
+            // Remove any trailing delimiter
+            for (int pos = int(bindDirectory.length()); pos--;)
+            {
+                if (bindDirectory[pos] == '\\' || bindDirectory[pos] == '/')
+                {
+                    bindDirectory.erase(pos, 1);
+                }
+                break;
+            }
+        }
+
+        // Add our own delimiter '/' to the end
+        this->directory_.assign(bindDirectory).append(1, '/');
+
+        // Ensure the name supplied will represent a file
+        if (int(this->filename_.find_first_of('.')) <= 0)
+        {
+            this->filename_.append(IOR_FILENAME_EXTENSION);
+        }
+    }
+
+
+    template <typename T>
+    FileResolver_T<T>::~FileResolver_T(void)
+    {
+    }
+
+
+    template <typename T>
+    int
+    FileResolver_T<T>::run(void)
+    {
+        CORBA::Object_var obj(0);
+
+        std::string filename(DAF::trim_string(this->directory_ + this->filename_));
+        if (filename.length())
+        {
+            for (std::ifstream iorFile(filename_.c_str(), std::ios::in); iorFile;)
+            {
+                std::string iorFileString((std::istreambuf_iterator<char>(iorFile)), (std::istreambuf_iterator<char>()));
+                if (iorFileString.length())
+                {
+                    try
+                    {
+                        obj = TAFStringToObject(iorFileString);
+                        this->result_ = T::_narrow(obj.in());
+                        ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, resultGuard, this->resultMonitor_, DAF_THROW_EXCEPTION(DAF::InternalException));
+                        this->resultMonitor_.signal();
+                        ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) FileResolver_T::run - Resolved %C from %C\n"), this->name_.c_str(), filename.c_str()));
+                        return 0;
+                    }
+                    catch (const CORBA::Exception &ce)
+                    {
+                        ACE_UNUSED_ARG(ce);
+                        ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) FileResolver_T::run - CORBA Exception trying to resolve %C from %C\n"), this->name_.c_str(), filename.c_str()));
+                    }
+                }
+            }
+        }
+
+        ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("TAF (%P|%t) FileResolver_T::run - Failed to resolve %C from %C\n"), this->name_.c_str(), filename.c_str()), -1);
+    }
+
+
+    template <typename T>
+    InitialRefResolver_T<T>::InitialRefResolver_T(const std::string &name, DAF::Monitor &mon)
+        : TAF::IORResolver_T<T>(name, mon)
+    {
+    }
+
+
+    template <typename T>
+    InitialRefResolver_T<T>::~InitialRefResolver_T(void)
+    {
+    }
+
+
+    template <typename T>
+    int
+    InitialRefResolver_T<T>::run(void)
+    {
+        CORBA::Object_var obj(0);
+
+        try
+        {
+            obj = TAFResolveInitialReferences(this->name_.c_str());
+            this->result_ = T::_narrow(obj.in());
+            if (!CORBA::is_nil(this->result_.in()))
+            {
+                ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, resultGuard, this->resultMonitor_, DAF_THROW_EXCEPTION(DAF::InternalException));
+                this->resultMonitor_.signal();
+                ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - Resolved %C from initial references\n"), this->name_.c_str()));
+                return 0;
+            }
+        }
+        catch (const CORBA::Exception &ce)
+        {
+            ACE_UNUSED_ARG(ce);
+            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - CORBA Exception when resolving %C from initial references\n"), this->name_.c_str()));
+        }
+
+        ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - Failed to resolve %C from initial references\n"), this->name_.c_str()), -1);
+    }
+
+
+    template <typename T>
+    NamingResolver_T<T>::NamingResolver_T(const std::string &name, DAF::Monitor &mon, const TAF::NamingContext &context)
+        : TAF::IORResolver_T<T>(name, mon)
+        , context_(context)
+    {
+    }
+
+
+    template <typename T>
+    NamingResolver_T<T>::~NamingResolver_T(void)
+    {
+    }
+
+
+    template <typename T>
+    int
+    NamingResolver_T<T>::run(void)
+    {
+        CORBA::Object_var obj(0);
+
+        try
+        {
+            obj = this->context_.resolve_name(this->name_.c_str());
+            this->result_ = T::_narrow(obj.in());
+
+            if (!CORBA::is_nil(this->result_.in()))
+            {
+                ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, resultGuard, this->resultMonitor_, DAF_THROW_EXCEPTION(DAF::InternalException));
+                this->resultMonitor_.signal();
+                ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Resolved %C using the Naming Service\n"), this->name_.c_str()));
+                return 0;
+            }
+        }
+        catch (const CosNaming::NamingContext::NotFound &nfe)
+        {
+            ACE_UNUSED_ARG(nfe);
+            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Naming context (%C) was not found when attempting to resolve %C!\n"), this->context_, this->name_.c_str()));
+        }
+        catch (const CORBA::Exception &ce)
+        {
+            ACE_UNUSED_ARG(ce);
+            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - CORBA Exception when attempting to resolve %C using the Naming Service\n"), this->name_.c_str()));
+        }
+
+        ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Failed to resolve %C using the Naming Service\n"), this->name_.c_str()), -1);
+    }
+
 
 
 } // namespace TAF
