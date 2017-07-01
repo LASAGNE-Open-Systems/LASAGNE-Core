@@ -57,6 +57,8 @@ namespace DAF
         /** \todo{Fill this in} */
         virtual size_t  size(void) const;
 
+        virtual int interrupt(void);
+
     protected:
 
         Semaphore  putGuard_, takeGuard_;

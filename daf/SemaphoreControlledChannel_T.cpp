@@ -107,6 +107,18 @@ namespace DAF
         return t;
     }
 
+    template<typename T> int
+    SemaphoreControlledChannel<T>::interrupt(void)
+    {
+        int result = Monitor::interrupt();
+        {
+            result += this->putGuard_.interrupt();
+            result += this->takeGuard_.interrupt();
+        }
+        return result ? -1 : 0;
+    }
+
+
 } // namespace DAF
 
 #endif // DAF_SEMAPHORECONTROLLEDCHANNEL_T_CPP

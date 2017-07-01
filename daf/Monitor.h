@@ -117,7 +117,7 @@ namespace DAF
         * The underlying condition will also be marked as removed
         * and its OS backed handles will be closed.
         */
-        int interrupt(void)
+        virtual int interrupt(void)
         {
             return this->cond_mutex_.interrupt();
         }
