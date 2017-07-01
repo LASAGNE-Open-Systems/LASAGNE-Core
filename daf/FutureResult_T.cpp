@@ -42,7 +42,7 @@ namespace DAF
         while(this->waiters_ > 0 ) {
             this->notifyAll();
 
-            if ( this->wait(100) && errno == ETIME) {
+            if (this->wait(100) && DAF_OS::last_error() == ETIME) {
                 // do nothing? break?
             }
         }
