@@ -73,6 +73,7 @@ namespace DAF
                 if (taker->put_item(t) ? false : taker->isFULL()) {
                     return 0;
                 }
+
             }
             else if (puter) { // Wait for a taker to arrive and take the item.
 
@@ -137,26 +138,34 @@ namespace DAF
             if (puter) {  // Puter has already put item so get it and release putter
 
                 ACE_GUARD_REACTION(_mutex_type, puter_guard, *puter, continue);
-                if (puter->get_item(t) ? false : puter->isEMPTY()) {
-                    return t;
-                }
 
+                try { // Safe guard against user code error
+
+                    if (puter->get_item(t) ? false : puter->isEMPTY()) {
+                        return t;
+                    }
+
+                } DAF_CATCH_ALL {
+                    continue; // Try and get another item
+                }
             }
-            else if (taker) { // Wait for a putter to arrive and set the item.
+            else if (taker) try { // Wait for a putter to arrive and set the item.
 
                 ACE_GUARD_REACTION(_mutex_type, taker_guard, *taker, continue);
 
                 while (!taker->isCANCELLED()) {
 
                     if (taker->get_item(t)) {
-                        if (taker->wait(abstime) == 0) {
-                            continue;
-                        }
-                        else if (taker->get_item(t)) {
-                            switch (DAF_OS::last_error()) {
-                            case ETIME: DAF_THROW_EXCEPTION(TimeoutException);
-                            default:    DAF_THROW_EXCEPTION(InternalException);
+                        if (taker->wait(abstime)) {
+                            int last_error = DAF_OS::last_error();
+                            if (taker->get_item(t)) {
+                                switch (last_error) {
+                                case ETIME: DAF_THROW_EXCEPTION(TimeoutException);
+                                default:    DAF_THROW_EXCEPTION(InternalException);
+                                }
                             }
+                        } else {
+                            continue;
                         }
                     }
 
@@ -164,10 +173,15 @@ namespace DAF
                         return t;
                     }
                 }
+
+                // Retry Outer Loop
             }
-
-            // Retry Outer Loop
-
+            catch (const std::runtime_error &) {
+                throw;
+            }
+            DAF_CATCH_ALL{
+                continue; // Try and get another item
+            }
         }
 
         DAF_THROW_EXCEPTION(InternalException);  // Should never get here but keeps compiler happy
@@ -225,8 +239,10 @@ namespace DAF
     template <typename T> int // Called with lock held
     SynchronousChannel<T>::SYNCHNode::put_item(const T & t)
     {
-        if (this->isCANCELLED() ? false : this->isEMPTY()) {
+        if (this->isCANCELLED() ? false : this->isEMPTY()) try {
             this->item_ = t; this->state(FULL); return 0;
+        } catch(...) {
+            this->state(CANCELLED); throw;
         }
         return -1;
     }
@@ -234,8 +250,10 @@ namespace DAF
     template <typename T> int // Called with lock held
     SynchronousChannel<T>::SYNCHNode::get_item(T & t)
     {
-        if (this->isCANCELLED() ? false : this->isFULL()) {
+        if (this->isCANCELLED() ? false : this->isFULL()) try {
             t = this->item_; this->state(EMPTY); return 0;
+        } catch (...) {
+            this->state(CANCELLED); throw;
         }
         return -1;
     }

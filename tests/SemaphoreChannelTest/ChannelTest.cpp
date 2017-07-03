@@ -89,6 +89,10 @@ namespace test
         {
         }
 
+        ThrowAss(const ThrowAss &that) : value(that.value), throw_ex(that.throw_ex)
+        {
+        }
+
         ThrowAss &operator=(const ThrowAss& that)
         {
             if ( this == &that)
@@ -127,9 +131,9 @@ namespace test
         time_t timevalue;
         DAF::Channel<T> &channel;
 
-        TestTakerGen(DAF::Semaphore &sema_in, DAF::Channel<T> &channel_in, time_t timeout_in = 0)
+        TestTakerGen(DAF::Semaphore &sema_in, DAF::Channel<T> &channel_in, time_t timeout_in = 0, T value_in = T())
             : DAF::Runnable()
-            , value(0)
+            , value(value_in)
             , internal(0)
             , timeout(0)
             , notfound(0)
@@ -179,9 +183,9 @@ namespace test
     {
 
         TestPutterGen(DAF::Semaphore &sema_in, DAF::Channel<T> &channel_in, time_t timeout_in = 0, T value_in = T())
-            : TestTakerGen<T>(sema_in, channel_in, timeout_in)
+            : TestTakerGen<T>(sema_in, channel_in, timeout_in, value_in)
         {
-            this->value = value_in;
+//            this->value = value_in;
         }
 
         virtual int run(void)
@@ -201,7 +205,7 @@ namespace test
                     this->result = this->channel.put(this->value);
                 }
 
-                if ( this->result == -1 && errno == ETIME)
+                if ( this->result == -1 && DAF_OS::last_error()== ETIME)
                 {
                     this->timeout++;
                     if (debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Timeout\n"), this ));
@@ -716,7 +720,7 @@ int main(int argc, char *argv[])
     result &= test::test_Channel_TimeoutTaker(threadCount);
     result &= test::test_Channel_TimeoutPutter(threadCount);
     result &= test::test_SyncChannel_Timeout_Poll(threadCount);
-#if 0 // Addressing this test will require a rewrite of the synchronous channel to avoid deadly embrace problems
+#if 1 // Addressing this test will require a rewrite of the synchronous channel to avoid deadly embrace problems
     result &= test::test_SyncChannel_Putter_User_throw(threadCount);
 #endif
 #if 1 //!defined(ACE_WIN32)
