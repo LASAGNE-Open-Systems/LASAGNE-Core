@@ -562,7 +562,7 @@ namespace test
     int test_SyncChannel_Putter_User_throw(int )
     {
         int result = 1;
-        int expected = 1;
+        int expected = CHANNEL_PUTTER_VALUE;
         int value = 0;
 
         DAF::Semaphore counter(0);
@@ -572,7 +572,7 @@ namespace test
 
         ThrowAss throw_value(INITIAL_SEED_VALUE, true);
         // For the putter, don't throw an exception and make sure the taker can take unaffected after the throw from the thrower
-        ThrowAss put_value(INITIAL_SEED_VALUE, false);
+        ThrowAss put_value(CHANNEL_PUTTER_VALUE, false);
 
         TestTakerGen<ThrowAss> *takeTester = new TestTakerGen<ThrowAss>(counter, channel);
         DAF::Runnable_ref runner(takeTester);
@@ -604,12 +604,15 @@ namespace test
         }
 
         // Expected results
-        value =
-            (takeTester->result == -99)     // Taker doesn't change the result
-            && (throwTester->result == -99) // The thrower shouldn't change it's result
-            && (throwTester->unknown == 1)  // The thrower should have caught a user-level exception
-            && (putTester->result == 0)     // The putter should have been ultimately successful
-        ;
+        if (takeTester->result == -99)          { // Taker doesn't change the result
+            if (throwTester->result == -99)     { // The thrower shouldn't change it's result
+                if (throwTester->unknown == 1)  { // The thrower should have caught a user-level exception
+                    if (putTester->result == 0) { // The putter should have been ultimately successful
+                        value = takeTester->value.value;    // Ensure we got the expected value from putter to channel
+                    }
+                }
+            }
+        }
 
         result &= (value == expected);
 
