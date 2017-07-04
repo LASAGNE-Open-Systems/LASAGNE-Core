@@ -79,20 +79,22 @@ namespace DAF
 
                 ACE_GUARD_REACTION(_mutex_type, puter_guard, *puter, continue);
 
-                while (!puter->isCANCELLED()) try {
+                for (;;) try {
 
-                    if (puter->isFULL()) {
+                    switch (puter->state()) {
+                    case CANCELLED: return -1;
+                    case EMPTY:     return 0;
+                    case FULL:
+
                         if (puter->wait(abstime) && DAF_OS::last_error() == ETIME) {
-                            ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                            switch (puter->state()) {
-                            case EMPTY: return 0;
-                            default:    puter->state(CANCELLED); return -1;
+                            if (puter->state() == FULL) {
+                                ACE_Errno_Guard g(errno); puter->state(CANCELLED); ACE_UNUSED_ARG(g);
                             }
                         }
-                    }
 
-                    if (puter->isEMPTY()) {
-                        return 0;
+                        break;
+
+                    default: puter->state(CANCELLED); break;
                     }
                 }
                 catch (...) {
