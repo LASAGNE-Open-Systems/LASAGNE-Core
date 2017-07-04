@@ -55,7 +55,7 @@ namespace DAF
             // synchronized block, depending on whether a put or a take
             // arrived first. 
 
-            SYNCHNode_ref taker(0), puter(0);
+            SYNCHNode_ref taker, puter;
 
             {
                 // Try to match up with a waiting taker; fill and signal it below
@@ -80,7 +80,9 @@ namespace DAF
                     }
 
                 } catch (...) {
-                    taker->state(CANCELLED); throw;
+                    ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                    taker->state(CANCELLED);
+                    throw;
                 }
 
             }
@@ -141,7 +143,7 @@ namespace DAF
             // synchronized block, depending on whether a put or a take
             // arrived first. 
 
-            SYNCHNode_ref puter(0), taker(0);
+            SYNCHNode_ref puter, taker;
 
             {
                 ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
@@ -165,7 +167,9 @@ namespace DAF
                     }
 
                 } catch (...) {
-                    puter->state(CANCELLED); throw;
+                    ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                    puter->state(CANCELLED);
+                    throw;
                 }
             }
             else if (taker) { // Wait for a putter to arrive and set the item.
@@ -196,7 +200,9 @@ namespace DAF
                     return t; // return the item
                 }
                 catch (...) {
-                    taker->state(CANCELLED); throw;
+                    ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                    taker->state(CANCELLED);
+                    throw;
                 }
 
                 // Retry Outer Loop
@@ -258,10 +264,8 @@ namespace DAF
     template <typename T> int // Called with lock held
     SynchronousChannel<T>::SYNCHNode::put_item(const T & t)
     {
-        if (this->isCANCELLED() ? false : this->isEMPTY()) try {
+        if (this->isCANCELLED() ? false : this->isEMPTY()) {
             this->item_ = t; this->state(FULL); return 0;
-        } catch(...) {
-            this->state(CANCELLED); throw;
         }
         return -1;
     }
@@ -269,10 +273,8 @@ namespace DAF
     template <typename T> int // Called with lock held
     SynchronousChannel<T>::SYNCHNode::get_item(T & t)
     {
-        if (this->isCANCELLED() ? false : this->isFULL()) try {
+        if (this->isCANCELLED() ? false : this->isFULL()) {
             t = this->item_; this->state(EMPTY); return 0;
-        } catch (...) {
-            this->state(CANCELLED); throw;
         }
         return -1;
     }
