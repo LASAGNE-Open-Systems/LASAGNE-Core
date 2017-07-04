@@ -202,7 +202,10 @@ namespace TAF
                         this->result_ = T::_narrow(obj.in());
                         ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, resultGuard, this->resultMonitor_, DAF_THROW_EXCEPTION(DAF::InternalException));
                         this->resultMonitor_.signal();
-                        ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) FileResolver_T::run - Resolved %C from %C\n"), this->name_.c_str(), filename.c_str()));
+                        if (TAF::debug())
+                        {
+                            ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) FileResolver_T::run - Resolved %C from %C\n"), this->name_.c_str(), filename.c_str()));
+                        }
                         return 0;
                     }
                     catch (const CORBA::Exception &ce)
@@ -214,7 +217,11 @@ namespace TAF
             }
         }
 
-        ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("TAF (%P|%t) FileResolver_T::run - Failed to resolve %C from %C\n"), this->name_.c_str(), filename.c_str()), -1);
+        if (TAF::debug())
+        {
+            ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) FileResolver_T::run - Failed to resolve %C from %C\n"), this->name_.c_str(), filename.c_str()));
+        }
+        return -1;
     }
 
 
@@ -245,7 +252,10 @@ namespace TAF
             {
                 ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, resultGuard, this->resultMonitor_, DAF_THROW_EXCEPTION(DAF::InternalException));
                 this->resultMonitor_.signal();
-                ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - Resolved %C from initial references\n"), this->name_.c_str()));
+                if (TAF::debug())
+                {
+                    ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - Resolved %C from initial references\n"), this->name_.c_str()));
+                }
                 return 0;
             }
         }
@@ -255,7 +265,11 @@ namespace TAF
             ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - CORBA Exception when resolving %C from initial references\n"), this->name_.c_str()));
         }
 
-        ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - Failed to resolve %C from initial references\n"), this->name_.c_str()), -1);
+        if (TAF::debug())
+        {
+            ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - Failed to resolve %C from initial references\n"), this->name_.c_str()));
+        }
+        return -1;
     }
 
 
@@ -288,7 +302,10 @@ namespace TAF
             {
                 ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, resultGuard, this->resultMonitor_, DAF_THROW_EXCEPTION(DAF::InternalException));
                 this->resultMonitor_.signal();
-                ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Resolved %C using the Naming Service\n"), this->name_.c_str()));
+                if (TAF::debug())
+                {
+                    ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Resolved %C using the Naming Service\n"), this->name_.c_str()));
+                }
                 return 0;
             }
         }
@@ -303,10 +320,11 @@ namespace TAF
             ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - CORBA Exception when attempting to resolve %C using the Naming Service\n"), this->name_.c_str()));
         }
 
-        ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Failed to resolve %C using the Naming Service\n"), this->name_.c_str()), -1);
+        if (TAF::debug())
+        {
+            ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Failed to resolve %C using the Naming Service\n"), this->name_.c_str()));
+        }
     }
-
-
 
 } // namespace TAF
 

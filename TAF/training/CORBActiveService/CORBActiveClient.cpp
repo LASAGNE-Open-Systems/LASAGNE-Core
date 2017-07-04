@@ -3,6 +3,7 @@
 #include <taf/TAF.h>
 #include <taf/ORBManager.h>
 #include <taf/NamingContext.h>
+#include <taf/IORResolver_T.h>
 
 #include <daf/ShutdownHandler.h>
 #include <daf/PropertyManager.h>
@@ -13,7 +14,9 @@
 #include "LTMTopicDetailsC.cpp"
 #include "CORBActiveServiceC.cpp"
 
-namespace { // Anonomous Namespace
+
+
+namespace { // Anonymous namespace
 
     int     debug_arg_(DAF::debug());
     inline int  debug_arg(void)
@@ -106,6 +109,16 @@ namespace { // Anonomous Namespace
     template <typename T>
     typename T::_var_type  resolveCORBAService(const char *name, bool use_naming = true)
     {
+#if 1
+        TAF::IORResolverChain_T<T> resolver;
+        resolver.addResolver(new TAF::InitialRefResolver_T<T>(name, resolver.getMonitor()));
+        if (use_naming)
+        {
+            resolver.addResolver(new TAF::NamingResolver_T<T>(name, resolver.getMonitor(), TheTAFBaseContext()));
+        }
+        return resolver.resolve();
+
+#else
         CORBA::Object_var svc_obj(0);
 
         if (name) do {
@@ -125,11 +138,13 @@ namespace { // Anonomous Namespace
         } while (false);
 
         return T::_narrow(svc_obj.in());
+#endif
+
     }
 
     const DAF::ShutdownHandler shutdownHandler_; // Instantiate a Shutdown (CTL-C) handler
 
-} // Ananomous
+} // Anonymous
 
 int main(int argc, char *argv[])
 {
@@ -140,7 +155,12 @@ int main(int argc, char *argv[])
 
     try {
 
+        // Set the TAFBaseContext property to match what is provided to the service
+        DAF::set_property(TAF_BASECONTEXT, DAF::format_args("DSTO/%H", true, false));
+
         TAF::ORBManager orb(argc, argv); // Initialize our primary ORB instance
+
+        DAF::print_properties();
 
         orb.run(3, false); // Run the ORB reactor with 3 threads (non-blocking)
 
