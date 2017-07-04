@@ -26,20 +26,20 @@
 namespace DAF
 {
     template <typename T> inline
-    SynchronousChannel<T>::SynchronousChannel(size_t capacity) : Channel<T>()
+        SynchronousChannel<T>::SynchronousChannel(size_t capacity) : Channel<T>()
     {
         ACE_UNUSED_ARG(capacity);  // Maybe used in later version to limit parallism
     }
 
     template <typename T> inline
-    SynchronousChannel<T>::~SynchronousChannel(void)
+        SynchronousChannel<T>::~SynchronousChannel(void)
     {
         this->interrupt();
     }
 
     template <typename T>
     int
-    SynchronousChannel<T>::put(const T & t, const ACE_Time_Value * abstime)
+        SynchronousChannel<T>::put(const T & t, const ACE_Time_Value * abstime)
     {
         // Entirely symmetric to take()
 
@@ -70,8 +70,17 @@ namespace DAF
             if (taker) {
 
                 ACE_GUARD_REACTION(_mutex_type, taker_guard, *taker, continue);
-                if (taker->put_item(t) ? false : taker->isFULL()) {
-                    return 0;
+
+                try { // Safe guard against user code error
+
+                    if (this->interrupted()) {
+                        DAF_THROW_EXCEPTION(InterruptedException);
+                    } else if (taker->put_item(t) ? false : taker->isFULL()) {
+                        return 0;
+                    }
+
+                } catch (...) {
+                    taker->state(CANCELLED); throw;
                 }
 
             }
@@ -79,22 +88,28 @@ namespace DAF
 
                 ACE_GUARD_REACTION(_mutex_type, puter_guard, *puter, continue);
 
-                for (;;) try {
+                while (!puter->isCANCELLED()) try {
 
-                    switch (puter->state()) {
-                    case CANCELLED: return -1;
-                    case EMPTY:     return 0;
-                    case FULL:
-
-                        if (puter->wait(abstime) && DAF_OS::last_error() == ETIME) {
-                            if (puter->state() == FULL) {
-                                ACE_Errno_Guard g(errno); puter->state(CANCELLED); ACE_UNUSED_ARG(g);
+                    if (this->interrupted()) {
+                        DAF_THROW_EXCEPTION(InterruptedException);
+                    }
+                    else if (puter->isFULL() && puter->wait(abstime)) {
+                        int last_error = DAF_OS::last_error();
+                        if (puter->isFULL()) {
+                            switch (this->interrupted() ? DAF_OS::last_error(EINTR) : last_error) {
+                            case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
+                            default:
+                                {
+                                    ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                                    puter->state(CANCELLED);
+                                    return -1;
+                                }
                             }
                         }
+                    }
 
-                        break;
-
-                    default: puter->state(CANCELLED); break;
+                    if (puter->isEMPTY()) {
+                        return 0;
                     }
                 }
                 catch (...) {
@@ -143,46 +158,48 @@ namespace DAF
 
                 try { // Safe guard against user code error
 
-                    if (puter->get_item(t) ? false : puter->isEMPTY()) {
+                    if (this->interrupted()) {
+                        DAF_THROW_EXCEPTION(InterruptedException);
+                    } else if (puter->get_item(t) ? false : puter->isEMPTY()) {
                         return t;
                     }
 
-                } DAF_CATCH_ALL {
-                    continue; // Try and get another item
+                } catch (...) {
+                    puter->state(CANCELLED); throw;
                 }
             }
-            else if (taker) try { // Wait for a putter to arrive and set the item.
+            else if (taker) { // Wait for a putter to arrive and set the item.
 
                 ACE_GUARD_REACTION(_mutex_type, taker_guard, *taker, continue);
 
-                while (!taker->isCANCELLED()) {
+                while (!taker->isCANCELLED()) try {
 
-                    if (taker->get_item(t)) {
-                        if (taker->wait(abstime)) {
+                    if (this->interrupted()) {
+                        DAF_THROW_EXCEPTION(InterruptedException);
+                    } else if (taker->get_item(t)) {
+                        if (taker->isCANCELLED()) {
+                            break;
+                        } else if (taker->wait(abstime)) {
                             int last_error = DAF_OS::last_error();
                             if (taker->get_item(t)) {
-                                switch (last_error) {
+                                switch (this->interrupted() ? DAF_OS::last_error(EINTR) : last_error) {
+                                case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
                                 case ETIME: DAF_THROW_EXCEPTION(TimeoutException);
                                 default:    DAF_THROW_EXCEPTION(InternalException);
                                 }
                             }
                         } else {
-                            continue;
+                            continue; // Go retry to get item if not cancelled
                         }
                     }
 
-                    if (taker->isEMPTY()) {
-                        return t;
-                    }
+                    return t; // return the item
+                }
+                catch (...) {
+                    taker->state(CANCELLED); throw;
                 }
 
                 // Retry Outer Loop
-            }
-            catch (const std::runtime_error &) {
-                throw;
-            }
-            DAF_CATCH_ALL{
-                continue; // Try and get another item
             }
         }
 
@@ -228,7 +245,7 @@ namespace DAF
     template <typename T> int // Called with lock held
     SynchronousChannel<T>::SYNCHNode::state(int state)
     {
-        switch (this->interrupted() ? CANCELLED : state) {
+        switch (this->interrupted() ? (state = CANCELLED) : state) {
         case CANCELLED:
         case EMPTY: this->item_ = T();
         case FULL:  break;
