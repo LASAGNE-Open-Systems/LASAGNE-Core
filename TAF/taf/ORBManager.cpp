@@ -73,11 +73,10 @@ namespace // Use Anonymous namespace
 
 namespace TAF {
 
-    ORB::ORBInitializer ORB::orbInitializer_; // Bootstrap Initializer instance
+    ORB::ORBInitializer ORB::orbInitializer_; DAF_UNUSED_STATIC(ORB::orbInitializer_); // Bootstrap Initializer instance
 
     ORB::ORB(void)
     {
-        ACE_UNUSED_ARG(orbInitializer_);
     }
 
     ORB::~ORB(void)
