@@ -26,9 +26,6 @@ License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 #include <taf/ORBManager.h>
 
 
-#define IOR_FILENAME_EXTENSION ACE_TEXT(".ior");
-
-
 namespace TAF
 {
     template <typename T>
@@ -117,7 +114,10 @@ namespace TAF
             while (CORBA::is_nil(result.in()))
             {
                 ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, resultGuard, this->resultMonitor_, DAF_THROW_EXCEPTION(DAF::InternalException));
-                this->resultMonitor_.wait(timeout);
+                if (this->resultMonitor_.wait(timeout))
+                {
+                    break;
+                }
 
                 for (typename IORResolverChain_T<T>::iterator resolver(this->begin()); resolver != this->end(); resolver++)
                 {
@@ -186,7 +186,7 @@ namespace TAF
     int
     FileResolver_T<T>::run(void)
     {
-        CORBA::Object_var obj(0);
+        CORBA::Object_var obj;
 
         std::string filename(DAF::trim_string(this->directory_ + this->filename_));
         if (filename.length())
@@ -210,8 +210,7 @@ namespace TAF
                     }
                     catch (const CORBA::Exception &ce)
                     {
-                        ACE_UNUSED_ARG(ce);
-                        ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) FileResolver_T::run - CORBA Exception trying to resolve %C from %C\n"), this->name_.c_str(), filename.c_str()));
+                        ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) FileResolver_T::run - Caught %C trying to resolve %C from %C\n"), ce._info().c_str(), this->name_.c_str(), filename.c_str()));
                     }
                 }
             }
@@ -242,7 +241,7 @@ namespace TAF
     int
     InitialRefResolver_T<T>::run(void)
     {
-        CORBA::Object_var obj(0);
+        CORBA::Object_var obj;
 
         try
         {
@@ -261,8 +260,7 @@ namespace TAF
         }
         catch (const CORBA::Exception &ce)
         {
-            ACE_UNUSED_ARG(ce);
-            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - CORBA Exception when resolving %C from initial references\n"), this->name_.c_str()));
+            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) InitialRefResolver_T::run - Caught %C when resolving %C from initial references\n"), ce._info().c_str(), this->name_.c_str()));
         }
 
         if (TAF::debug())
@@ -291,7 +289,7 @@ namespace TAF
     int
     NamingResolver_T<T>::run(void)
     {
-        CORBA::Object_var obj(0);
+        CORBA::Object_var obj;
 
         try
         {
@@ -311,19 +309,18 @@ namespace TAF
         }
         catch (const CosNaming::NamingContext::NotFound &nfe)
         {
-            ACE_UNUSED_ARG(nfe);
-            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Naming context (%C) was not found when attempting to resolve %C!\n"), this->context_, this->name_.c_str()));
+            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Caught %C when attempting to resolve %C!\n"), nfe._info().c_str(), this->name_.c_str()));
         }
         catch (const CORBA::Exception &ce)
         {
-            ACE_UNUSED_ARG(ce);
-            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - CORBA Exception when attempting to resolve %C using the Naming Service\n"), this->name_.c_str()));
+            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Caught %C when attempting to resolve %C using the Naming Service\n"), ce._info().c_str(), this->name_.c_str()));
         }
 
         if (TAF::debug())
         {
             ACE_DEBUG((LM_INFO, ACE_TEXT("TAF (%P|%t) NamingResolver_T::run - Failed to resolve %C using the Naming Service\n"), this->name_.c_str()));
         }
+        return -1;
     }
 
 } // namespace TAF
