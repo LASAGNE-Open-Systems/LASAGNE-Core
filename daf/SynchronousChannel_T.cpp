@@ -53,72 +53,67 @@ namespace DAF
                 DAF_THROW_EXCEPTION(InterruptedException);
             }
 
-            // Exactly one of item or slot will be nonnull at end of
-            // synchronized block, depending on whether a put or a take
-            // arrived first. 
+            typename SYNCHNode::_ref_type node;
 
-            typename SYNCHNode::_ref_type slot,item;
+            bool waitConsumer = false; // Set initilly to not wait (We have a current consumer)
 
             {
-                // Try to match up with a waiting taker; fill and signal it below
                 ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
-                if (this->waitingTakes.deque(slot.out())) {
-                    this->waitingPuts.enque(item = new SYNCHNode(t)); // Put item in waiting for a taker
+                if (this->waitingConsumers.deque(node.out())) {
+                    this->waitingProducers.enque(node = new SYNCHNode(t)); waitConsumer = true; // Put item in and wait for a consumer
                 }
             }
 
-            // There is a waiting taker - Fill in the slot created by the taker and signal taker to continue.
+            {   // Scope Lock
 
-            if (slot) {
+                ACE_GUARD_REACTION(_mutex_type, node_guard, *node, DAF_THROW_EXCEPTION(LockFailureException));
 
-                ACE_GUARD_REACTION(_mutex_type, slot_guard, *slot, DAF_THROW_EXCEPTION(LockFailureException));
+                if (waitConsumer) { // Wait for a consumer to arrive and take the item.
 
-                try { // Safe guard against user code error
+                    while (!node->isCANCELLED()) try {
+
+                        if (this->interrupted()) {
+                            DAF_THROW_EXCEPTION(InterruptedException);
+                        }
+                        else if (node->isFULL() && node->wait(abstime)) {
+                            int last_error = DAF_OS::last_error();
+                            if (node->isFULL()) {
+                                switch (this->interrupted() ? DAF_OS::last_error(EINTR) : last_error) {
+                                case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
+                                default:
+                                    {
+                                        ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                                        node->state(CANCELLED);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (node->isEMPTY()) {
+                            return 0;
+                        }
+                    }
+                    catch (...) {
+                        ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                        node->state(CANCELLED);
+                        throw;
+                    }
+
+                    // Retry Loop
+
+                } else try {  // Safe guard against user code error - We have a consumer already
 
                     if (this->interrupted()) {
                         DAF_THROW_EXCEPTION(InterruptedException);
-                    } else if (slot->put_item(t) ? false : slot->isFULL()) {
+                    }
+                    else if (node->put_item(t) ? false : node->isFULL()) {
                         return 0;
                     }
 
                 } catch (...) {
                     ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                    slot->state(CANCELLED);
-                    throw;
-                }
-
-            }
-            else if (item) { // Wait for a taker to arrive and take the item.
-
-                ACE_GUARD_REACTION(_mutex_type, item_guard, *item, DAF_THROW_EXCEPTION(LockFailureException));
-
-                while (!item->isCANCELLED()) try {
-
-                    if (this->interrupted()) {
-                        DAF_THROW_EXCEPTION(InterruptedException);
-                    }
-                    else if (item->isFULL() && item->wait(abstime)) {
-                        int last_error = DAF_OS::last_error();
-                        if (item->isFULL()) {
-                            switch (this->interrupted() ? DAF_OS::last_error(EINTR) : last_error) {
-                            case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
-                            default:
-                                {
-                                    ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                                    item->state(CANCELLED);
-                                    return -1;
-                                }
-                            }
-                        }
-                    }
-
-                    if (item->isEMPTY()) {
-                        return 0;
-                    }
-                }
-                catch (...) {
-                    ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                    item->state(CANCELLED);
+                    node->state(CANCELLED);
                     throw;
                 }
             }
@@ -141,74 +136,71 @@ namespace DAF
                 DAF_THROW_EXCEPTION(InterruptedException);
             }
 
-            // Exactly one of item or slot will be nonnull at end of
-            // synchronized block, depending on whether a put or a take
-            // arrived first. 
+            typename SYNCHNode::_ref_type node;
 
-            typename SYNCHNode::_ref_type item,slot;
+            bool waitProducer = false; // Set initilly to not wait (We have a current producer)
 
             {
                 ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
-                if (this->waitingPuts.deque(item.out())) {
-                    this->waitingTakes.enque(slot = new SYNCHNode()); // Create an empty slot to recieve item
+                if (this->waitingProducers.deque(node.out())) {
+                    this->waitingConsumers.enque(node = new SYNCHNode()); waitProducer = true; // Create an empty slot and wait for a producer to fill in
                 }
             }
 
             T t = T(); // Temporary Holder for retrieved item
 
-            if (item) {  // Puter has already put item so get it and release putter
+            {   // Scope lock
 
-                ACE_GUARD_REACTION(_mutex_type, item_guard, *item, DAF_THROW_EXCEPTION(LockFailureException));
+                ACE_GUARD_REACTION(_mutex_type, node_guard, *node, DAF_THROW_EXCEPTION(LockFailureException));
 
-                try { // Safe guard against user code error
+                if (waitProducer) { // Wait for a producer to arrive and fill in the item.
+
+                    while (!node->isCANCELLED()) try {
+
+                        if (this->interrupted()) {
+                            DAF_THROW_EXCEPTION(InterruptedException);
+                        }
+                        else if (node->get_item(t)) {
+                            if (node->isCANCELLED()) {
+                                break;
+                            }
+                            else if (node->wait(abstime)) {
+                                int last_error = DAF_OS::last_error();
+                                if (node->get_item(t)) {
+                                    switch (this->interrupted() ? DAF_OS::last_error(EINTR) : last_error) {
+                                    case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
+                                    case ETIME: DAF_THROW_EXCEPTION(TimeoutException);
+                                    default:    DAF_THROW_EXCEPTION(InternalException);
+                                    }
+                                }
+                            }
+                            else {
+                                continue; // Go retry to get item if not cancelled
+                            }
+                        }
+
+                        return t; // return the item
+                    }
+                    catch (...) {
+                        ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                        node->state(CANCELLED);
+                        throw;
+                    }
+
+                } else try {  // Safe guard against user code error - We have a producer already
 
                     if (this->interrupted()) {
                         DAF_THROW_EXCEPTION(InterruptedException);
-                    } else if (item->get_item(t) ? false : item->isEMPTY()) {
+                    }
+                    else if (node->get_item(t) ? false : node->isEMPTY()) {
                         return t;
                     }
 
                 } catch (...) {
                     ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                    item->state(CANCELLED);
+                    node->state(CANCELLED);
                     throw;
                 }
-            }
-            else if (slot) { // Wait for a putter to arrive and fill in the slot.
-
-                ACE_GUARD_REACTION(_mutex_type, slot_guard, *slot, DAF_THROW_EXCEPTION(LockFailureException));
-
-                while (!slot->isCANCELLED()) try {
-
-                    if (this->interrupted()) {
-                        DAF_THROW_EXCEPTION(InterruptedException);
-                    } else if (slot->get_item(t)) {
-                        if (slot->isCANCELLED()) {
-                            break;
-                        } else if (slot->wait(abstime)) {
-                            int last_error = DAF_OS::last_error();
-                            if (slot->get_item(t)) {
-                                switch (this->interrupted() ? DAF_OS::last_error(EINTR) : last_error) {
-                                case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
-                                case ETIME: DAF_THROW_EXCEPTION(TimeoutException);
-                                default:    DAF_THROW_EXCEPTION(InternalException);
-                                }
-                            }
-                        } else {
-                            continue; // Go retry to get item if not cancelled
-                        }
-                    }
-
-                    return t; // return the item
-                }
-                catch (...) {
-                    ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                    slot->state(CANCELLED);
-                    throw;
-                }
-
-                // Retry Outer Loop
-
             }
         }
 
@@ -219,7 +211,7 @@ namespace DAF
     inline size_t
     SynchronousChannel<T>::size(void) const
     {
-        return size_t(this->waitingPuts.size());
+        return size_t(this->waitingProducers.size());
     }
 
     template <typename T>

@@ -134,7 +134,7 @@ namespace DAF
             int deque(typename SYNCHNode::_out_type node);
             int enque(const typename SYNCHNode::_ref_type & node);
 
-        } waitingPuts, waitingTakes;
+        } waitingProducers, waitingConsumers;
     };
 
 }  // namespace DAF
