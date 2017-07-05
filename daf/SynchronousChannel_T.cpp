@@ -64,13 +64,13 @@ namespace DAF
                 }
             }
 
-            {   // Scope Lock
+            ACE_GUARD_REACTION(_mutex_type, node_guard, *node, DAF_THROW_EXCEPTION(LockFailureException));
 
-                ACE_GUARD_REACTION(_mutex_type, node_guard, *node, DAF_THROW_EXCEPTION(LockFailureException));
+            try {
 
                 if (waitConsumer) { // Wait for a consumer to arrive and take the item.
 
-                    while (!node->isCANCELLED()) try {
+                    while (!node->isCANCELLED()) {
 
                         if (this->interrupted()) {
                             DAF_THROW_EXCEPTION(InterruptedException);
@@ -94,28 +94,19 @@ namespace DAF
                             return 0;
                         }
                     }
-                    catch (...) {
-                        ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                        node->state(CANCELLED);
-                        throw;
-                    }
 
                     // Retry Loop
 
-                } else try {  // Safe guard against user code error - We have a consumer already
-
-                    if (this->interrupted()) {
-                        DAF_THROW_EXCEPTION(InterruptedException);
-                    }
-                    else if (node->put_item(t) ? false : node->isFULL()) {
-                        return 0;
-                    }
-
-                } catch (...) {
-                    ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                    node->state(CANCELLED);
-                    throw;
+                } else if (this->interrupted()) {
+                    DAF_THROW_EXCEPTION(InterruptedException);
+                } else if (node->put_item(t) ? false : node->isFULL()) {
+                    return 0;
                 }
+
+            } catch (...) {
+                ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                node->state(CANCELLED);
+                throw;
             }
         }
 
@@ -149,13 +140,13 @@ namespace DAF
 
             T t = T(); // Temporary Holder for retrieved item
 
-            {   // Scope lock
+            ACE_GUARD_REACTION(_mutex_type, node_guard, *node, DAF_THROW_EXCEPTION(LockFailureException));
 
-                ACE_GUARD_REACTION(_mutex_type, node_guard, *node, DAF_THROW_EXCEPTION(LockFailureException));
+            try {
 
                 if (waitProducer) { // Wait for a producer to arrive and fill in the item.
 
-                    while (!node->isCANCELLED()) try {
+                    while (!node->isCANCELLED()) {
 
                         if (this->interrupted()) {
                             DAF_THROW_EXCEPTION(InterruptedException);
@@ -181,26 +172,19 @@ namespace DAF
 
                         return t; // return the item
                     }
-                    catch (...) {
-                        ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                        node->state(CANCELLED);
-                        throw;
-                    }
 
-                } else try {  // Safe guard against user code error - We have a producer already
+                    // Retry Loop
 
-                    if (this->interrupted()) {
-                        DAF_THROW_EXCEPTION(InterruptedException);
-                    }
-                    else if (node->get_item(t) ? false : node->isEMPTY()) {
-                        return t;
-                    }
-
-                } catch (...) {
-                    ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-                    node->state(CANCELLED);
-                    throw;
+                } else if (this->interrupted()) {
+                    DAF_THROW_EXCEPTION(InterruptedException);
+                } else if (node->get_item(t) ? false : node->isEMPTY()) {
+                    return t;
                 }
+
+            } catch (...) {
+                ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                node->state(CANCELLED);
+                throw;
             }
         }
 
