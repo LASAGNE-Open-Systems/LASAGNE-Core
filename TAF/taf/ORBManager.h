@@ -141,7 +141,7 @@ namespace TAF
                 TAF::ORBSingleton_type::instance()->post_init(info);
             }
 
-        } orbInitializer_;
+        } orbInitializer_; DAF_UNUSED_STATIC(ORB::orbInitializer_);
     };
 
     inline const CORBA::ORB_var & ORB::orb(void) const
