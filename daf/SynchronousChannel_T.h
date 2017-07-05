@@ -49,13 +49,9 @@ namespace DAF
     template <typename T>
     class SynchronousChannel : public Channel<T>
     {
-        enum {
-            CANCELLED = EOF, EMPTY = false, FULL = true
-        };
-
     public:
 
-        typedef typename Channel<T>::_mutex_type    _mutex_type;
+        typedef typename Monitor::_mutex_type   _mutex_type;
 
         using Channel<T>::interrupt;
         using Channel<T>::interrupted;
@@ -100,6 +96,10 @@ namespace DAF
 
     private:
 
+        enum {
+            CANCELLED = -1, EMPTY = 0, FULL = 1
+        };
+
         class SYNCHNode : virtual public Monitor, virtual public RefCount
         {
             T item_;
@@ -127,14 +127,12 @@ namespace DAF
             int state_;
         };
 
-        DAF_DECLARE_REFCOUNTABLE( SYNCHNode );
-
-        typedef std::list<SYNCHNode_ref>    _waiter_list_type;
+        typedef std::list<typename SYNCHNode::_ref_type>    _waiter_list_type;
 
         struct WaiterQueue : _waiter_list_type
         {
             int deque(typename SYNCHNode::_out_type node);
-            int enque(const SYNCHNode_ref & node);
+            int enque(const typename SYNCHNode::_ref_type & node);
 
         } waitingPuts, waitingTakes;
     };
