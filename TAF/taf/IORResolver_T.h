@@ -39,7 +39,7 @@ namespace TAF
         IORResolver_T(const std::string &name, DAF::Monitor &mon);
         virtual ~IORResolver_T(void);
 
-        typename T::_var_type   getResult(void);
+        typename T::_var_type   getResult(void) const;
 
     protected:
         // Methods from DAF::Runnable
@@ -67,12 +67,12 @@ namespace TAF
         virtual ~IORResolverChain_T(void);
 
         int addResolver(const _resolver_ref_type &resolver);
-        DAF::Monitor & getMonitor(void);
+        DAF::Monitor & getMonitor(void) const;
         typename T::_var_type resolve(time_t timeout = DEFAULT_RESOLVE_TIMEOUT);
 
     private:
         DAF::TaskExecutor       executor_;
-        DAF::Monitor            resultMonitor_;
+        mutable DAF::Monitor    resultMonitor_;
     };
 
 
