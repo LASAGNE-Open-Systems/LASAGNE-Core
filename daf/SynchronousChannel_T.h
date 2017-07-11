@@ -57,12 +57,10 @@ namespace DAF
         using Channel<T>::interrupted;
 
         enum {
-            MIN_CHANNEL_CAPACITY    = 1,
-            DEF_CHANNEL_CAPACITY    = 100,
-            MAX_CHANNEL_CAPACITY    = 1000
+            DEFAULT_CAPACITY_LIMIT  = size_t(100) // Currently Not Honoured - Maybe Later
         };
 
-        SynchronousChannel(size_t capacity = DEF_CHANNEL_CAPACITY);  // Set Up initial State
+        SynchronousChannel(size_t capacity = DEFAULT_CAPACITY_LIMIT);  // Set Up initial State
 
         virtual ~SynchronousChannel(void);
 
@@ -131,14 +129,8 @@ namespace DAF
 
         typedef std::list<typename SYNCHNode::_ref_type>    _waiter_list_type;
 
-        class WaiterQueue : public _waiter_list_type
+        struct WaiterQueue : _waiter_list_type
         {
-            DAF::Semaphore  unclaimed_items_;
-
-        public:
-
-            WaiterQueue(size_t capacity);
-
             int deque(typename SYNCHNode::_out_type node);
             int enque(const typename SYNCHNode::_ref_type & node);
 

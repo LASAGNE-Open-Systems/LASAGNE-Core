@@ -24,14 +24,13 @@
 #include "SynchronousChannel_T.h"
 
 #include <ace/OS_Errno.h>
-#include <ace/Min_Max.h>
 
 namespace DAF
 {
     template <typename T> inline
     SynchronousChannel<T>::SynchronousChannel(size_t capacity) : Channel<T>()
-        , waitingProducers(capacity), waitingConsumers(capacity)
     {
+        ACE_UNUSED_ARG(capacity);  // Maybe used in later version to limit parallism
     }
 
     template <typename T> inline
@@ -261,18 +260,11 @@ namespace DAF
 
     /**********************************************************************************************/
 
-    template <typename T>
-    SynchronousChannel<T>::WaiterQueue::WaiterQueue(size_t capacity) : _waiter_list_type()
-        , unclaimed_items_(ace_range(int(MIN_CHANNEL_CAPACITY), int(MAX_CHANNEL_CAPACITY), int(capacity)))
-    {
-    }
-
     template <typename T> int // Called with lock held
     SynchronousChannel<T>::WaiterQueue::deque(typename SYNCHNode::_out_type node)
     {
         while (!this->empty()) {
             typename _waiter_list_type::value_type item(this->front()._retn()); this->pop_front();
-            this->unclaimed_items_.release();
             if (item && !item->isCANCELLED()) {
                 node = item._retn(); return 0;
             }
@@ -284,7 +276,7 @@ namespace DAF
     template <typename T> inline int // Called with lock held
     SynchronousChannel<T>::WaiterQueue::enque(const typename SYNCHNode::_ref_type & node)
     {
-        this->unclaimed_items_.acquire(); this->push_back(node); return 0;
+        this->push_back(node); return 0;
     }
 
     /**********************************************************************************************/
