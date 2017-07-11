@@ -58,6 +58,11 @@ namespace test
 
         }
 
+        operator int() const
+        {
+            return this->value;
+        }
+
         LongAss& operator=(const LongAss& that)
         {
             if (this == &that)
@@ -91,6 +96,11 @@ namespace test
 
         ThrowAss(const ThrowAss &that) : value(that.value), throw_ex(that.throw_ex)
         {
+        }
+
+        operator int() const
+        {
+            return this->value;
         }
 
         ThrowAss &operator=(const ThrowAss& that)
@@ -190,7 +200,7 @@ namespace test
 
         virtual int run(void)
         {
-            if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Putter from Channel 0x%08X %d\n", &this->channel, this->value));
+            if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Putter from Channel 0x%08X %d\n", &this->channel, int(this->value)));
             try
             {
                 this->sema.release();
