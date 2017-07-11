@@ -84,7 +84,6 @@ namespace DAF
         * A @a msecs <= 0 will result in the current absolute time and if 
         * a permit is not imedaitely available, a -1 is returned with
         * @c errno == @c ETIME
-        * @deprecated
         */
         int attempt(time_t msecs);
 
@@ -108,7 +107,6 @@ namespace DAF
      * Documented within Doug Lee's book on Concurrency in Java
      * @deprecated
      */
-
     typedef class DAF::Semaphore    WaiterPreferenceSemaphore;
 
 
