@@ -54,7 +54,10 @@ namespace DAF
             int     wait(const ACE_Time_Value * abstime);
 
 #if defined(DAF_USES_COND_T_WAITERS)
-            long    waiters(void) const { return this->cond_.waiters(); }
+            long    waiters(void) const
+            {
+                return this->cond_.waiters();
+            }
 #endif
         } condition_mutex_; // Use underlying condition variable emulation
 
@@ -62,22 +65,27 @@ namespace DAF
         ACE_UNIMPLEMENTED_FUNC(SYNCHCondition(const SYNCHCondition<T> &))
 
     public:
+
         /// Define these meta types
         typedef T                   _mutex_type;
         typedef SYNCHCondition<T>   _condition_type;
 
         /** Constructor - lock Condition into mutex */
-        SYNCHCondition(_mutex_type &mutex) : condition_mutex_(mutex)
+        SYNCHCondition(_mutex_type & mutex) : condition_mutex_(mutex)
             , interrupted_(false)
-        {}
+        {
+        }
 
         /** Destructor - set condition state to Interrupted */
-        ~SYNCHCondition(void)       { this->interrupt(); }
+        ~SYNCHCondition(void)
+        {
+            this->interrupt();
+        }
 
         int waiters(void) const;
 
         /** Access the current condition "Interrupted" state */
-        int interrupted(void) const { return int(this->interrupted_); }
+        int interrupted(void) const;
 
         /** Set the condition to an Interrupted state and notify all possible waiters */
         int interrupt(void);
@@ -127,6 +135,13 @@ namespace DAF
 #else
         return int(this->waiters_.value());
 #endif
+    }
+
+    /** Access the current condition "Interrupted" state */
+    template <typename T> int
+    SYNCHCondition<T>::interrupted(void) const
+    {
+        return int(this->interrupted_);
     }
 
     template <typename T> int
