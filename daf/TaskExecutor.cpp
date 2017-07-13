@@ -446,7 +446,7 @@ namespace DAF
             return 0;  // Already Done
         }
 
-        if (this->executorClosing_ ? false : this->executorClosing_ = true) {
+        if (this->executorClosing_ ? false : (this->executorClosing_ = true)) {
 
             if (DAF::debug()) {
                 ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF (%P | %t) TaskExecutor[%@]; ")
