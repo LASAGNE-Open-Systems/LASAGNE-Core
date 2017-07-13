@@ -496,6 +496,8 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char* argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
+
      int result = 1;
     size_t threadCount = 3;
 

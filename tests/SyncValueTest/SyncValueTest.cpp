@@ -522,7 +522,7 @@ int main(int argc, char *argv[])
     result &= test::test_SyncValueMultipleWaitersWithTimeout(threadCount);
     result &= test::test_SyncValueMultipleWaitersWithTimeoutEarly(threadCount);
     result &= test::test_SyncValueDestruction(threadCount);
-#ifndef ACE_WIN32
+#if 1 //#ifndef ACE_WIN32
     result &= test::test_SyncValueThreadKill(threadCount);
     result &= test::test_SyncValueMultipleSetters(threadCount);
 #endif
