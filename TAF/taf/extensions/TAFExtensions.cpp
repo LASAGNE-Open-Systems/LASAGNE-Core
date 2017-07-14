@@ -52,11 +52,11 @@ namespace  {  // Anonymous
         virtual void pre_init(PortableInterceptor::ORBInitInfo_ptr info);
         virtual void post_init(PortableInterceptor::ORBInitInfo_ptr info);
 
-    } tafExtensionsInitializer;
+    } tafExtensionsInitializer; DAF_UNUSED_STATIC(tafExtensionsInitializer);
 
     TAFExtensionsInitializer::TAFExtensionsInitializer(void) : pre_init_(false), post_init_(false)
     {
-        PortableInterceptor::register_orb_initializer(this); ACE_UNUSED_ARG(tafExtensionsInitializer); // Register this ORBInitializer
+        PortableInterceptor::register_orb_initializer(this); // Register this ORBInitializer
     }
 
     void
