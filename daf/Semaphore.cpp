@@ -55,37 +55,31 @@ namespace DAF
     int
     Semaphore::acquire(const ACE_Time_Value * abstime)
     {
-        for (;;) {
+        while (!this->interrupted()) {
 
-            if (this->interrupted()) {
-                DAF_THROW_EXCEPTION(InterruptedException);
+            ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
+
+            if (this->permits() > this->waiters()) { // Preference any waiters
+                --this->permits_; return 0;
             }
-
-            { // Scope Lock
-
-                ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
-
-                if (this->permits() > this->waiters()) { // Preference any waiters
-                    --this->permits_; break;
-                }
-
-                else if (this->wait(abstime)) {
-
-                    // Here if possible we will preference this thread
-                    // for a permit rather than issue a timeout.
-                    if (DAF_OS::last_error() == ETIME && this->permits() > 0) {
-                        --this->permits_; break;
+            else if (this->wait(abstime)) {
+                switch (this->interrupted() ? EINTR : DAF_OS::last_error()) {
+                case EINTR: continue;  // Retry interrupted test
+                case ETIME:
+                    if (this->permits() > 0) {
+                        --this->permits_; return 0;
                     }
 
-                    return -1; // Report as error
+                    // Fall through
 
-                } else if (this->permits() > 0) {
-                    --this->permits_; break;
+                default: return -1; // Report as errno error
                 }
+            } else if (this->permits() > 0) {
+                --this->permits_; return 0;
             }
         }
 
-        return 0; // Return all good
+        DAF_THROW_EXCEPTION(InterruptedException);
     }
 
     int

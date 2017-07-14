@@ -115,15 +115,13 @@ namespace DAF
     {
     }
 
-    inline
-    int
+    inline int
     Semaphore::acquire(const ACE_Time_Value & tv)
     {
         return this->acquire(&tv);
     }
 
-    inline
-    int
+    inline int
     Semaphore::attempt(time_t msecs)
     {
         return this->acquire(DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
