@@ -62,7 +62,7 @@ namespace  {  // Anonymous
     void
     TAFExtensionsInitializer::pre_init(PortableInterceptor::ORBInitInfo_ptr info)
     {
-        if (this->pre_init_ ? false : this->pre_init_ = true) {
+        if (this->pre_init_ ? false : (this->pre_init_ = true)) {
             TAO_ORBInitInfo_var tao_info = TAO_ORBInitInfo::_narrow(info);
 
             if (CORBA::is_nil(tao_info.in())) {
@@ -74,7 +74,7 @@ namespace  {  // Anonymous
     void
     TAFExtensionsInitializer::post_init(PortableInterceptor::ORBInitInfo_ptr info)
     {
-        if (this->post_init_ ? false : this->post_init_ = true) {
+        if (this->post_init_ ? false : (this->post_init_ = true)) {
 
             TAO_ORBInitInfo_var tao_info = TAO_ORBInitInfo::_narrow(info);
 

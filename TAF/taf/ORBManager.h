@@ -138,14 +138,14 @@ namespace TAF
 
             virtual void pre_init(PortableInterceptor::ORBInitInfo_ptr info)
             {
-                if (this->pre_init_ ? false : this->pre_init_ = true)   {
+                if (this->pre_init_ ? false : (this->pre_init_ = true))   {
                     TAF::ORBSingleton_type::instance()->pre_init(info);
                 }
             }
 
             virtual void post_init(PortableInterceptor::ORBInitInfo_ptr info)
             {
-                if (this->post_init_ ? false : this->post_init_ = true) {
+                if (this->post_init_ ? false : (this->post_init_ = true)) {
                     TAF::ORBSingleton_type::instance()->post_init(info);
                 }
             }
