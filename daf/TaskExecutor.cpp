@@ -436,7 +436,7 @@ namespace DAF
 
             DAF_OS::thr_setprio(ACE_Sched_Priority(command->runPriority())); // Set the requested priority
 
-            DAF_OS::last_error(0); this->svc(command._retn()); // Dispatch The Command
+            DAF_OS::last_error(ENOEXEC); this->svc(command._retn()); // Dispatch The Command
 
             DAF_OS::thr_setprio(default_prio);  // Reset Priority
         }
