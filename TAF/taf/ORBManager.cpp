@@ -77,7 +77,6 @@ namespace TAF {
 
     ORB::ORB(void)
     {
-        ACE_UNUSED_ARG(orbInitializer_);
     }
 
     ORB::~ORB(void)
