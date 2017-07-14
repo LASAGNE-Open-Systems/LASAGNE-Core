@@ -74,7 +74,8 @@ namespace DAF
 
                 default: return -1; // Report as errno error
                 }
-            } else if (this->permits() > 0) {
+            }
+            else if (this->permits() > 0) {
                 --this->permits_; return 0;
             }
         }
