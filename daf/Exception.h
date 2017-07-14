@@ -21,7 +21,7 @@
 #ifndef DAF_EXCEPTION_H
 #define DAF_EXCEPTION_H
 
-#include <ace/OS.h>
+#include "OS.h"
 
 #include <stdexcept>
 #include <typeinfo>
@@ -77,7 +77,9 @@ namespace DAF
   */
   struct TimeoutException : std::runtime_error {
     TimeoutException(const char *_msg = typeid(TimeoutException).name())
-    : std::runtime_error(_msg) {
+    : std::runtime_error(_msg)
+    {
+        DAF_OS::last_error(ETIME);
     }
   };
 
@@ -197,8 +199,26 @@ namespace DAF
   */
   struct InterruptedException : InternalException {
     InterruptedException(const char *_msg = typeid(InterruptedException).name())
-    : InternalException(_msg) {
+    : InternalException(_msg)
+    {
+        DAF_OS::last_error(EINTR);
     }
+  };
+
+  /** \struct LockFailureException
+  * \brief Identifies an instance where a lock manipulation has failed
+  *
+  * This exception is used to identify when an Operating System based lock has failed
+  * to be manipulated (locked) A lot of the use cases are around concurrency resources
+  * at the OS level.
+  * \ingroup exception
+  */
+  struct LockFailureException : InternalException {
+      LockFailureException(const char *_msg = typeid(LockFailureException).name())
+          : InternalException(_msg)
+      {
+          DAF_OS::last_error(ENOLCK);
+      }
   };
 
  /** \struct BrokenBarrierException

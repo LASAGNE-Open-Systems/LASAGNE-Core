@@ -22,6 +22,15 @@
 
 #include "OS.h"
 
+#include "TerminateRepository.h"
+
+#include <ace/Thread_Mutex.h>
+#include <ace/Synch_Traits.h>
+#include <ace/Singleton.h>
+
+#include <typeinfo>
+#include <map>
+
 namespace DAF_OS
 {
     int     last_error(void)

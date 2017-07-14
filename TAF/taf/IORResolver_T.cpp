@@ -45,7 +45,7 @@ namespace TAF
 
     template <typename T>
     typename T::_var_type
-    IORResolver_T<T>::getResult(void)
+    IORResolver_T<T>::getResult(void) const
     {
         return T::_duplicate(this->result_.in());
     }
@@ -89,7 +89,7 @@ namespace TAF
 
     template <typename T>
     DAF::Monitor &
-    IORResolverChain_T<T>::getMonitor(void)
+    IORResolverChain_T<T>::getMonitor(void) const
     {
         return this->resultMonitor_;
     }
