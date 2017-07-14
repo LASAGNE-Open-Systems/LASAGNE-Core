@@ -39,10 +39,14 @@
 
 #include <ace/Service_Config.h>
 
-namespace  {  // Ananomous
+namespace  {  // Anonymous
 
-    static struct TAFExtensionsInitializer : virtual public PortableInterceptor::ORBInitializer, virtual public CORBA::LocalObject
+    static class TAFExtensionsInitializer : virtual public PortableInterceptor::ORBInitializer, virtual public CORBA::LocalObject
     {
+        bool pre_init_, post_init_;
+
+    public:
+
         TAFExtensionsInitializer(void);
 
         virtual void pre_init(PortableInterceptor::ORBInitInfo_ptr info);
@@ -50,7 +54,7 @@ namespace  {  // Ananomous
 
     } tafExtensionsInitializer;
 
-    TAFExtensionsInitializer::TAFExtensionsInitializer(void)
+    TAFExtensionsInitializer::TAFExtensionsInitializer(void) : pre_init_(false), post_init_(false)
     {
         PortableInterceptor::register_orb_initializer(this); ACE_UNUSED_ARG(tafExtensionsInitializer); // Register this ORBInitializer
     }
@@ -58,39 +62,45 @@ namespace  {  // Ananomous
     void
     TAFExtensionsInitializer::pre_init(PortableInterceptor::ORBInitInfo_ptr info)
     {
-        TAO_ORBInitInfo_var tao_info = TAO_ORBInitInfo::_narrow(info);
+        if (this->pre_init_ ? false : this->pre_init_ = true) {
+            TAO_ORBInitInfo_var tao_info = TAO_ORBInitInfo::_narrow(info);
 
-        if (CORBA::is_nil(tao_info.in())) {
-            throw CORBA::INTERNAL();
+            if (CORBA::is_nil(tao_info.in())) {
+                throw CORBA::INTERNAL();
+            }
         }
     }
 
     void
     TAFExtensionsInitializer::post_init(PortableInterceptor::ORBInitInfo_ptr info)
     {
-        TAO_ORBInitInfo_var tao_info = TAO_ORBInitInfo::_narrow(info);
+        if (this->post_init_ ? false : this->post_init_ = true) {
 
-        if (CORBA::is_nil(tao_info.in())) {
-            throw CORBA::INTERNAL();
-        }
+            TAO_ORBInitInfo_var tao_info = TAO_ORBInitInfo::_narrow(info);
 
-        const std::string svc_args(DAF::get_property(TAF_SERVICE_ARGS, false)); // Get The Current Service Arguments
+            if (CORBA::is_nil(tao_info.in())) {
+                throw CORBA::INTERNAL();
+            }
 
-        {   // Scope the Gestalt Guard
+            const std::string svc_args(DAF::get_property(TAF_SERVICE_ARGS, false)); // Get The Current Service Arguments
 
-            ACE_Service_Config_Guard svc_guard(tao_info->orb_core()->configuration()); ACE_UNUSED_ARG(svc_guard);
+            {   // Scope the Gestalt Guard
+
+                ACE_Service_Config_Guard svc_guard(tao_info->orb_core()->configuration()); ACE_UNUSED_ARG(svc_guard);
 
 #if defined(TAF_HAS_DISCOVERY)
-            ACE_Service_Config::process_directive(ace_svc_desc_TAFDiscoveryService);
-            if (ACE_Service_Config::initialize(TAFDiscoveryService::svc_ident(), svc_args.c_str())) {
-                ACE_DEBUG((LM_WARNING,
-                    ACE_TEXT("TAFResources (%P | %t) WARNING: Unable to initialize %s.\n"),
-                    TAFDiscoveryService::svc_ident()));
-            }
+                ACE_Service_Config::process_directive(ace_svc_desc_TAFDiscoveryService);
+                if (ACE_Service_Config::initialize(TAFDiscoveryService::svc_ident(), svc_args.c_str())) {
+                    ACE_DEBUG((LM_WARNING,
+                        ACE_TEXT("TAFResources (%P | %t) WARNING: Unable to initialize %s.\n"),
+                        TAFDiscoveryService::svc_ident()));
+                }
 #endif
+            }
         }
     }
-}  // Ananomous
+
+}  // Anonymous
 
 int TAFExtensions_Export TAF::ExtensionsInitializer(void)
 {
