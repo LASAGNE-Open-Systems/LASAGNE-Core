@@ -7,16 +7,12 @@ project(TAFServerSingleLoadTest) : build_files {
     macros += _CRT_SECURE_NO_WARNINGS
   }
 
-  verbatim(vc10, debug_cmd_args) {
-    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser,ODDS-TDF,ODDS-RADAR\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986 "
-  }
-
-  verbatim(vc12, debug_cmd_args) {
-    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser,ODDS-TDF,ODDS-RADAR\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986 "
-  }
-
   verbatim(vc14, debug_cmd_args) {
-    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser,ODDS-TDF,ODDS-RADAR\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986 "
+    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986 "
+  }
+
+  verbatim(vs2017, debug_cmd_args) {
+    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO -ORBListenEndpoints iiop:\/\/1.2@:8989,1.2@:8986 "
   }
 
   Source_Files {
@@ -37,16 +33,12 @@ project(TAFServerMultipleLoadTest) : build_files {
     macros += _CRT_SECURE_NO_WARNINGS
   }
 
-  verbatim(vc10, debug_cmd_args) {
-    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser,ODDS-TDF,ODDS-RADAR\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO  "
-  }
-
-  verbatim(vc12, debug_cmd_args) {
-    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser,ODDS-TDF,ODDS-RADAR\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO  "
-  }
-
   verbatim(vc14, debug_cmd_args) {
-    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser,ODDS-TDF,ODDS-RADAR\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO  "
+    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO  "
+  }
+
+  verbatim(vs2017, debug_cmd_args) {
+    "-TAFServices \"$(DAF_ROOT)/bin/DSTO.conf:textparser\" -DCPSConfigFile dds.ini -TAFBaseContext TAF\/DSTO  "
   }
 
   Source_Files {

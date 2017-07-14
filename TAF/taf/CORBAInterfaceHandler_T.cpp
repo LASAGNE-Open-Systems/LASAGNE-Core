@@ -27,35 +27,45 @@ namespace TAF
 
     template < typename INTERFACE_TYPE, typename DEFAULTPOA_TYPE >
     CORBAInterfaceHandler_T< INTERFACE_TYPE, DEFAULTPOA_TYPE >::CORBAInterfaceHandler_T(const IORBinderSequence &binder)
-        : INTERFACE_TYPE(), ior_binder_(binder), stub_reference_(0)
+        : INTERFACE_TYPE(), ior_binder_(binder), stub_reference_(0), stub_activated_(false)
     {
     }
 
     template < typename INTERFACE_TYPE, typename DEFAULTPOA_TYPE >
     CORBAInterfaceHandler_T< INTERFACE_TYPE, DEFAULTPOA_TYPE >::~CORBAInterfaceHandler_T(void)
     {
-        try {
-            _interface_activator_type::deactivate(this);
-        } DAF_CATCH_ALL { /* probably already deactivated through fini_bind() */ }
+        if (this->stub_activated_) {
+            ACE_ERROR((LM_ERROR, ACE_TEXT("TAF (%P | %t) ERROR: %C\n")
+                ACE_TEXT(" -->> destructor called with servant still activated - use fini_bind()\n")
+                , typeid(*this).name()));
+        }
     }
 
     template < typename INTERFACE_TYPE, typename DEFAULTPOA_TYPE > int
     CORBAInterfaceHandler_T< INTERFACE_TYPE, DEFAULTPOA_TYPE >::init_bind(const std::string &name)
     {
-        try {
-            this->stub_reference_ = _interface_activator_type::activate(this); return this->init_bind_i(name);
-        } DAF_CATCH_ALL {}
-
+        if (!this->stub_activated_) {
+            try {
+                if (!CORBA::is_nil((this->stub_reference_ = _interface_activator_type::activate(this)).in())) {
+                    return this->init_bind_i(name);
+                }
+            } DAF_CATCH_ALL{
+            }
+        }
         return -1;
     }
 
     template < typename INTERFACE_TYPE, typename DEFAULTPOA_TYPE > int
     CORBAInterfaceHandler_T< INTERFACE_TYPE, DEFAULTPOA_TYPE >::init_bind(const std::string &name, const PortableServer::ObjectId &id)
     {
-        try {
-            this->stub_reference_ = _interface_activator_type::activate_with_id(this, id); return this->init_bind_i(name);
-        } DAF_CATCH_ALL {}
-
+        if (!this->stub_activated_) {
+            try {
+                if (!CORBA::is_nil((this->stub_reference_ = _interface_activator_type::activate_with_id(this, id)).in())) {
+                    return this->init_bind_i(name);
+                }
+            } DAF_CATCH_ALL {
+            }
+        }
         return -1;
     }
 
@@ -64,9 +74,10 @@ namespace TAF
     {
         int rtn = -1;
 
-        try {
-            rtn = this->ior_binder_.fini_bind(); _interface_activator_type::deactivate(this);
-        } DAF_CATCH_ALL{}
+        if (this->stub_activated_) try {
+            this->stub_activated_ = false; rtn = this->ior_binder_.fini_bind(); _interface_activator_type::deactivate(this);
+        } DAF_CATCH_ALL {
+        }
 
         return rtn;
     }
@@ -75,7 +86,7 @@ namespace TAF
     CORBAInterfaceHandler_T< INTERFACE_TYPE, DEFAULTPOA_TYPE >::init_bind_i(const std::string &name)
     {
         for (const _interface_stub_var_type & stub(this->stub_reference()); stub;) {
-            return this->ior_binder_.init_bind(name, stub);
+            this->stub_activated_ = true; return this->ior_binder_.init_bind(name, stub);
         }
         return -1;
     }

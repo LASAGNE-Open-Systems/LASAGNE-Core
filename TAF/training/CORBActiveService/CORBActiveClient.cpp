@@ -3,6 +3,7 @@
 #include <taf/TAF.h>
 #include <taf/ORBManager.h>
 #include <taf/NamingContext.h>
+#include <taf/IORResolver_T.h>
 
 #include <daf/ShutdownHandler.h>
 #include <daf/PropertyManager.h>
@@ -10,10 +11,12 @@
 #include <ace/Arg_Shifter.h>
 
 // Note Include Generated cpp's
+#include "LTMTopicDetailsC.cpp"
 #include "CORBActiveServiceC.cpp"
-#include "CORBActiveServiceS.cpp"
 
-namespace { // Anonomous Namespace
+
+
+namespace { // Anonymous namespace
 
     int     debug_arg_(DAF::debug());
     inline int  debug_arg(void)
@@ -106,30 +109,26 @@ namespace { // Anonomous Namespace
     template <typename T>
     typename T::_var_type  resolveCORBAService(const char *name, bool use_naming = true)
     {
-        CORBA::Object_var svc_obj(0);
-
-        if (name) do {
-
-            if (use_naming) try { // Try naming for reference to CORBActiveService
-                svc_obj = TheTAFBaseContext().resolve_name(name); break;
-            } catch (const CosNaming::NamingContext::NotFound &) {
-                if (debug_arg()) {
-                    ACE_DEBUG((LM_DEBUG, ACE_TEXT("NamingService can't be used to resolve for service %s\n"), name));
-                }
-            } catch (const CORBA::Exception &ex) {
-                ex._tao_print_exception("CORBActiveClient: FAILURE: Attempting to contact the NamingService");
+        TAF::IORResolverChain_T<T> resolver;
+        resolver.addResolver(new TAF::InitialRefResolver_T<T>(name, resolver.getMonitor()));
+        if (use_naming)
+        {
+            try
+            {
+                resolver.addResolver(new TAF::NamingResolver_T<T>(name, resolver.getMonitor(), TheTAFBaseContext()));
             }
-
-            svc_obj = TAFResolveInitialReferences(name); // Try the IOR reference table (and also the IORTable)
-
-        } while (false);
-
-        return T::_narrow(svc_obj.in());
+            catch (const CORBA::Exception& ce)
+            {
+                ACE_ERROR((LM_ERROR, ACE_TEXT("ERROR: CORBActiveClient; ")
+                    ACE_TEXT("Caught %C while trying to add NamingResolver for %C\n"), ce._info().c_str(), name));
+            }
+        }
+        return resolver.resolve();
     }
 
     const DAF::ShutdownHandler shutdownHandler_; // Instantiate a Shutdown (CTL-C) handler
 
-} // Ananomous
+} // Anonymous
 
 int main(int argc, char *argv[])
 {
@@ -140,13 +139,23 @@ int main(int argc, char *argv[])
 
     try {
 
+        // Set the TAFBaseContext property to match what is provided to the service
+        DAF::set_property(TAF_BASECONTEXT, DAF::format_args("DSTO/%H", true, false));
+
         TAF::ORBManager orb(argc, argv); // Initialize our primary ORB instance
+
+        DAF::print_properties();
 
         orb.run(3, false); // Run the ORB reactor with 3 threads (non-blocking)
 
         try {
 
             ltm::CORBActiveService_var svc_ior(resolveCORBAService<ltm::CORBActiveService>(ltm::CORBActiveService_OID, naming_arg()));
+            if (CORBA::is_nil(svc_ior.in()))
+            {
+                ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("INFO: CORBActiveClient; ")
+                    ACE_TEXT("Unable to resolve CORBA service successfully\n")), -1);
+            }
 
             while (!shutdownHandler_.has_shutdown()) {
 

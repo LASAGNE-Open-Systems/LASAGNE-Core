@@ -1,8 +1,12 @@
+// Simplified single vendor MPC (without specific vendor mpb's)
+
 project(DDSActiveService) : taflib, odds_pubsub {
   sharedname    = *
 
-  idlflags      += -Wb,export_include=DDSActiveService_export.h -Wb,export_macro=DDSActiveService_Export
-  dcps_ts_flags += -Wb,export_include=DDSActiveService_export.h -Wb,export_macro=DDSActiveService_Export
+  idlflags      += -Wb,export_include=DDSActiveService_export.h \
+                   -Wb,export_macro=DDSActiveService_Export
+  dcps_ts_flags += -Wb,export_include=DDSActiveService_export.h \
+                   -Wb,export_macro=DDSActiveService_Export
 
   libout        = $(DAF_ROOT)/lib 
 
@@ -11,11 +15,58 @@ project(DDSActiveService) : taflib, odds_pubsub {
   prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl DDSActiveService > DDSActiveService_export.h
 
   Idl_Files {
-    DDSActiveService.idl
+    LTMTopicDetails.idl
   }
 
   TypeSupport_Files {
-    DDSActiveService.idl
+    LTMTopicDetails.idl
   } 
 
+  Header_Files {
+    DDSActiveService.h
+    DDSActiveDataSupport.h
+  }
+
+  Source_Files {
+    DDSActiveService.cpp
+    DDSActiveDataSupport.cpp
+  }
+}
+
+// Multi-vendor MPC (with specific vendor mpb's)
+
+project(ODDS_DDSActiveService) : ODDSActiveService, odds_pubsub {
+  requires += opendds
+  after    += DDSActiveService
+
+  TypeSupport_Files {
+    LTMTopicDetails.idl
+  } 
+}
+
+project(NDDS_DDSActiveService) : NDDSActiveService, ndds_pubsub {
+  requires += ndds
+  after    += DDSActiveService ODDS_DDSActiveService
+
+  NDDSTypeSupport_Files {
+    LTMTopicDetails.idl
+  }
+}
+
+project(CDDS_DDSActiveService) : CDDSActiveService, cdds_pubsub {
+  requires += coredx
+  after    += DDSActiveService ODDS_DDSActiveService NDDS_DDSActiveService
+
+  CoreDXTypeSupport_Files {
+    LTMTopicDetails.idl
+  }
+}
+
+project(OSPL_DDSActiveService) : OSPLActiveService, ospl_pubsub {
+  requires += opensplice
+  after    += DDSActiveService ODDS_DDSActiveService NDDS_DDSActiveService CDDS_DDSActiveService
+
+  OSPLTypeSupport_Files {
+    LTMTopicDetails.idl
+  }
 }

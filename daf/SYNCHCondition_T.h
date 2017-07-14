@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,16 +20,6 @@
 ***************************************************************/
 #ifndef DAF_SYNCHCONDITION_T_H
 #define DAF_SYNCHCONDITION_T_H
-
-/**
-* @file     SYNCHCondition.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
-*/
 
 #include "OS.h"
 #include "Exception.h"
@@ -55,30 +45,47 @@ namespace DAF
     * state.  If interrupted, a broadcast is sent to all waiters with the
     * indication that they have been interrupted.
     */
-    template <typename T> class SYNCHCondition : ACE_Copy_Disabled
+    template <typename T> class SYNCHCondition
     {
-        ACE_Condition<T> condition_mutex_; // Use underlying condition variable emulation
+        struct ConditionMutex : ACE_Condition<T>
+        {
+            ConditionMutex(T &mutex) : ACE_Condition<T>(mutex) {}
 
-        typedef ACE_Atomic_Op<DAF_SYNCH_MUTEX, int> _waiters_type;
+            int     wait(const ACE_Time_Value * abstime);
+
+#if defined(DAF_USES_COND_T_WAITERS)
+            long    waiters(void) const
+            {
+                return this->cond_.waiters();
+            }
+#endif
+        } condition_mutex_; // Use underlying condition variable emulation
+
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const SYNCHCondition<T> &))
+        ACE_UNIMPLEMENTED_FUNC(SYNCHCondition(const SYNCHCondition<T> &))
 
     public:
+
         /// Define these meta types
         typedef T                   _mutex_type;
         typedef SYNCHCondition<T>   _condition_type;
 
         /** Constructor - lock Condition into mutex */
-        SYNCHCondition(_mutex_type &mutex) : condition_mutex_(mutex)
-            , waiters_(0), interrupted_(false)
-        {}
+        SYNCHCondition(_mutex_type & mutex) : condition_mutex_(mutex)
+            , interrupted_(false)
+        {
+        }
 
         /** Destructor - set condition state to Interrupted */
-        ~SYNCHCondition(void)       { this->interrupt(); }
+        ~SYNCHCondition(void)
+        {
+            this->interrupt();
+        }
+
+        int waiters(void) const;
 
         /** Access the current condition "Interrupted" state */
-        int interrupted(void) const { return int(this->interrupted_); }
-
-        /** Access the current condition "waiters" count state */
-        int waiters(void)     const { return int(this->waiters_.value()); }
+        int interrupted(void) const;
 
         /** Set the condition to an Interrupted state and notify all possible waiters */
         int interrupt(void);
@@ -105,9 +112,37 @@ namespace DAF
 
     private:
 
-        _waiters_type waiters_;
+#if !defined(DAF_USES_COND_T_WAITERS)
+        ACE_Atomic_Op<ACE_Thread_Mutex, long>   waiters_; // Prevent race conditions on the <waiters_> count.
+#endif
+
+    private:
+
         volatile bool interrupted_;
     };
+
+    template <typename T> inline int
+    SYNCHCondition<T>::ConditionMutex::wait(const ACE_Time_Value * abstime)
+    {
+        return DAF_OS::cond_timedwait(&this->cond_, &this->mutex().lock(), const_cast <ACE_Time_Value *>(abstime));
+    }
+
+    template <typename T> inline int
+    SYNCHCondition<T>::waiters(void) const
+    {
+#if defined(DAF_USES_COND_T_WAITERS)
+        return int(this->condition_mutex_.waiters());
+#else
+        return int(this->waiters_.value());
+#endif
+    }
+
+    /** Access the current condition "Interrupted" state */
+    template <typename T> int
+    SYNCHCondition<T>::interrupted(void) const
+    {
+        return int(this->interrupted_);
+    }
 
     template <typename T> int
     SYNCHCondition<T>::interrupt(void)
@@ -132,7 +167,7 @@ namespace DAF
                 } else return 0;
             }
 
-            ACE_OS::last_error(EBUSY); return -1;
+            DAF_OS::last_error(EBUSY); return -1;
         }
 
         return 0;
@@ -141,22 +176,37 @@ namespace DAF
     template <typename T> int
     SYNCHCondition<T>::wait(const ACE_Time_Value *abstime)
     {
-        int result = -1;
+        int result = -1, last_error = 0;
 
         if (!this->interrupted()) try { // Mutex locked by wait_condition caller
-            ++this->waiters_; result = this->condition_mutex_.wait(abstime); --this->waiters_;
+#if !defined(DAF_USES_COND_T_WAITERS)
+            ++this->waiters_;
+#endif
+            if ((result = this->condition_mutex_.wait(abstime)) != 0) {
+                last_error = DAF_OS::last_error();
+            }
+#if !defined(DAF_USES_COND_T_WAITERS)
+            --this->waiters_;
+#endif
         } catch (...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-            --this->waiters_; throw;
+#if !defined(DAF_USES_COND_T_WAITERS)
+            --this->waiters_;
+#endif
+            throw;
         }
 
         if (this->interrupted()) {
-            ACE_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
+            DAF_THROW_EXCEPTION(DAF::InterruptedException);
+        }
+
+        if (last_error) {
+            DAF_OS::last_error(last_error);
         }
 
         return result;
     }
-
 }
+
 /// define these condition types dependant on mutex type
 typedef DAF::SYNCHCondition<DAF_SYNCH_MUTEX>            DAF_SYNCH_CONDITION;
 typedef DAF::SYNCHCondition<DAF_SYNCH_NULL_MUTEX>       DAF_SYNCH_NULL_CONDITION;

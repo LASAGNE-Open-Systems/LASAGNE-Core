@@ -102,7 +102,7 @@ namespace DAF
     }
 
     int
-    ConstrainedExecutor::execute(const Runnable_ref &command)  throw (InternalException)
+    ConstrainedExecutor::execute(const Runnable_ref &command)
     {
         return this->executor_.execute(new ConstraintRunnable(command, this->semaphore_));
     }

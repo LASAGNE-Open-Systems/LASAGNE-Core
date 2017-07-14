@@ -48,6 +48,10 @@
 # define ACE_HAS_SERVICE_REPOSITORY_LOCK_ACCESS 1
 #endif
 
+#if !defined(ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS) && ACE_GTEQ_VERSION(6, 4, 3)
+# define ACE_HAS_THREAD_DESCRIPTOR_TERMINATE_ACCESS 1
+#endif
+
 /******************* ACE CONSTANTS ****************************/
 
 #define ACE_DEBUGGING               ACE_TEXT("ACEDebug")

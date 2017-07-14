@@ -209,7 +209,7 @@ namespace test
             case 'h': print_usage(); return -1;
             case 's': this->shutdown_ = true; break;
             case 'z': this->debug_ = 1; break;
-            case 't': this->timer_ = ACE_Time_Value(ACE_OS::atoi(cli_opt.opt_arg()));
+            case 't': this->timer_ = ACE_Time_Value(DAF_OS::atoi(cli_opt.opt_arg()));
                       break;
         }
 

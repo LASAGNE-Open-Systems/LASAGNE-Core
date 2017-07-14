@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 {
     ConfigServiceLoader cfgLoader;
 
-    for (const char *daf_root = ACE_OS::getenv("DAF_ROOT"); daf_root;) {
+    for (const char *daf_root = DAF_OS::getenv("DAF_ROOT"); daf_root;) {
         ok_result.append(daf_root).append("/my bin"); break;
     }
 

@@ -58,7 +58,7 @@ namespace  // Ananomous namespace
     public:
         AlphabeticalPredicate(bool ascending) : ascending_(ascending) {}
         bool operator () (const first_argument_type &l, const second_argument_type &r) const {
-            return ACE_OS::strcmp(r.word_, l.word_) > 0 ? this->ascending_ : !this->ascending_;
+            return DAF_OS::strcmp(r.word_, l.word_) > 0 ? this->ascending_ : !this->ascending_;
         }
     };
 
@@ -100,7 +100,7 @@ namespace  // Ananomous namespace
     {
         wordlist.clear();
 
-        if (text ? ACE_OS::strlen(text) == 0 : true) {
+        if (text ? DAF_OS::strlen(text) == 0 : true) {
             throw CORBA::BAD_PARAM();
         }
 
@@ -197,17 +197,17 @@ namespace TAF_XMPL
         case -1: return 0; // Indicates sucessful parsing of the command line
 
         case 'n': this->use_naming_ = true; for (const ACE_TCHAR *naming = get_opts.opt_arg(); naming;) {
-            this->use_naming_ = (ace_range(0, 1, ACE_OS::atoi(naming)) ? true : false); break;
+            this->use_naming_ = (ace_range(0, 1, DAF_OS::atoi(naming)) ? true : false); break;
         } break; // Turn on Naming optionally.
 
         case 'o': for (const ACE_TCHAR * iorFile = get_opts.opt_arg(); iorFile;) {
-            if (ACE_OS::strlen(iorFile) > 0) { this->ior_file_.assign(iorFile); } break;
+            if (DAF_OS::strlen(iorFile) > 0) { this->ior_file_.assign(iorFile); } break;
         } break; // Turn on IOR File write.
 
         case 'z': this->debug_ = 1;
             for (const ACE_TCHAR *debug_lvl = get_opts.opt_arg(); debug_lvl;) {
                 if (::isdigit(int(*debug_lvl))) {
-                    this->debug_ = ace_range(0, 10, ACE_OS::atoi(debug_lvl));
+                    this->debug_ = ace_range(0, 10, DAF_OS::atoi(debug_lvl));
                 } break;
             } break; // Turn on Debug at level optionally.
 
@@ -257,13 +257,13 @@ namespace TAF_XMPL
     int
     TextParserService::suspend(void)
     {
-        ACE_OS::last_error(ENOTSUP); return -1;
+        DAF_OS::last_error(ENOTSUP); return -1;
     }
 
     int
     TextParserService::resume(void)
     {
-        ACE_OS::last_error(ENOTSUP); return -1;
+        DAF_OS::last_error(ENOTSUP); return -1;
     }
 
     /// Terminates object when dynamic unlinking occurs.

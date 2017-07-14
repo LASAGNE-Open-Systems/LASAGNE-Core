@@ -1,0 +1,27 @@
+project : taflib {
+  sharedname    = *
+
+  idlflags      += -Wb,export_include=CORBActiveService_export.h \
+                   -Wb,export_macro=CORBActiveService_Export
+
+  libout        = $(DAF_ROOT)/lib 
+
+  dynamicflags  += CORBACTIVESERVICE_BUILD_DLL
+
+  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl CORBActiveService > CORBActiveService_export.h
+
+  Idl_Files {
+    LTMTopicDetails.idl
+    CORBActiveService.idl
+  }
+
+  Header_Files {
+    CORBActiveService.h
+    CORBActiveDataSupport.h
+  }
+
+  Source_Files {
+    CORBActiveService.cpp
+    CORBActiveDataSupport.cpp
+  }
+}

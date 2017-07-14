@@ -150,7 +150,7 @@ namespace DAF
     int
     Configurator::load(int &argc, ACE_TCHAR *argv[], bool use_env)
     {
-        if (this->config_switch() && ACE_OS::strlen(this->config_switch())) {
+        if (this->config_switch() && DAF_OS::strlen(this->config_switch())) {
 
             const std::string cfg_switch(DAF::trim_string(this->config_switch()));
             const std::string arg_switch("-" + cfg_switch);

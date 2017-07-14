@@ -40,7 +40,7 @@ namespace DAF
     }
 
     template <typename T> T
-    SemaphoreControlledQueue<T>::extract(void) throw (DAF::InternalException)
+    SemaphoreControlledQueue<T>::extract(void)
     {
         ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
         T t(this->channelQ_.front());

@@ -1,5 +1,3 @@
-// $Id$
-
 project (LDBCSQLiteTest) : ldbc_sqlite {
   exename     = *
   requires   += ldbc_sqlite

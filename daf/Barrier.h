@@ -122,8 +122,7 @@ namespace DAF
         * prematurely due to interruption or time-out. (If so,
         * the <code>broken</code> status is also set.)
         */
-        virtual int barrier(void)
-            throw (IllegalThreadStateException, BrokenBarrierException);
+        virtual int barrier(void);
 
         /**
         * Enter barrier and wait at most msecs for the other parties()-1 threads.
@@ -144,15 +143,14 @@ namespace DAF
         * the barrier. If the timeout occured while already in the
         * barrier, <code>broken</code> status is also set.
         */
-        int barrier(time_t msecs)
-            throw (IllegalThreadStateException, BrokenBarrierException, TimeoutException);
+        int barrier(time_t msecs);
 
         /**
         * Wait For the Barrier to reset after a barrier exchange
         * @return indicates <code>true</code> if the barrier was reset
         * ie all threads exited, <code>false</code> if an error occured.
         */
-        bool waitReset(time_t msecs = 0) throw (IllegalThreadStateException);
+        bool waitReset(time_t msecs = 0);
 
     private:
 

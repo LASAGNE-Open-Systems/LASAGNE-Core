@@ -70,7 +70,7 @@ namespace DAF
 
     DAF_Export const char * get_errno_text(int error = int(errno)); // NOTE: Could return 0
 
-    DAF_Export std::string  last_error_text(int error = ACE_OS::last_error());
+    DAF_Export std::string  last_error_text(int error = DAF_OS::last_error());
 
     DAF_Export std::string  trim_string(const std::string &, const char c = ' ');
 
@@ -80,17 +80,17 @@ namespace DAF
     DAF_Export std::string  parse_args(const std::string &args, bool substitute_env_args = true, bool quote_args = true);
     DAF_Export std::string  parse_args(int argc, ACE_TCHAR *argv[], bool substitute_env_args = true, bool quote_args = true);
 
-    DAF_Export std::string  format_args(const std::string &args, bool substitute_env_args = true, bool quote_args = true) throw (DAF::IllegalArgumentException);
+    DAF_Export std::string  format_args(const std::string &args, bool substitute_env_args = true, bool quote_args = true);
 
     DAF_Export void         print_argv(const ACE_ARGV &);
     DAF_Export void         print_args(const std::string &args, bool substitute_env_args = false);
     DAF_Export void         print_args(int argc, ACE_TCHAR *argv[], bool substitute_env_args = false);
 
-    DAF_Export int          print_last_error(int error = ACE_OS::last_error());
+    DAF_Export int          print_last_error(int error = DAF_OS::last_error());
 
     DAF_Export void         print_gestalt(const ACE_Service_Gestalt * sg = ACE_Service_Config::current());
 
-    DAF_Export std::string  locateServiceIdent(const ACE_Service_Object * svc_obj, const ACE_Service_Gestalt * sg = ACE_Service_Config::current()) throw (DAF::NotFoundException);
+    DAF_Export std::string  locateServiceIdent(const ACE_Service_Object * svc_obj, const ACE_Service_Gestalt * sg = ACE_Service_Config::current());
 
 
     /**
@@ -103,31 +103,31 @@ namespace DAF
     ACE_hrtime_t            elapsed_hrtime(const ACE_hrtime_t &start, const ACE_hrtime_t &end);
 
     /**
-     * \fn ACE_hrtime_t elapsed_hrtime_msecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = ACE_OS::gethrtime(ACE_OS::ACE_HRTIMER_GETTIME))
+     * \fn ACE_hrtime_t elapsed_hrtime_msecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = DAF_OS::gethrtime(DAF_OS::ACE_HRTIMER_GETTIME))
      * \brief Calculate elapsed time between a start and end time in milliseconds (ms)
      * \param start The start time
      * \param end The end time
      * \return The elapsed time in milliseconds
      */
-    DAF_Export ACE_hrtime_t elapsed_hrtime_msecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = ACE_OS::gethrtime(ACE_OS::ACE_HRTIMER_GETTIME));
+    DAF_Export ACE_hrtime_t elapsed_hrtime_msecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = DAF_OS::gethrtime(DAF_OS::ACE_HRTIMER_GETTIME));
 
     /**
-    * \fn ACE_hrtime_t elapsed_hrtime_usecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = ACE_OS::gethrtime(ACE_OS::ACE_HRTIMER_GETTIME))
+    * \fn ACE_hrtime_t elapsed_hrtime_usecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = DAF_OS::gethrtime(DAF_OS::ACE_HRTIMER_GETTIME))
     * \brief Calculate elapsed time between a start and end time in microseconds (us)
     * \param start The start time
     * \param end The end time
     * \return The elapsed time in microseconds
     */
-    DAF_Export ACE_hrtime_t elapsed_hrtime_usecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = ACE_OS::gethrtime(ACE_OS::ACE_HRTIMER_GETTIME));
+    DAF_Export ACE_hrtime_t elapsed_hrtime_usecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = DAF_OS::gethrtime(DAF_OS::ACE_HRTIMER_GETTIME));
 
     /**
-    * \fn ACE_hrtime_t elapsed_hrtime_nsecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = ACE_OS::gethrtime(ACE_OS::ACE_HRTIMER_GETTIME))
+    * \fn ACE_hrtime_t elapsed_hrtime_nsecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = DAF_OS::gethrtime(DAF_OS::ACE_HRTIMER_GETTIME))
     * \brief Calculate elapsed time between a start and end time in nanoseconds (ns)
     * \param start The start time
     * \param end The end time
     * \return The elapsed time in nanoseconds
     */
-    DAF_Export ACE_hrtime_t elapsed_hrtime_nsecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = ACE_OS::gethrtime(ACE_OS::ACE_HRTIMER_GETTIME));
+    DAF_Export ACE_hrtime_t elapsed_hrtime_nsecs(const ACE_hrtime_t &start, const ACE_hrtime_t &end = DAF_OS::gethrtime(DAF_OS::ACE_HRTIMER_GETTIME));
 
 
     /** @class HighResTimer

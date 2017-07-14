@@ -77,15 +77,17 @@ namespace TAF {
 
     ORB::ORB(void)
     {
-        ACE_UNUSED_ARG(orbInitializer_);
     }
 
     ORB::~ORB(void)
     {
-        this->module_closed(); this->wait();
+        this->module_closed();
+
         if (!CORBA::is_nil(this->orb_.in())) {
             this->orb_->destroy(); this->orb_ = 0;
         }
+
+        TaskExecutor::close_singleton(); // Close the Underlying TaskExecutor Singleton
     }
 
     void
@@ -176,7 +178,7 @@ namespace TAF {
                     ACE_TEXT("ERROR: Failed to initialize %d threads for %s instance.\n")
                     , orb_threads, tafORBName()), -1);
             }
-            ACE_OS::thr_yield(); // Yield a little for threads to start
+            DAF_OS::thr_yield(); // Yield a little for threads to start
         }
 
         return 0;
@@ -202,7 +204,7 @@ namespace TAF {
     }
 
     const TAF::NamingContext &
-    ORB::rootContext(ACE_Time_Value *timeout) const throw (CORBA::UserException)
+    ORB::rootContext(ACE_Time_Value *timeout) const
     {
         static ACE_SYNCH_MUTEX rootLock_;
 
@@ -241,7 +243,7 @@ namespace TAF {
     }
 
     const TAF::NamingContext &
-    ORB::baseContext(ACE_Time_Value *timeout) const throw (CORBA::UserException)
+    ORB::baseContext(ACE_Time_Value *timeout) const
     {
         static ACE_SYNCH_MUTEX baseLock_;
 
@@ -436,14 +438,15 @@ namespace TAF {
 
     ORBManager::ORBManager(int argc, ACE_TCHAR *argv[]) : orbThreads_(DEFAULT_ORBTHREADS)
     {
-        this->instance_i() = this; if (argc && ORBManager::init(argc, argv)) {
+        this->instance_i() = this;
+        if (argc && ORBManager::init(argc, argv)) {
             throw CORBA::BAD_OPERATION();
         }
     }
 
     ORBManager::~ORBManager(void)
     {
-        this->module_closed(); this->wait(); this->instance_i() = 0;
+        this->module_closed(); this->instance_i() = 0;
     }
 
     size_t

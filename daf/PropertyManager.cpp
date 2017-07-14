@@ -31,13 +31,13 @@ namespace DAF
     namespace {
         struct AlphabeticalPredicate : std::binary_function < Configurator::value_type, Configurator::value_type, bool > {
             bool operator () (const first_argument_type &l, const second_argument_type &r) const {
-                return ACE_OS::strcasecmp(r.first.c_str(), l.first.c_str()) > 0; // this does a LowerCase Compare
+                return DAF_OS::strcasecmp(r.first.c_str(), l.first.c_str()) > 0; // this does a LowerCase Compare
             }
         };
     }
 
     std::string
-    PropertyManager::get_property(const property_key_type &ident, bool use_env) const throw (DAF::IllegalArgumentException)
+    PropertyManager::get_property(const property_key_type &ident, bool use_env) const
     {
         for (const property_key_type key(DAF::trim_string(ident)); key.length();) {
 
@@ -51,7 +51,7 @@ namespace DAF
 
             if (use_env) {
                 const char * env_val = DAF_OS::getenv(key.c_str()); use_env = false;
-                if (env_val && ACE_OS::strlen(env_val)) {
+                if (env_val && DAF_OS::strlen(env_val)) {
                     static_cast< ACE_SYNCH_RW_MUTEX & >(*this).tryacquire_write_upgrade(); // Try to switch to write access
                     if (const_cast<PropertyManager*>(this)->load_property(key, DAF::trim_string(env_val)) == 0) {
                         continue;
@@ -144,7 +144,7 @@ namespace DAF
     PropertySingleton::PropertySingleton(bool preload)
     {
         if (preload) { // Preload DAFProperties from environment variable if it exists
-            for (const char * properties = ACE_OS::getenv(this->config_switch()); properties;) try {
+            for (const char * properties = DAF_OS::getenv(this->config_switch()); properties;) try {
                 this->load_file_profile(properties); break;
             } DAF_CATCH_ALL {
                 ACE_ERROR_BREAK((LM_WARNING, ACE_TEXT("DAF (%P | %t) PropertySingleton:")

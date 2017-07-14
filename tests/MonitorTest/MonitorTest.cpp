@@ -26,6 +26,8 @@
 
 namespace
 {
+    const char * TEST_NAME = "MonitorTest";
+
     ACE_Semaphore   test_lock(1); // Unlocked.
 
     DAF::Monitor    monitor_;
@@ -56,7 +58,7 @@ namespace
 
     MonitorTest::~MonitorTest(void)
     {
-        this->module_closed(); this->wait();
+        this->module_closed();
     }
 
     int
@@ -65,7 +67,7 @@ namespace
         ACE_UNUSED_ARG(argc); ACE_UNUSED_ARG(argv);
 
         if (this->execute(new MonitorRunnable()) == 0) {
-            ACE_OS::sleep(1); return this->execute(1);
+            DAF_OS::sleep(1); return this->execute(1);
         }
         return -1;
     }
@@ -78,7 +80,7 @@ namespace
         ACE_DEBUG((LM_INFO, ACE_TEXT("%P | %t) - MonitorTest svc() Start\n")));
 
         try {
-            ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, monitor_, -1);
+//            ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, monitor_, -1);
             ACE_DEBUG((LM_INFO, ACE_TEXT("%P | %t) - MonitorTest svc() remove\n")));
 
             monitor_.interrupt();
@@ -97,7 +99,7 @@ namespace
 
         try {
             ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, monitor_, -1);
-            int i = monitor_.wait(), j = ACE_OS::last_error();
+            int i = monitor_.wait(), j = DAF_OS::last_error();
             if (i) {
                 ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("%P | %t) - MonitorTest return =%d;errno=%d"), i, j), -1);
             }
@@ -115,6 +117,8 @@ namespace
 
 int main(int argc, char* argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), TEST_NAME));
+
     try {
         MonitorTest mon_test; mon_test.init(argc, argv); test_lock.acquire();
     }
