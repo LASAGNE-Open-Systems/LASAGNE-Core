@@ -70,9 +70,9 @@ public:
 namespace test
 {
 bool debug = false;
-const char *TEST_NAME = "TestGestalt";
-const char *TEST_LIBRARY_NAME= "TestGestaltService";
-const char *TEST_MAKE_NAME="_make_test_TestGestaltService";
+const char TEST_NAME[]          = "TestGestalt";
+const char TEST_LIBRARY_NAME[]  = "TestGestaltService";
+const char TEST_MAKE_NAME[]     ="_make_test_TestGestaltService";
 
 const std::string service_name(const std::string& name)
 {
@@ -1737,6 +1737,8 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char *argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
+
     int result = 1, threadCount = 2;
 
     ACE_Get_Opt cli_opt(argc, argv, "hzn:");
