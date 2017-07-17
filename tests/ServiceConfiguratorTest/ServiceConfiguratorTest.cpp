@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,13 +18,14 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#include <daf/ServiceLoader.h>
+#include <daf/ServiceGestaltLoader.h>
 
 #include <ace/ARGV.h>
 
 #include <iostream>
 
-struct ConfigServiceLoader : DAF::ServiceLoader {
+struct ConfigServiceLoader : DAF::ServiceGestaltLoader {
+    ConfigServiceLoader(DAF::ServiceGestalt & gestalt) : DAF::ServiceGestaltLoader(gestalt) {}
     virtual int process_directive(const value_type &val);
     virtual const char * config_switch(void) const
     {
@@ -33,23 +34,38 @@ struct ConfigServiceLoader : DAF::ServiceLoader {
 };
 
 const std::string filearg("TEST.conf:A,B,C,D,E");
-std::string ok_result("a6c6b3e5d4f8x");
+std::string ok_result("a6c6wy9b3e5d4nf8x");
 std::string result; // Holds the result
+
+const char *TEST_NAME = "ServiceConfiguratorTest";
 
 int
 ConfigServiceLoader::process_directive(const value_type &val)
 {
-    result.append(val.first).append(val.second);
+    const std::string key(val.first), arg(DAF::format_args(val.second));
 
-    ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("%s=%s\n"), val.first.c_str(), val.second.c_str()), 0);
+    result.append(key).append(arg);
+
+    if (arg == val.second) {
+        ACE_DEBUG((LM_INFO, ACE_TEXT("%C=%C\n"), key.c_str(), val.second.c_str()));
+    }
+    else {
+        ACE_DEBUG((LM_INFO, ACE_TEXT("%C=%C [%C]\n"), key.c_str(), val.second.c_str(), arg.c_str()));
+    }
+
+    return 0;
 }
 
 int main(int argc, char *argv[])
 {
-    ConfigServiceLoader cfgLoader;
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), TEST_NAME));
 
-    for (const char *daf_root = DAF_OS::getenv("DAF_ROOT"); daf_root;) {
-        ok_result.append(daf_root).append("/my bin"); break;
+    DAF::ServiceGestalt gestalt(argc ? argv[0] : 0);
+
+    ConfigServiceLoader cfgLoader(gestalt);
+
+    for (const char *ace_root = DAF_OS::getenv("ACE_ROOT"); ace_root;) {
+        ok_result.append(ace_root).append("/my bin"); break;
     }
 
     ACE_ARGV args(true); if (argc) {  // Put In Program Name
@@ -68,10 +84,13 @@ int main(int argc, char *argv[])
         if (cfgLoader.load(argc, args.argv(), true) == 0)     {
             if (cfgLoader.process_directives() == 0)    {
                 if (result == ok_result) {
-                    ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("PASSED OK!!\n")), 0);
+                    ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("\nreturned = \"%C\"\nexpected = \"%C\"\nTEST PASSED OK!!\n")
+                        , result.c_str(), ok_result.c_str()), 0);
                 }
             }
         }
     }
-    ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("TEST FAILED!!\n")), -1);
+
+    ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("\nreturned = \"%C\"\nexpected = \"%C\"\nTEST FAILED!!\n")
+        , result.c_str(), ok_result.c_str()), -1);
 }

@@ -1,31 +1,12 @@
-/***************************************************************
-    Copyright 2016, 2017 Defence Science and Technology Group,
-    Department of Defence,
-    Australian Government
-
-	This file is part of LASAGNE.
-
-    LASAGNE is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3
-    of the License, or (at your option) any later version.
-
-    LASAGNE is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
-
-    You should have received a copy of the GNU Lesser General Public
-    License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
-***************************************************************/
 #ifndef TAF_GESTALTSERVICE_IMPL_H
 #define TAF_GESTALTSERVICE_IMPL_H
 
 #include "TAF.h"
 
-#include <daf/ServiceGestalt.h>
-#include <daf/ServiceLoader.h>
 #include <daf/TaskExecutor.h>
+
+#include <daf/ServiceGestalt.h>
+#include <daf/ServiceGestaltLoader.h>
 
 #include <ace/Service_Object.h>
 #include <ace/Semaphore.h>
@@ -34,81 +15,101 @@
 
 #include <map>
 
+/**
+* @file    GestaltService_impl.h
+* @author
+* @author   $LastChangedBy$
+* @date
+* @version  $Revision$
+* @ingroup  
+*/
+
 namespace TAF
 {
+    /**
+    * @class GestaltService_impl
+    * @brief Brief \todo{Add Brief}
+    *
+    * Details \todo{Add some Details}
+    */
     typedef class TAF_Export GestaltService_impl : virtual public POA_taf::GestaltService
-        , public DAF::ServiceGestalt
     {
     public:
 
-        typedef std::string             ident_type;
-        typedef std::list<ident_type>   ident_list_type;
+        typedef DAF::ServiceGestalt::ident_type                 ident_type;
+        typedef DAF::ServiceGestalt::ident_list_type            ident_list_type;
 
-        typedef class std::map<ident_type, taf::EntityDescriptor>   descriptor_map_type;
+        typedef DAF::ServiceGestalt::service_descriptor_type    service_descriptor_type;
+        typedef DAF::ServiceGestalt::service_list_type          service_list_type;
+        typedef DAF::ServiceGestalt::service_map_type           service_map_type;
 
+        /** \todo{Fill this in} */
         GestaltService_impl(const ACE_TCHAR *program_name = 0);
+        /** \todo{Fill this in} */
         virtual ~GestaltService_impl(void);
 
+        /** \todo{Fill this in} */
         virtual taf::EntityDescriptor *     findService(const char *ident);
+        /** \todo{Fill this in} */
         virtual taf::EntityDescriptorSeq *  listServices(void);
 
+        /** \todo{Fill this in} */
         virtual CORBA::Long loadConfigFile(const char *file_arg, CORBA::Long_out count); // "filename:<section>,<section>"
 
+        /** \todo{Fill this in} */
         virtual void    loadStatic(const char *ident, const char *parameters);
+        /** \todo{Fill this in} */
         virtual void    loadDynamic(const char *ident, const char *libpathname, const char *objectclass, const char *parameters);
+        /** \todo{Fill this in} */
         virtual void    suspend(const char *ident);
+        /** \todo{Fill this in} */
         virtual void    resume(const char *ident);
+        /** \todo{Fill this in} */
         virtual void    remove(const char *ident);
-
+        /** \todo{Fill this in} */
         virtual CORBA::Long suspend_all(void);
+        /** \todo{Fill this in} */
         virtual CORBA::Long resume_all(void);
+        /** \todo{Fill this in} */
         virtual CORBA::Long remove_all(void);
 
     protected:
 
-        virtual int suspend(void);
-        virtual int resume(void);
-
-        virtual int info(ACE_TCHAR **info_string, size_t length) const;
+        virtual const char * config_switch(void) const = 0; // Must provide a config switch to support CORBA interface
 
     protected:
 
-        const ACE_Time_Value    loadTime_;
-
-    private:
-
-        descriptor_map_type svc_params_;
-
         taf::EntityDescriptor_var   makeEntityDescriptor(const ident_type &ident) const;
+        taf::EntityDescriptor_var   makeEntityDescriptor(const service_descriptor_type &svc_desc) const;
 
-        int listServiceRepository(ident_list_type&, bool reverse = false) const;
+        class GestaltService : public DAF::ServiceGestalt
+        {
+            GestaltService_impl &gestalt_impl_;
 
-        mutable ACE_SYNCH_RW_MUTEX lock_;  // Lock for Configuration (re)Processing / Access
+        public:
+
+            GestaltService(GestaltService_impl &gestalt_impl, const ACE_TCHAR *program_name = 0) : DAF::ServiceGestalt(program_name)
+                , gestalt_impl_(gestalt_impl)
+            {}
+
+            virtual const char * config_switch(void) const
+            {
+                return this->gestalt_impl_.config_switch();
+            }
+
+        } gestalt_;
+
+    public:
+
+        const ACE_Time_Value &  loadTime(void) const
+        {
+            return this->gestalt_.loadTime();
+        }
 
     } GestaltServiceImpl;
 
-    /****************************************************************************************/
-
-    class TAF_Export GestaltServiceLoader : public DAF::ServiceLoader
-    {
-    public:
-
-        GestaltServiceLoader(GestaltServiceImpl &gestalt) : gestalt_(gestalt)
-        {}
-
-    protected:
-
-        virtual int load_service(const std::string &ident, const std::string &libpathname, const std::string &objectclass, const std::string &params);
-
-    private:
-
-        GestaltServiceImpl &gestalt_;
-
-        const char * config_switch(void) const
-        {
-            return TAF_SERVICES;
-        }
-    };
+    /// Compatability with older revisions requires a TAF::GestaltServiceLoader
+    typedef class DAF::ServiceGestaltLoader GestaltServiceLoader;
 
 } // namespace TAF
 
