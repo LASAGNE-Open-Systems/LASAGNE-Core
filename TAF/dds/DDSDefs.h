@@ -349,6 +349,15 @@ namespace DDS {
 
 #endif
 
+
+#if !defined(DDS_GTEQ_VERSION)
+# define DDS_GTEQ_VERSION(MAJOR,MINOR,MICRO)                            \
+    ((DDS_MAJOR_VERSION > MAJOR) ||                                     \
+    ((DDS_MAJOR_VERSION == MAJOR) && (DDS_MINOR_VERSION > MINOR)) ||    \
+    ((DDS_MAJOR_VERSION == MAJOR) && (DDS_MINOR_VERSION == MINOR) && (DDS_MICRO_VERSION >= MICRO)))
+#endif
+
+
 TAF_BEGIN_DDS_NAMESPACE_DECL
 
 namespace TAFDDS
@@ -388,6 +397,42 @@ namespace TAFDDS
         ACE_UNIMPLEMENTED_FUNC(TypeSupportOperations(const TypeSupportOperations &))
     };
     DAF_DECLARE_REFCOUNTABLE(TypeSupportOperations);
+
+
+    /*
+     * Check if unregister_type is supported or not
+     * 'unregister_type' is not a required operation on the TypeSupport interface (as of DDS 1.4)
+     * OpenDDS      - available since 3.10
+     * RTI          - available since 5.2.0
+     * CoreDX       - available since 3.6.47
+     * OpenSplice   - unknown
+     */
+#if !defined(TAFDDS_HAS_UNREGISTER_TYPE)
+# if defined(TAF_USES_OPENDDS) && DDS_GTEQ_VERSION(3,10,0)
+#  define TAFDDS_HAS_UNREGISTER_TYPE
+# elif defined(TAF_USES_COREDX) && DDS_GTEQ_VERSION(3,6,47)
+#  define TAFDDS_HAS_UNREGISTER_TYPE
+# elif defined(TAF_USES_NDDS) && DDS_GTEQ_VERSION(5,2,0)
+#  define TAFDDS_HAS_UNREGISTER_TYPE
+# endif
+#endif
+
+    template <typename SUPPORT_TYPE>
+    struct ExtendedTypeSupport : virtual SUPPORT_TYPE
+    {
+        typedef SUPPORT_TYPE    _support_type;
+
+        virtual ~ExtendedTypeSupport(void) { /* force proper destruction */}
+
+#if !defined(TAFDDS_HAS_UNREGISTER_TYPE)
+        virtual DDS::ReturnCode_t unregister_type(DDS::DomainParticipant_ptr, const char* /* type_name*/)
+        {
+            return DDS::RETCODE_OK;
+        }
+#endif
+    };
+
+
 } // namespace TAFDDS
 
 TAF_END_DDS_NAMESPACE_DECL
@@ -452,36 +497,36 @@ struct _##CLS##_##TYP##ClassSupport : CLS::TYP {                            \
 #if defined(TAF_USES_OPENDDS)
 
 /***********************************************************************************************/
-#define DEFINE_DDS_TYPESUPPORT(CLS,TYP)                                                         \
-class _##CLS##_##TYP##TypeSupport   : virtual public TAFDDS_TypeSupportOperations               \
-                                    , virtual public CLS::TYP##TypeSupportImpl                  \
-{   const std::string type_name_;                                                               \
-public:                                                                                         \
-    typedef CLS::TYP                                        _data_type;                         \
-    typedef CLS::TYP##Seq                                   _data_seq_type;                     \
-    typedef DEFINE_DDS_CLASSSUPPORT(CLS,TYP)                _data_holder_type;                  \
-    typedef CLS::TYP##DataReader                            _data_reader_stub_type;             \
-    typedef _data_reader_stub_type::_ptr_type               _data_reader_stub_type_ptr;         \
-    typedef _data_reader_stub_type::_var_type               _data_reader_stub_type_ref;         \
-    typedef CLS::TYP##DataWriter                            _data_writer_stub_type;             \
-    typedef _data_writer_stub_type::_ptr_type               _data_writer_stub_type_ptr;         \
-    typedef _data_writer_stub_type::_var_type               _data_writer_stub_type_ref;         \
-    typedef CLS::TYP##TypeSupportImpl                       _support_impl_type;                 \
-    typedef _##CLS##_##TYP##TypeSupport                     _support_type;                      \
-    _##CLS##_##TYP##TypeSupport(DDS::String_ptr type_name = 0)                                  \
-        : type_name_(type_name ? type_name : "_" #CLS "_" #TYP) {}                              \
-    static void printData(const _data_type&) { /* Not Supported */ }                            \
-    static _data_reader_stub_type_ptr narrow(DDS::DataReader_ptr p)                             \
-        { return _data_reader_stub_type::_narrow(p); }                                          \
-    static _data_writer_stub_type_ptr narrow(DDS::DataWriter_ptr p)                             \
-        { return _data_writer_stub_type::_narrow(p); }                                          \
-    virtual DDS::String_ptr getTypename(void) const                                             \
-        { return this->type_name_.c_str(); }                                                    \
-private:                                                                                        \
-    virtual DDS::ReturnCode_t registerTypename(DDS::DomainParticipant_ptr participant)          \
-        { return _support_impl_type::register_type(participant, this->getTypename()); }         \
-    virtual DDS::ReturnCode_t unregisterTypename(DDS::DomainParticipant_ptr)                    \
-        { return DDS::RETCODE_OK; }                                                             \
+#define DEFINE_DDS_TYPESUPPORT(CLS,TYP)                                                                     \
+class _##CLS##_##TYP##TypeSupport   : virtual public TAFDDS_TypeSupportOperations                           \
+                                    , virtual public TAFDDS::ExtendedTypeSupport<CLS::TYP##TypeSupportImpl> \
+{   const std::string type_name_;                                                                           \
+public:                                                                                                     \
+    typedef CLS::TYP                                        _data_type;                                     \
+    typedef CLS::TYP##Seq                                   _data_seq_type;                                 \
+    typedef DEFINE_DDS_CLASSSUPPORT(CLS,TYP)                _data_holder_type;                              \
+    typedef CLS::TYP##DataReader                            _data_reader_stub_type;                         \
+    typedef _data_reader_stub_type::_ptr_type               _data_reader_stub_type_ptr;                     \
+    typedef _data_reader_stub_type::_var_type               _data_reader_stub_type_ref;                     \
+    typedef CLS::TYP##DataWriter                            _data_writer_stub_type;                         \
+    typedef _data_writer_stub_type::_ptr_type               _data_writer_stub_type_ptr;                     \
+    typedef _data_writer_stub_type::_var_type               _data_writer_stub_type_ref;                     \
+    typedef CLS::TYP##TypeSupportImpl                       _support_impl_type;                             \
+    typedef _##CLS##_##TYP##TypeSupport                     _support_type;                                  \
+    _##CLS##_##TYP##TypeSupport(DDS::String_ptr type_name = 0)                                              \
+        : type_name_(type_name ? type_name : "_" #CLS "_" #TYP) {}                                          \
+    static void printData(const _data_type&) { /* Not Supported */ }                                        \
+    static _data_reader_stub_type_ptr narrow(DDS::DataReader_ptr p)                                         \
+        { return _data_reader_stub_type::_narrow(p); }                                                      \
+    static _data_writer_stub_type_ptr narrow(DDS::DataWriter_ptr p)                                         \
+        { return _data_writer_stub_type::_narrow(p); }                                                      \
+    virtual DDS::String_ptr getTypename(void) const                                                         \
+        { return this->type_name_.c_str(); }                                                                \
+private:                                                                                                    \
+    virtual DDS::ReturnCode_t registerTypename(DDS::DomainParticipant_ptr participant)                      \
+        { return this->register_type(participant, this->getTypename()); }                                   \
+    virtual DDS::ReturnCode_t unregisterTypename(DDS::DomainParticipant_ptr participant)                    \
+        { return this->unregister_type(participant, this->getTypename()); }                                 \
 } /* Note!!! No closing ';' to force user to close macro usage */
 /***********************************************************************************************/
 
@@ -524,71 +569,72 @@ private:                                                                        
 #elif defined(TAF_USES_COREDX)
 
 /***********************************************************************************************/
-#define DEFINE_DDS_TYPESUPPORT(CLS,TYP)                                                         \
-class _##CLS##_##TYP##TypeSupport : virtual public TAFDDS_TypeSupportOperations                 \
-{   const std::string type_name_;                                                               \
-public:                                                                                         \
-    typedef CLS::TYP                                    _data_type;                             \
-    typedef CLS::TYP##PtrSeq                            _data_seq_type;                         \
-    typedef DEFINE_DDS_CLASSSUPPORT(CLS,TYP)            _data_holder_type;                      \
-    typedef CLS::TYP##DataReader                        _data_reader_stub_type;                 \
-    typedef CLS::TYP##DataReader*                       _data_reader_stub_type_ptr;             \
-    typedef CLS::TYP##DataReader*                       _data_reader_stub_type_ref;             \
-    typedef CLS::TYP##DataWriter                        _data_writer_stub_type;                 \
-    typedef CLS::TYP##DataWriter*                       _data_writer_stub_type_ptr;             \
-    typedef CLS::TYP##DataWriter*                       _data_writer_stub_type_ref;             \
-    typedef CLS::TYP##TypeSupport                       _support_impl_type;                     \
-    typedef _##CLS##_##TYP##TypeSupport                 _support_type;                          \
-    _##CLS##_##TYP##TypeSupport(DDS::String_ptr type_name = 0)                                  \
-        : type_name_(type_name ? type_name : "_" #CLS "_" #TYP) {}                              \
-    static void printData(const _data_type&) { /* Not Supported */ }                            \
-    static _data_reader_stub_type_ptr narrow(DDS::DataReader_ptr p)                             \
-        { return _data_reader_stub_type::narrow(p); }                                           \
-    static _data_writer_stub_type_ptr narrow(DDS::DataWriter_ptr p)                             \
-        { return _data_writer_stub_type::narrow(p); }                                           \
-    virtual DDS::String_ptr getTypename(void) const                                             \
-        { return this->type_name_.c_str(); }                                                    \
-private:                                                                                        \
-    virtual DDS::ReturnCode_t registerTypename(DDS::DomainParticipant_ptr participant)          \
-        { return _support_impl_type::register_type(participant, this->getTypename()); }         \
-    virtual DDS::ReturnCode_t unregisterTypename(DDS::DomainParticipant_ptr)                    \
-        { return DDS::RETCODE_OK; }                                                             \
+#define DEFINE_DDS_TYPESUPPORT(CLS,TYP)                                                                 \
+class _##CLS##_##TYP##TypeSupport : virtual public TAFDDS_TypeSupportOperations                         \
+                                  , virtual public TAFDDS::ExtendedTypeSupport<CLS::TYP##TypeSupport>   \
+{   const std::string type_name_;                                                                       \
+public:                                                                                                 \
+    typedef CLS::TYP                                    _data_type;                                     \
+    typedef CLS::TYP##PtrSeq                            _data_seq_type;                                 \
+    typedef DEFINE_DDS_CLASSSUPPORT(CLS,TYP)            _data_holder_type;                              \
+    typedef CLS::TYP##DataReader                        _data_reader_stub_type;                         \
+    typedef CLS::TYP##DataReader*                       _data_reader_stub_type_ptr;                     \
+    typedef CLS::TYP##DataReader*                       _data_reader_stub_type_ref;                     \
+    typedef CLS::TYP##DataWriter                        _data_writer_stub_type;                         \
+    typedef CLS::TYP##DataWriter*                       _data_writer_stub_type_ptr;                     \
+    typedef CLS::TYP##DataWriter*                       _data_writer_stub_type_ref;                     \
+    typedef CLS::TYP##TypeSupport                       _support_impl_type;                             \
+    typedef _##CLS##_##TYP##TypeSupport                 _support_type;                                  \
+    _##CLS##_##TYP##TypeSupport(DDS::String_ptr type_name = 0)                                          \
+        : type_name_(type_name ? type_name : "_" #CLS "_" #TYP) {}                                      \
+    static void printData(const _data_type&) { /* Not Supported */ }                                    \
+    static _data_reader_stub_type_ptr narrow(DDS::DataReader_ptr p)                                     \
+        { return _data_reader_stub_type::narrow(p); }                                                   \
+    static _data_writer_stub_type_ptr narrow(DDS::DataWriter_ptr p)                                     \
+        { return _data_writer_stub_type::narrow(p); }                                                   \
+    virtual DDS::String_ptr getTypename(void) const                                                     \
+        { return this->type_name_.c_str(); }                                                            \
+private:                                                                                                \
+    virtual DDS::ReturnCode_t registerTypename(DDS::DomainParticipant_ptr participant)                  \
+        { return this->register_type(participant, this->getTypename()); }                               \
+    virtual DDS::ReturnCode_t unregisterTypename(DDS::DomainParticipant_ptr participant)                \
+        { return this->unregister_type(participant, this->getTypename()); }                             \
 } /* Note!!! No closing ';' to force user to close macro usage */
 /***********************************************************************************************/
 
 #elif defined(TAF_USES_OPENSPLICE)
 
 /***********************************************************************************************/
-#define DEFINE_DDS_TYPESUPPORT(CLS,TYP)                                                         \
-class _##CLS##_##TYP##TypeSupport   : virtual public TAFDDS_TypeSupportOperations               \
-                                    , virtual public CLS::TYP##TypeSupport                      \
-{   const std::string type_name_;                                                               \
-public:                                                                                         \
-    typedef CLS::TYP                                        _data_type;                         \
-    typedef CLS::TYP##Seq                                   _data_seq_type;                     \
-    typedef DEFINE_DDS_CLASSSUPPORT(CLS,TYP)                _data_holder_type;                  \
-    typedef CLS::TYP##DataReader                            _data_reader_stub_type;             \
-    typedef _data_reader_stub_type::_ptr_type               _data_reader_stub_type_ptr;         \
-    typedef _data_reader_stub_type::_var_type               _data_reader_stub_type_ref;         \
-    typedef CLS::TYP##DataWriter                            _data_writer_stub_type;             \
-    typedef _data_writer_stub_type::_ptr_type               _data_writer_stub_type_ptr;         \
-    typedef _data_writer_stub_type::_var_type               _data_writer_stub_type_ref;         \
-    typedef CLS::TYP##TypeSupport                           _support_impl_type;                 \
-    typedef _##CLS##_##TYP##TypeSupport                     _support_type;                      \
-    _##CLS##_##TYP##TypeSupport(DDS::String_ptr type_name = 0)                                  \
-        : type_name_(type_name ? type_name : "_" #CLS "_" #TYP) {}                              \
-    static void printData(const _data_type&) { /* Not Supported */ }                            \
-    static _data_reader_stub_type_ptr narrow(DDS::DataReader_ptr p)                             \
-        { return _data_reader_stub_type::_narrow(p); }                                          \
-    static _data_writer_stub_type_ptr narrow(DDS::DataWriter_ptr p)                             \
-        { return _data_writer_stub_type::_narrow(p); }                                          \
-    virtual DDS::String_ptr getTypename(void) const                                             \
-        { return this->type_name_.c_str(); }                                                    \
-private:                                                                                        \
-    virtual DDS::ReturnCode_t registerTypename(DDS::DomainParticipant_ptr participant)          \
-        { return _support_impl_type::register_type(participant, this->getTypename()); }         \
-    virtual DDS::ReturnCode_t unregisterTypename(DDS::DomainParticipant_ptr)                    \
-        { return DDS::RETCODE_OK; }                                                             \
+#define DEFINE_DDS_TYPESUPPORT(CLS,TYP)                                                                 \
+class _##CLS##_##TYP##TypeSupport   : virtual public TAFDDS_TypeSupportOperations                       \
+                                    , virtual public TAFDDS::ExtendedTypeSupport<CLS::TYP##TypeSupport> \
+{   const std::string type_name_;                                                                       \
+public:                                                                                                 \
+    typedef CLS::TYP                                        _data_type;                                 \
+    typedef CLS::TYP##Seq                                   _data_seq_type;                             \
+    typedef DEFINE_DDS_CLASSSUPPORT(CLS,TYP)                _data_holder_type;                          \
+    typedef CLS::TYP##DataReader                            _data_reader_stub_type;                     \
+    typedef _data_reader_stub_type::_ptr_type               _data_reader_stub_type_ptr;                 \
+    typedef _data_reader_stub_type::_var_type               _data_reader_stub_type_ref;                 \
+    typedef CLS::TYP##DataWriter                            _data_writer_stub_type;                     \
+    typedef _data_writer_stub_type::_ptr_type               _data_writer_stub_type_ptr;                 \
+    typedef _data_writer_stub_type::_var_type               _data_writer_stub_type_ref;                 \
+    typedef CLS::TYP##TypeSupport                           _support_impl_type;                         \
+    typedef _##CLS##_##TYP##TypeSupport                     _support_type;                              \
+    _##CLS##_##TYP##TypeSupport(DDS::String_ptr type_name = 0)                                          \
+        : type_name_(type_name ? type_name : "_" #CLS "_" #TYP) {}                                      \
+    static void printData(const _data_type&) { /* Not Supported */ }                                    \
+    static _data_reader_stub_type_ptr narrow(DDS::DataReader_ptr p)                                     \
+        { return _data_reader_stub_type::_narrow(p); }                                                  \
+    static _data_writer_stub_type_ptr narrow(DDS::DataWriter_ptr p)                                     \
+        { return _data_writer_stub_type::_narrow(p); }                                                  \
+    virtual DDS::String_ptr getTypename(void) const                                                     \
+        { return this->type_name_.c_str(); }                                                            \
+private:                                                                                                \
+    virtual DDS::ReturnCode_t registerTypename(DDS::DomainParticipant_ptr participant)                  \
+        { return this->register_type(participant, this->getTypename()); }                               \
+    virtual DDS::ReturnCode_t unregisterTypename(DDS::DomainParticipant_ptr participant)                \
+        { return this->unregister_type(participant, this->getTypename()); }                             \
 } /* Note!!! No closing ';' to force user to close macro usage */
 /***********************************************************************************************/
 
