@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -21,6 +21,15 @@
 #define DAF_OS_CPP
 
 #include "OS.h"
+
+#include "TerminateRepository.h"
+
+#include <ace/Thread_Mutex.h>
+#include <ace/Synch_Traits.h>
+#include <ace/Singleton.h>
+
+#include <typeinfo>
+#include <map>
 
 namespace DAF_OS
 {

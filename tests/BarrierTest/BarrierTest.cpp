@@ -528,7 +528,7 @@ int main(int argc, char *argv[])
     result &= test::test_BarrierTimeoutException(threadCount);
     result &= test::test_BarrierIllegalStateException(threadCount);
     result &= test::test_BarrierCtorZero(threadCount);
-#ifndef ACE_WIN32
+#if 1 //ndef ACE_WIN32
     result &= test::test_BarrierThreadKill(threadCount);
 #endif
 

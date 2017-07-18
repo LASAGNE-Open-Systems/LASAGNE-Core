@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -373,9 +373,10 @@ namespace TAFDDS
     {
     public:
 
-        DAF_DEFINE_REFCOUNTABLE(TypeSupportOperations);
         TypeSupportOperations(void) {}
-        virtual ~TypeSupportOperations(void) { /* force propper distruction */ }
+
+        DAF_DEFINE_REFCOUNTABLE(TypeSupportOperations);
+
         virtual DDS::ReturnCode_t   registerTypename(DDS::DomainParticipant_ptr) = 0;
         virtual DDS::ReturnCode_t   unregisterTypename(DDS::DomainParticipant_ptr) = 0;
         virtual DDS::String_ptr     getTypename(void) const = 0;

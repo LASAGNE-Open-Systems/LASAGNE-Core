@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,16 +20,6 @@
 ***************************************************************/
 #ifndef DAF_SYNCHRONOUSCHANNEL_T_H
 #define DAF_SYNCHRONOUSCHANNEL_T_H
-
-/**
-* @file     SynchronousChannel_T.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
-*/
 
 #include "Channel_T.h"
 #include "Semaphore.h"
@@ -128,10 +118,8 @@ namespace DAF
         {
             return size_t(this->itemAvailable_.permits());
         }
+    };
 
-        /** \todo{Fill this in} */
-        virtual int     interrupt(void);
-  };
 }  // namespace DAF
 
 #if defined (ACE_TEMPLATES_REQUIRE_SOURCE)

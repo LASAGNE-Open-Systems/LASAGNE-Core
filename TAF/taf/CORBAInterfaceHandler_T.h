@@ -27,8 +27,6 @@
 
 #include <tao/PortableServer/PortableServer.h>
 
-#include <ace/Copy_Disabled.h>
-
 #include <string>
 
 /*

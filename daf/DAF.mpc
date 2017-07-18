@@ -52,8 +52,8 @@ project(DAF) : dafbasedefaults, acelib {
     SynchronousChannel_T.h
     SynchValue_T.h
     TaskExecutor.h
+    TerminateRepository.h
     Version.h
-    WaiterPreferenceSemaphore.h
     WFMOSignalReactor.h
   }
 
@@ -81,6 +81,7 @@ project(DAF) : dafbasedefaults, acelib {
     ShutdownHandler.cpp
     SignalHandler.cpp
     TaskExecutor.cpp
+    TerminateRepository.cpp
     WFMOSignalReactor.cpp
   }
 }

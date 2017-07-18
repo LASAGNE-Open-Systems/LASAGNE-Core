@@ -18,12 +18,19 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#ifndef DAF_VERSION_H
-#define DAF_VERSION_H
+#ifndef DAF_TERMINATEREPOSITORY_H
+#define DAF_TERMINATEREPOSITORY_H
 
-#define DAF_MAJOR_VERSION 1
-#define DAF_MINOR_VERSION 4
-#define DAF_BETA_VERSION 4
-#define DAF_VERSION "1.4.4"
+#include "OS.h"
 
-#endif // DAF_VERSION_H
+namespace DAF_OS
+{
+
+    int         insertTerminateEvent(ACE_thread_t thr_id);
+    int         removeTerminateEvent(ACE_thread_t thr_id);
+    int         signalTerminateEvent(ACE_thread_t thr_id);
+    ACE_HANDLE  locateTerminateEvent(ACE_thread_t thr_id);
+
+}  // namespace DAF_OS
+
+#endif // DAF_TERMINATEREPOSITORY_H
