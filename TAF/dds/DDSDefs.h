@@ -357,14 +357,6 @@ namespace DDS {
     ((DDS_MAJOR_VERSION == MAJOR) && (DDS_MINOR_VERSION == MINOR) && (DDS_MICRO_VERSION >= MICRO)))
 #endif
 
-#if !defined(DDS_LTEQ_VERSION)
-# define DDS_LTEQ_VERSION(MAJOR,MINOR,MICRO)                            \
-    ((DDS_MAJOR_VERSION < MAJOR) ||                                     \
-    ((DDS_MAJOR_VERSION == MAJOR) && (DDS_MINOR_VERSION < MINOR)) ||    \
-    ((DDS_MAJOR_VERSION == MAJOR) && (DDS_MINOR_VERSION == MINOR) && (DDS_MICRO_VERSION <= MICRO)))
-#endif
-
-
 
 TAF_BEGIN_DDS_NAMESPACE_DECL
 
