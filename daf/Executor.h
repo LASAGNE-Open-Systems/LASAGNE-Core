@@ -70,6 +70,12 @@ namespace DAF
         {
             return size_t(0);
         }
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const Executor &))
+        ACE_UNIMPLEMENTED_FUNC(Executor(const Executor &))
     };
 
 } // namespace DAF
