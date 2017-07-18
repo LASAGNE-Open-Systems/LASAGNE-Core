@@ -45,6 +45,8 @@ namespace DAF
     {
     public:
 
+        Executor(void) {}
+
         virtual ~Executor(void) {}
 
         /**
@@ -59,7 +61,7 @@ namespace DAF
         * or error handler objects.
         * @param cmd Executes the provided runnable.
         */
-        virtual int     execute(const DAF::Runnable_ref&) = 0;
+        virtual int     execute(const DAF::Runnable_ref &) = 0;
 
         /**
         * The number of Runnables under the control of the Executor.
