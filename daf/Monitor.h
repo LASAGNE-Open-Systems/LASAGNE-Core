@@ -36,8 +36,6 @@
 
 #include "SYNCHCondition_T.h"
 
-#include <ace/Copy_Disabled.h>
-
 namespace DAF
 {
     /** @class Monitor
@@ -45,7 +43,7 @@ namespace DAF
     *
     * Details \todo{Detailed description}
     */
-    class DAF_Export Monitor : ACE_Copy_Disabled
+    class DAF_Export Monitor
     {
         mutable DAF_SYNCH_MUTEX     mutex_;
         mutable DAF_SYNCH_CONDITION cond_mutex_;
@@ -129,6 +127,13 @@ namespace DAF
         {
             return this->cond_mutex_.interrupt();
         }
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const Monitor &))
+        ACE_UNIMPLEMENTED_FUNC(Monitor(const Monitor &))
+
     };
 
     /** @class SynchLatch
