@@ -27,7 +27,6 @@
 #include <ace/Guard_T.h>
 #include <ace/Atomic_Op.h>
 #include <ace/Synch_Traits.h>
-#include <ace/Copy_Disabled.h>
 #include <ace/Condition_Thread_Mutex.h>
 
 typedef ACE_SYNCH_MUTEX                 DAF_SYNCH_MUTEX;
@@ -60,9 +59,6 @@ namespace DAF
             }
 #endif
         } condition_mutex_; // Use underlying condition variable emulation
-
-        ACE_UNIMPLEMENTED_FUNC(void operator = (const SYNCHCondition<T> &))
-        ACE_UNIMPLEMENTED_FUNC(SYNCHCondition(const SYNCHCondition<T> &))
 
     public:
 
@@ -119,6 +115,12 @@ namespace DAF
     private:
 
         volatile bool interrupted_;
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const SYNCHCondition<T> &))
+        ACE_UNIMPLEMENTED_FUNC(SYNCHCondition(const SYNCHCondition<T> &))
     };
 
     template <typename T> inline int

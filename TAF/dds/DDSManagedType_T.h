@@ -21,20 +21,19 @@
 #ifndef TAFDDS_MANAGEDTYPE_T_H
 #define TAFDDS_MANAGEDTYPE_T_H
 
-#include "daf/RefCountHandler_T.h"
+#include <daf/RefCountHandler_T.h>
 
 #include <map>
 
 /*
  * NOTE: namespace is TAF (NOT TAFDDS). There is some reasoning to this decision.
- * Firstly, the types below are templates. Therefore, symbols generated should be
- * unique due to the template argument. Secondly, they are all private symbols which
- * are not exported, therefore there is no reason to include the TAF_BEGIN_DDS_NAMESPACE etc macros. Thirdly, It aids re-use in other parts of TAF, namely the gsoap support.
+ * 1. the types below are templates. Therefore, symbols generated should be unique due to the template argument.
+ * 2. they are all private symbols which are not exported, therefore there is no reason to include the TAF_BEGIN_DDS_NAMESPACE etc macros.
+ * 3. It aids re-use in other parts of TAF, namely the gsoap support.
  */
 namespace TAF {
     template <typename K, typename T>
     class DDS_Domain_holder : protected std::map< K, typename DAF::RefCountHandler_T<T>::_ptr_type >
-        , ACE_Copy_Disabled
     {
         mutable ACE_SYNCH_MUTEX lock_;
 
@@ -44,6 +43,8 @@ namespace TAF {
         typedef typename map_type::value_type                                           value_type;
         typedef typename map_type::key_type                                             key_type;
         typedef typename map_type::mapped_type                                          mapped_type;
+
+        DDS_Domain_holder(void) {}
 
         class DDS_holder : public DAF::RefCountHandler_T<T>
         {
@@ -80,6 +81,12 @@ namespace TAF {
         /* Implementation needs to be here because of dependant return type */
         _holder_ref_type    create_holder(const value_type &val);
         size_t              remove_holder(const mapped_type &); // Returns map::size()
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const DDS_Domain_holder<K,T> &))
+        ACE_UNIMPLEMENTED_FUNC(DDS_Domain_holder(const DDS_Domain_holder<K,T> &))
     };
 
     template < typename K, typename T >

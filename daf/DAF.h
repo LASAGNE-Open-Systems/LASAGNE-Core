@@ -29,7 +29,6 @@
 #include <ace/Log_Msg.h>
 #include <ace/Auto_Ptr.h>
 #include <ace/OS_NS_errno.h>
-#include <ace/Copy_Disabled.h>
 #include <ace/High_Res_Timer.h>
 #include <ace/Service_Config.h>
 
