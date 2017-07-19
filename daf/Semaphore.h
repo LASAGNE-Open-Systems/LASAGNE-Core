@@ -57,7 +57,7 @@ namespace DAF
     * --> Doug Lee
     */
 
-    class DAF_Export Semaphore : protected Monitor
+    typedef class DAF_Export Semaphore : protected Monitor
     {
         using Monitor::wait; // Hide wait.
 
@@ -79,19 +79,12 @@ namespace DAF
         */
         int acquire(const ACE_Time_Value * abstime = 0);
         int acquire(const ACE_Time_Value & abstime);
+        int acquire(time_t msecs);
 
-        /** Same as acquire, however a conversion of @a msecs to absolute time.
-        * A @a msecs <= 0 will result in the current absolute time and if 
-        * a permit is not imedaitely available, a -1 is returned with
-        * @c errno == @c ETIME
-        */
-        int attempt(time_t msecs);
+        int attempt(time_t msecs); // Backwards Compatability
 
-        /** Release a single permit. NOTE: permits can legally go negative! */
-        int release(void);
-
-        /** Release multiple @a n permits. NOTE: permits can legally go negative! */
-        int release(int n);
+        /** Release multiple @a permits. (permits >= 0) */
+        int release(int permits = 1);
 
         using Monitor::waiters;
         using Monitor::interrupt;
@@ -100,18 +93,12 @@ namespace DAF
     private:
 
         int permits_;
-    };
 
-
-    /*
-     * Documented within Doug Lee's book on Concurrency in Java
-     * @deprecated
-     */
-    typedef class DAF::Semaphore    WaiterPreferenceSemaphore;
-
+    } WaiterPreferenceSemaphore; /* Documented within Doug Lee's book on Concurrency in Java */
 
     inline
-    Semaphore::Semaphore(int permits) : permits_(permits)
+    Semaphore::Semaphore(int permits) : Monitor()
+        , permits_(permits)
     {
     }
 
@@ -122,9 +109,15 @@ namespace DAF
     }
 
     inline int
-    Semaphore::attempt(time_t msecs)
+    Semaphore::acquire(time_t msecs)
     {
         return this->acquire(DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
+    }
+
+    inline int // Backwards Compatability
+    Semaphore::attempt(time_t msecs)
+    {
+        return this->acquire(msecs);
     }
 
 } // namespace DAF
