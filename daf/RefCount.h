@@ -128,6 +128,7 @@ namespace DAF
 
     private:
 
+        // = Prevent assignment and initialization.
         ACE_UNIMPLEMENTED_FUNC(void operator = (const RefCount &))
         ACE_UNIMPLEMENTED_FUNC(RefCount(const RefCount &))
     };
