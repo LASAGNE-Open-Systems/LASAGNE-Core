@@ -67,7 +67,7 @@ namespace TAF
     };
 
     template <typename T>
-    class ObjectStubRef : public T::_stub_var_type, ACE_Copy_Disabled
+    class ObjectStubRef : public T::_stub_var_type
     {
     public:
 
@@ -96,6 +96,12 @@ namespace TAF
 
         bool                auto_deactivate_;
         _servant_ref_type   servant_ref_;
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const ObjectStubRef<T> &))
+        ACE_UNIMPLEMENTED_FUNC(ObjectStubRef(const ObjectStubRef<T> &))
     };
 } // namespace TAF
 
