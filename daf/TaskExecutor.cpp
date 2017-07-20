@@ -105,21 +105,6 @@ namespace { // Anonymous
 
 /*********************************************************************************/
 
-namespace DAF {
-    template <> inline Runnable_ref
-    SynchronousChannel<Runnable_ref>::extract(void)
-    {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, throw LockFailureException());
-        Runnable_ref t(this->item_._retn()); this->itemTaken_.release();
-        if (this->itemError_) {
-            this->itemError_ = false; throw InternalException();
-        }
-        return t._retn();
-    }
-}
-
-/*********************************************************************************/
-
 namespace DAF
 {
     int SingletonExecute(const Runnable_ref & command)

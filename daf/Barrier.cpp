@@ -100,7 +100,7 @@ namespace DAF
         this->shutdown_ = true;
         while (this->count_ > 0) {
             this->notifyAll();
-            if (this->wait(100) && errno == ETIME) {
+            if (this->wait(100) && DAF_OS::last_error() == ETIME) {
                 if (this->broken_) {
                     this->entryGate_.release(int(this->count_)); break;
                 } else this->broken_ = true;

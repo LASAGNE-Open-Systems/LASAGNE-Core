@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,14 +23,6 @@
 
 /**
 * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
-*
-* @file     SemaphoreControlledPriorityChannel_T.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
 */
 
 #include "SemaphoreControlledChannel_T.h"
@@ -45,10 +37,12 @@ namespace DAF
     * Details \todo{Detailed description}
     */
     template < typename T, typename P = std::less<T> >
-    class SemaphoreControlledPriorityChannel : public DAF::SemaphoreControlledChannel<T>
+    class SemaphoreControlledPriorityChannel : public SemaphoreControlledChannel<T>
     {
     public:
 
+        typedef typename Channel<T>::_mutex_type    _mutex_type;
+ 
         /** \todo{Fill this in} */
         SemaphoreControlledPriorityChannel(size_t capacity);
 
@@ -57,12 +51,14 @@ namespace DAF
         /** \todo{Fill this in} */
         virtual int insert(const T&);
         /** \todo{Fill this in} */
-        virtual T   extract(void);
+        virtual int extract(T&);
 
     private:
 
         struct _ChannelQ : std::priority_queue<T, std::vector<T>, P> {
-            _ChannelQ(size_t capacity) { this->c.reserve(capacity); }
+            _ChannelQ(size_t capacity) {
+                this->c.reserve(capacity);
+            }
         } channelQ_;
     };
 } // namespace DAF

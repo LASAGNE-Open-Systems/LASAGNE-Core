@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -24,15 +24,7 @@
 #include "DAF.h"
 #include "Monitor.h"
 
-/**
-* @file     Channel_T.h
-* @author
-* @author   $LastChangedBy$
-* @date
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
-*/
+#include <ace/Min_Max.h>
 
 namespace DAF
 {
@@ -112,16 +104,10 @@ namespace DAF
     * are not particularly recommended for routine use, but are not hard
     * to construct.
     * --> Doug Lee
-    *
-    * @file     Executor.h
-    * @author   Derek Dominish
-    * @author   $LastChangedBy$
-    * @date     1st September 2011
-    * @version  $Revision$
-    * @ingroup
     */
 
-    template <typename T> class Channel : public DAF::Monitor
+    template <typename T>
+    class Channel : virtual protected Monitor
     {
     public:
 
@@ -130,12 +116,11 @@ namespace DAF
         */
         typedef T   _value_type;
 
-        /**
-        *\todo{Fill this in}
-        */
-        virtual ~Channel(void)
-        {
-        }
+        typedef typename Monitor::_mutex_type   _mutex_type;
+
+        using Monitor::waiters;
+        using Monitor::interrupt;
+        using Monitor::interrupted;
 
         /**
         * Place item in the channel, possibly waiting indefinitely until
@@ -143,39 +128,32 @@ namespace DAF
         * subinterface are generally guaranteed to block on puts upon
         * reaching capacity, but other implementations may or may not block.
         */
-        virtual int put(const T&) = 0;
+        virtual int put(const T&, const ACE_Time_Value * abstime = 0) = 0;
 
-        /**
-        * Place item in channel only if it can be accepted within
-        * ms milliseconds. The time bound is interpreted in
-        * a coarse-grained, best-effort fashion.
-        */
-        virtual int offer(const T&, time_t msecs = 0) = 0;
+        int     put(const T&, const ACE_Time_Value & abstime);
+        int     offer(const T&, time_t msecs);
 
         /**
         * Return and remove an item from channel,
         * possibly waiting indefinitely until
         * such an item exists.
         */
-        virtual T   take(void) = 0;
+        virtual T   take(const ACE_Time_Value * abstime = 0) = 0;
+
+        T       take(const ACE_Time_Value & abstime);
+        T       poll(time_t msecs);
 
         /**
         * Return and remove an item from channel only if one is available within
         * ms milliseconds. The time bound is interpreted in a coarse
         * grained, best-effort fashion.
         */
-        virtual T   poll(time_t msecs = 0) = 0;
-
-
-        /// Empty the channel.
-        virtual void    clear(void)
-        {
-            try { for (;;) { this->poll(0); } } DAF_CATCH_ALL {}
-        }
-
 
         /// Return the maximum number of items the channel can hold
         virtual size_t  capacity(void) const = 0;
+
+        /// Empty the channel.
+        virtual void    clear(void);
 
         /**
         * Return the number of items currently in the channel.
@@ -185,11 +163,50 @@ namespace DAF
         virtual size_t  size(void) const = 0;
 
         /// Return the current empty condition of the channel. This value may change immediately upon return, and therefore is only an instantanous value.
-        virtual int     empty(void) const
-        {
-            return this->size() == 0;
-        }
+        virtual int     empty(void) const;
     };
+
+    template <typename T> inline T
+    Channel<T>::take(const ACE_Time_Value & abstime)
+    {
+        return this->take(&abstime);
+    }
+
+    template <typename T> inline T
+    Channel<T>::poll(time_t msecs)
+    {
+        return this->take(DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
+    }
+
+    template <typename T> inline int
+    Channel<T>::put(const T &t, const ACE_Time_Value &abstime)
+    {
+        return this->put(t, &abstime);
+    }
+
+    template <typename T> inline int
+    Channel<T>::offer(const T &t, time_t msecs)
+    {
+        return this->put(t, DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
+    }
+
+    /// Empty the channel.
+    template <typename T> inline void
+    Channel<T>::clear(void)
+    {
+        try {
+            for (;;) {
+                this->poll(0);
+            }
+        } DAF_CATCH_ALL {}
+    }
+
+    template <typename T> inline int
+    Channel<T>::empty(void) const
+    {
+        return this->size() == 0;
+    }
+
 } // namespace DAF
 
 #endif // DAF_CHANNEL_T_H

@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -25,28 +25,29 @@
 
 namespace DAF
 {
-    template < typename T, typename P >
+    template < typename T, typename P > inline
     SemaphoreControlledPriorityChannel<T,P>::SemaphoreControlledPriorityChannel(size_t capacity)
         : SemaphoreControlledChannel<T>(capacity), channelQ_(capacity)
     {
     }
 
-    template < typename T, typename P > int
+    template < typename T, typename P > inline int
     SemaphoreControlledPriorityChannel<T,P>::insert(const T &t)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
+        ACE_GUARD_RETURN(_mutex_type, guard, *this, -1);
         this->channelQ_.push(t);
         return 0;
     }
 
-    template < typename T, typename P > T
-    SemaphoreControlledPriorityChannel<T,P>::extract(void)
+    template < typename T, typename P > inline int
+    SemaphoreControlledPriorityChannel<T,P>::extract(T &t)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-        T t(this->channelQ_.top());
+        ACE_GUARD_RETURN(_mutex_type, guard, *this, -1);
+        t = this->channelQ_.top();
         this->channelQ_.pop();
-        return t;
+        return 0;
     }
+
 } // namespace DAF
 
 #endif // DAF_SEMAPHORECONTROLLEDPRIORITYCHANNEL_T_CPP

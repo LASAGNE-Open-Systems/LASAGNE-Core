@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -25,92 +25,99 @@
 
 namespace DAF
 {
-    template <typename T>
-    SemaphoreControlledChannel<T>::SemaphoreControlledChannel(size_t capacity)
-        : putGuard_(int(capacity)), takeGuard_(0)
+    template <typename T> ACE_INLINE
+    SemaphoreControlledChannel<T>::SemaphoreControlledChannel(size_t capacity) : Channel<T>()
+        , putGuard_(int(capacity)), takeGuard_(0)
     {
     }
 
-    template <typename T> size_t
+    template <typename T> ACE_INLINE
+    SemaphoreControlledChannel<T>::~SemaphoreControlledChannel(void)
+    {
+        this->interrupt();
+    }
+
+    template <typename T> ACE_INLINE size_t
     SemaphoreControlledChannel<T>::capacity(void) const
     {
+        ACE_GUARD_RETURN(DAF_SYNCH_MUTEX, mon, *this, 0);
         return size_t(this->putGuard_.permits() + this->takeGuard_.permits());
     }
 
-    template <typename T> size_t
+    template <typename T> ACE_INLINE size_t
     SemaphoreControlledChannel<T>::size(void) const
     {
-        return size_t(this->takeGuard_.permits());
+        ACE_GUARD_RETURN(_mutex_type, mon, *this, 0);  return size_t(this->takeGuard_.permits());
     }
 
     template<typename T> int
-    SemaphoreControlledChannel<T>::put(const T &t)
+    SemaphoreControlledChannel<T>::put(const T &t, const ACE_Time_Value *abstime)
     {
-        if (this->putGuard_.acquire() == 0) try {
-            if (this->insert(t) == 0) {
-                this->takeGuard_.release(); return 0;
-            }
-        } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-             this->putGuard_.release(); throw;
+        if (this->interrupted()) {
+            DAF_THROW_EXCEPTION(InterruptedException);
         }
-        return -1;
-    }
 
-    template<typename T> int
-    SemaphoreControlledChannel<T>::offer(const T &t, time_t msecs)
-    {
-        if (this->putGuard_.attempt(msecs) == 0) try {
+        if (this->putGuard_.acquire(abstime) == 0) try {
+
             if (this->insert(t) == 0) {
                 this->takeGuard_.release(); return 0;
             }
-        } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-            this->putGuard_.release(); throw;
+
+            this->putGuard_.release();
         }
+        catch (...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
+            ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+            this->putGuard_.release();
+            throw;
+        }
+
         return -1;
     }
 
     template<typename T> T
-    SemaphoreControlledChannel<T>::take(void)
+    SemaphoreControlledChannel<T>::take(const ACE_Time_Value * abstime)
     {
-        this->takeGuard_.acquire();
+        if (this->interrupted()) {
+            DAF_THROW_EXCEPTION(InterruptedException);
+        }
+
+        if (this->takeGuard_.acquire(abstime)) {
+            switch (DAF_OS::last_error()) {
+            case ETIME: DAF_THROW_EXCEPTION(TimeoutException);
+            default:    DAF_THROW_EXCEPTION(InternalException);
+            }
+        }
+
+        T t = T();
 
         try {
 
-            T t(this->extract()); this->putGuard_.release(); return t;
+            if (this->extract(t)) {
+                DAF_THROW_EXCEPTION(InternalException);
+            }
 
-        } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-            // Error condition - Thread Kill or similar - Attempt to reclaim the resource
+            this->putGuard_.release();
+
+        } catch (...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
             ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
             this->takeGuard_.release();
             throw;
         }
-    }
 
-    template<typename T> T
-    SemaphoreControlledChannel<T>::poll(time_t msecs)
-    {
-        if (this->takeGuard_.attempt(msecs)) switch (DAF_OS::last_error()) {
-            case ETIME: DAF_THROW_EXCEPTION(DAF::TimeoutException); // Reverse the fact that we have been here and exit with error
-            default:    DAF_THROW_EXCEPTION(DAF::InternalException);
-        }
-
-        try {
-
-            T t(this->extract()); this->putGuard_.release(); return t;
-
-        } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-            // Error condition - Thread Kill or similar - Attempt to reclaim the resource
-            ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-            this->takeGuard_.release();
-            throw;
-        }
+        return t;
     }
 
     template<typename T> int
     SemaphoreControlledChannel<T>::interrupt(void)
     {
-        return this->putGuard_.interrupt() + this->takeGuard_.interrupt() ? -1 : 0;
+        int result = Monitor::interrupt();
+        {
+            result += this->putGuard_.interrupt();
+            result += this->takeGuard_.interrupt();
+        }
+        return result ? -1 : 0;
     }
+
 
 } // namespace DAF
 
