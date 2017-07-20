@@ -79,7 +79,7 @@ struct TopicReader : DAF::Monitor, DAF::Runnable, virtual dsto::DRAWDetails_Read
     // main thread -sync
     this->notify();
 
-    while ( this->count < num_of_messages) try
+    while (this->count < num_of_messages) try
     {
       this->wait(1000);
     }

@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -27,108 +27,259 @@
 
 namespace DAF
 {
+    template <typename T> inline
+    SynchronousChannel<T>::SynchronousChannel(size_t capacity) : Channel<T>()
+    {
+        ACE_UNUSED_ARG(capacity);  // Maybe used in later version to limit parallism
+    }
+
+    template <typename T> inline
+    SynchronousChannel<T>::~SynchronousChannel(void)
+    {
+        this->interrupt();
+    }
+
     template <typename T>
-    SynchronousChannel<T>::SynchronousChannel(void) : Channel<T>()
-        , itemAvailable_(0), unclaimedTakers_(0), itemTaken_(0), itemError_(false)
+    int
+    SynchronousChannel<T>::put(const T & t, const ACE_Time_Value * abstime)
     {
-         // Initially all synchronisation resources Locked
-    }
+        // Entirely symmetric to take()
 
-    template <typename T> int
-    SynchronousChannel<T>::insert(const T &t)
-    {
-        // putLock guard is ensuring embrace taker has cleared the item.
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, put_mon, this->putLock_, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-        {
-            ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, item_mon, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
+        const ACE_thread_t thr_id(DAF_OS::thr_self()); ACE_UNUSED_ARG(thr_id); // Usefull in debugging
 
-            // Entering User code - try and catch
-            // The putter needs to transfer error state to the taker.
-            // Possible causes are thread termination, poor assignment operators etc
-            // There is a race/risk here, that although itemError is used to transfer
-            // error state, the taker could possibly be overtaken by a second putter
-            // causing another error and loss of data. ATM, not coding for this case, but it can
-            // possibly be reworked by using DCL on itemError around the putLock and itemLock
-            // - See JAB for further information
+        for (;;) {
+
+            if (this->interrupted()) {
+                DAF_THROW_EXCEPTION(InterruptedException);
+            }
+
+            typename SYNCHNode::_ref_type node;
+
+            bool waitConsumer = false; // Set initilly to not wait (We have a current consumer)
+
+            {
+                ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
+                if (this->waitingConsumers.deque(node.out())) {
+                    this->waitingProducers.enque(node = new SYNCHNode(t)); waitConsumer = true; // Put item in and wait for a consumer
+                }
+            }
+
+            ACE_GUARD_REACTION(_mutex_type, node_guard, *node, DAF_THROW_EXCEPTION(LockFailureException));
+
             try {
-                this->item_ = t; this->itemAvailable_.release();
-            } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-                this->itemError_ = true; throw; // set error condition
+
+                if (waitConsumer) { // Wait for a consumer to arrive and take the item.
+
+                    while (!node->isCANCELLED()) {
+
+                        if (this->interrupted()) {
+                            DAF_THROW_EXCEPTION(InterruptedException);
+                        }
+                        else if (node->isFULL() && node->wait(abstime)) {
+                            int last_error = DAF_OS::last_error();
+                            if (node->isFULL()) {
+                                switch (this->interrupted() ? DAF_OS::last_error(EINTR) : last_error) {
+                                case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
+                                default:
+                                    {
+                                        ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                                        node->state(CANCELLED);
+                                        return -1;
+                                    }
+                                }
+                            }
+                        }
+
+                        if (node->isEMPTY()) {
+                            return 0;
+                        }
+                    }
+
+                    // Retry Loop
+
+                } else if (this->interrupted()) {
+                    DAF_THROW_EXCEPTION(InterruptedException);
+                } else if (node->put_item(t) ? false : node->isFULL()) {
+                    return 0;
+                }
+
+            } catch (...) {
+                ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                node->state(CANCELLED);
+                throw;
             }
         }
-        this->itemTaken_.acquire(); return 0;  // Wait for taker to leave
+
+        return -1; // Should never get here but keeps compiler happy
     }
 
-    template <typename T> T
-    SynchronousChannel<T>::extract(void)
+    template <typename T>
+    T
+    SynchronousChannel<T>::take(const ACE_Time_Value * abstime)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, item_mon, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-        T t(item_); this->item_ = T(); this->itemTaken_.release(); // Announce we have taken item
-        if (this->itemError_) {
-            this->itemError_ = false; DAF_THROW_EXCEPTION(DAF::InternalException);
-        }
-        return t;
-    }
+        // Entirely symmetric to put()
 
-    template <typename T> T
-    SynchronousChannel<T>::take(void)
-    {
-        this->unclaimedTakers_.release(); DAF_OS::thr_yield(); // Announce a taker
+        const ACE_thread_t thr_id(DAF_OS::thr_self()); ACE_UNUSED_ARG(thr_id); // Usefull in debugging
 
-        try {
+        for (;;) {
 
-            if (this->itemAvailable_.acquire()) {
-                DAF_THROW_EXCEPTION(DAF::InternalException);
+            if (this->interrupted()) {
+                DAF_THROW_EXCEPTION(InterruptedException);
             }
 
-            return this->extract();
+            typename SYNCHNode::_ref_type node;
 
-        } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-            // Error condition - Thread Kill or similar - Attempt to reclaim the resource
-            ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-            this->unclaimedTakers_.attempt(0);
-            throw;
+            bool waitProducer = false; // Set initilly to not wait (We have a current producer)
+
+            {
+                ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
+                if (this->waitingProducers.deque(node.out())) {
+                    this->waitingConsumers.enque(node = new SYNCHNode()); waitProducer = true; // Create an empty slot and wait for a producer to fill in
+                }
+            }
+
+            T t = T(); // Temporary Holder for retrieved item
+
+            ACE_GUARD_REACTION(_mutex_type, node_guard, *node, DAF_THROW_EXCEPTION(LockFailureException));
+
+            try {
+
+                if (waitProducer) { // Wait for a producer to arrive and fill in the item.
+
+                    while (!node->isCANCELLED()) {
+
+                        if (this->interrupted()) {
+                            DAF_THROW_EXCEPTION(InterruptedException);
+                        }
+                        else if (node->get_item(t)) {
+                            if (node->isCANCELLED()) {
+                                break;
+                            }
+                            else if (node->wait(abstime)) {
+                                int last_error = DAF_OS::last_error();
+                                if (node->get_item(t)) {
+                                    switch (this->interrupted() ? DAF_OS::last_error(EINTR) : last_error) {
+                                    case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
+                                    case ETIME: DAF_THROW_EXCEPTION(TimeoutException);
+                                    default:    DAF_THROW_EXCEPTION(InternalException);
+                                    }
+                                }
+                            }
+                            else {
+                                continue; // Go retry to get item if not cancelled
+                            }
+                        }
+
+                        return t; // return the item
+                    }
+
+                    // Retry Loop
+
+                } else if (this->interrupted()) {
+                    DAF_THROW_EXCEPTION(InterruptedException);
+                } else if (node->get_item(t) ? false : node->isEMPTY()) {
+                    return t;
+                }
+
+            } catch (...) {
+                ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+                node->state(CANCELLED);
+                throw;
+            }
         }
+
+        DAF_THROW_EXCEPTION(InternalException);  // Should never get here but keeps compiler happy
+    }
+
+    template <typename T>
+    inline size_t
+    SynchronousChannel<T>::size(void) const
+    {
+        return size_t(this->waitingProducers.size());
+    }
+
+    template <typename T>
+    inline size_t
+    SynchronousChannel<T>::capacity(void) const
+    {
+        return size_t(this->size() + 1); // Say we can take another one
+    }
+
+    /******************************************************************************************/
+
+    template <typename T>
+    inline
+    SynchronousChannel<T>::SYNCHNode::SYNCHNode(void) : item_()
+        , state_(EMPTY)
+    {
+    }
+
+    template <typename T>
+    inline
+    SynchronousChannel<T>::SYNCHNode::SYNCHNode(const T & t) : item_(t)
+        , state_(FULL)
+    {
     }
 
     template <typename T> int
-    SynchronousChannel<T>::put(const T &t)
+    SynchronousChannel<T>::SYNCHNode::state(void) const
     {
-        this->unclaimedTakers_.acquire(); return this->insert(t);
+        return this->state_;
     }
 
-    template <typename T> T
-    SynchronousChannel<T>::poll(time_t msecs)
+    template <typename T> int // Called with lock held
+    SynchronousChannel<T>::SYNCHNode::state(int state)
     {
-        this->unclaimedTakers_.release(); DAF_OS::thr_yield();
-
-        try {
-
-            if (this->itemAvailable_.attempt(msecs)) switch (DAF_OS::last_error()) {
-            case ETIME: DAF_THROW_EXCEPTION(DAF::TimeoutException); // Reverse the fact that we have been here and exit with error
-            default:    DAF_THROW_EXCEPTION(DAF::InternalException);
-            }
-
-            return this->extract();
-
-        } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-            // Using an Errno guard to ensure the ETIME error
-            // from itemAvailable_.attempt is reported and not
-            // unclaimedTakers_.attempt.
-            ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
-            this->unclaimedTakers_.attempt(0);
-            throw;
+        switch (this->interrupted() ? (state = CANCELLED) : state) {
+        case CANCELLED:
+        case EMPTY: this->item_ = T();
+        case FULL:  break;
+        default:    return -1;
         }
+
+        this->state_ = state; return this->signal();
     }
 
-    template <typename T> int
-    SynchronousChannel<T>::offer(const T &t, time_t msecs)
+    template <typename T> int // Called with lock held
+    SynchronousChannel<T>::SYNCHNode::put_item(const T & t)
     {
-        if (this->unclaimedTakers_.attempt(msecs) == 0) {
-            return this->insert(t);
+        if (this->isEMPTY()) {
+            this->item_ = t; this->state(FULL); return 0;
         }
         return -1;
     }
+
+    template <typename T> int // Called with lock held
+    SynchronousChannel<T>::SYNCHNode::get_item(T & t)
+    {
+        if (this->isFULL()) {
+            t = this->item_; this->state(EMPTY); return 0;
+        }
+        return -1;
+    }
+
+    /**********************************************************************************************/
+
+    template <typename T> int // Called with lock held
+    SynchronousChannel<T>::WaiterQueue::deque(typename SYNCHNode::_out_type node)
+    {
+        while (!this->empty()) {
+            typename _waiter_list_type::value_type item(this->front()._retn()); this->pop_front();
+            if (item && !item->isCANCELLED()) {
+                node = item._retn(); return 0;
+            }
+        }
+
+        return -1;
+    }
+
+    template <typename T> inline int // Called with lock held
+    SynchronousChannel<T>::WaiterQueue::enque(const typename SYNCHNode::_ref_type & node)
+    {
+        this->push_back(node); return 0;
+    }
+
+    /**********************************************************************************************/
 
 } // namespace DAF
 

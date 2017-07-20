@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -22,16 +22,7 @@
 #define DAF_MONITOR_H
 
 /**
-*
 * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
-*
-* @file     Monitor.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
 */
 
 #include "SYNCHCondition_T.h"
@@ -57,7 +48,10 @@ namespace DAF
         Monitor(void) : cond_mutex_(mutex_) {}
 
         /** \todo{Fill this in}   */
-        virtual ~Monitor(void) {} /* Force inheriters to destruction appropriately */
+        virtual ~Monitor(void)
+        {
+            this->interrupt();
+        }
 
         /** \todo{Fill this in}   */
         operator _mutex_type & () const
@@ -72,19 +66,19 @@ namespace DAF
         }
 
         /// Wait indefinately until condition is signalled.
-        int wait(const ACE_Time_Value *tv = 0) const
+        int wait(const ACE_Time_Value * tv = 0) const
         {
             return this->cond_mutex_.wait(tv);
         }
 
         /// Wait for upto ACE_Time_Value as an absolute TOD deadline or until condition is signalled.
-        int wait(const ACE_Time_Value &tv) const
+        int wait(const ACE_Time_Value & tv) const
         {
             return this->wait(&tv);
         }
 
         /// Wait for upto msec or until condition is signalled.
-        int wait(const time_t &msec) const
+        int wait(time_t msec) const
         {
             return this->wait(DAF_OS::gettimeofday(msec));
         }
@@ -123,55 +117,17 @@ namespace DAF
         * The underlying condition will also be marked as removed
         * and its OS backed handles will be closed.
         */
-        int interrupt(void)
+        virtual int interrupt(void)
         {
             return this->cond_mutex_.interrupt();
         }
 
     private:
 
-        // = Prevent assignment and initialization.
         ACE_UNIMPLEMENTED_FUNC(void operator = (const Monitor &))
         ACE_UNIMPLEMENTED_FUNC(Monitor(const Monitor &))
-
     };
 
-    /** @class SynchLatch
-    *@brief Brief \todo{Fill this in}
-    *
-    * Details \todo{Detailed description}
-    */
-    class DAF_Export SynchLatch : protected DAF::Monitor
-    {
-        volatile bool latch_;
-
-    public:
-
-        /** \todo{Fill this in}   */
-        SynchLatch(bool latch) : latch_ (latch) {}
-
-        /** \todo{Fill this in}   */
-        virtual int set(bool latch = true) {
-            if (this->latch_ != latch) { // DCL
-                ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-                if (this->latch_ != latch) {
-                    this->latch_ = latch; this->notifyAll();
-                }
-            }
-            return 0;
-        }
-
-        /** \todo{Fill this in}   */
-        virtual int wait(bool latch = true) {
-            if (this->latch_ != latch) { // DCL
-                ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-                while (this->latch_ != latch) {
-                    this->wait();
-                }
-            }
-            return 0;
-        }
-    };
 }  // namespace DAF
 
 #endif

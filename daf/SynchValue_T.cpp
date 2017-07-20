@@ -57,7 +57,7 @@ namespace DAF
         while( this->waiters_ > 0 ) {
             this->notifyAll();
 
-            if (this->wait(100) && errno == ETIME ) {
+            if (this->wait(100) && DAF_OS::last_error() == ETIME ) {
                 // CRUDE: using wait with timeout allow others to clear
                 // out before destroying. We don't expect a
                 // corresponding notify.

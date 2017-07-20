@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,34 +18,9 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-
 #define DAF_SEMAPHORE_CPP
 
 /**********************  Semaphore *****************************
-*
-*(c)Copyright 2011,
-*   Defence Science and Technology Organisation,
-*   Department of Defence,
-*   Australia.
-*
-* All rights reserved.
-*
-* This is unpublished proprietary source code of DSTO.
-* The copyright notice above does not evidence any actual or
-* intended publication of such source code.
-*
-* The contents of this file must not be disclosed to third
-* parties, copied or duplicated in any form, in whole or in
-* part, without the express prior written permission of DSTO.
-*
-*
-* @file     Semaphore.cpp
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-*
 * Conceptually, a semaphore maintains a set of permits.
 * Each acquire() blocks if necessary
 * until a permit is available, and then takes it.
@@ -65,78 +40,66 @@
 * The default implementation makes NO
 * guarantees about the order in which threads will
 * acquire permits. It is often faster than other implementations.
-* <p>
-* NOTE: Cant Use ACE_Semaphore in many cases as Solaris does not
-* support the timed wait semantics, which is important in many
-* instances.
 *************************************************************/
 
 #include "Semaphore.h"
 
 namespace DAF
 {
-    Semaphore::Semaphore(int permits)
-        : permits_(permits)
+    int
+    Semaphore::permits(void) const
     {
+        return this->permits_;  // Keep this out-of-line
     }
 
-    int Semaphore::acquire(void)
+    int
+    Semaphore::acquire(const ACE_Time_Value * abstime)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
+        while (!this->interrupted()) {
 
-        if (this->interrupted()) {
-            DAF_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
-        } else if (this->permits_ > this->waiters()) {
-            --this->permits_; return 0;
-        }
+            ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
 
-        for (;;) {
-            this->wait();
-            if (this->permits_ > 0) {
+            if (this->permits() > this->waiters()) { // Preference any waiters
+                --this->permits_; return 0;
+            }
+            else if (this->wait(abstime)) {
+                switch (this->interrupted() ? EINTR : DAF_OS::last_error()) {
+                case EINTR: continue;  // Retry interrupted test
+                case ETIME:
+                    if (this->permits() > 0) {
+                        --this->permits_; return 0;
+                    }
+
+                    // Fall through
+
+                default: return -1; // Report as errno error
+                }
+            }
+            else if (this->permits() > 0) {
                 --this->permits_; return 0;
             }
         }
 
-        return 0;
+        DAF_THROW_EXCEPTION(InterruptedException);
     }
 
-    int Semaphore::attempt(time_t msecs)
+    int
+    Semaphore::release(int permits)
     {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
+        int result = 0;
 
-        if (this->interrupted()) {
-            DAF_OS::last_error(EINTR); DAF_THROW_EXCEPTION(DAF::InterruptedException);
-        } else if (this->permits_ > this->waiters()) {
-            --this->permits_; return 0;
-        }
+        if (permits > 0) {
 
-        if (msecs > time_t(0)) {
+            ACE_GUARD_RETURN(_mutex_type, guard, *this, (DAF_OS::last_error(ENOLCK),-1));
 
-            const ACE_Time_Value end_time(DAF_OS::gettimeofday(msecs));
-
-            do {
-                this->wait(end_time);
-                if (this->permits_ > 0) {
-                    --this->permits_; return 0;
+            while (permits-- > 0) {
+                ++this->permits_; if (this->signal()) {
+                    result = -1;
                 }
-            } while (end_time > DAF_OS::gettimeofday());
+            }
         }
 
-        DAF_OS::last_error(ETIME); return -1;
+        return result;
     }
 
-    int Semaphore::release(void)
-    {
-        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, guard, *this, DAF_THROW_EXCEPTION(ResourceExhaustionException));
-        ++this->permits_;
-        return this->notify();
-    }
-
-    int Semaphore::release(int n)
-    {
-        while (n-- > 0) {
-            this->release(); // Always call our release (i.e. it may be overloaded)
-        }
-        return 0;
-    }
 } // namespace DAF
