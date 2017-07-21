@@ -20,6 +20,8 @@
 ***************************************************************/
 #include <daf/ServiceGestaltLoader.h>
 
+#include <daf/PropertyManager.h>
+
 #include <ace/ARGV.h>
 
 #include <iostream>
@@ -34,7 +36,7 @@ struct ConfigServiceLoader : DAF::ServiceGestaltLoader {
 };
 
 const std::string filearg("TEST.conf:A,B,C,D,E");
-std::string ok_result("a6c6wy9b3e5d4nf8x");
+std::string ok_result("a6c6wy9b3e5d4nf8v4x");
 std::string result; // Holds the result
 
 const char *TEST_NAME = "ServiceConfiguratorTest";
@@ -43,6 +45,8 @@ int
 ConfigServiceLoader::process_directive(const value_type &val)
 {
     const std::string key(val.first), arg(DAF::format_args(val.second));
+
+    DAF::set_property(key, arg);
 
     result.append(key).append(arg);
 

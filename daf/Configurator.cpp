@@ -46,7 +46,7 @@ namespace DAF
         ConfiguratorFileLoader::ConfiguratorFileLoader(const std::string & filename)
         {
             struct ConfigFile : std::ifstream {
-                ConfigFile(const std::string & file_name) : std::ifstream(file_name) {
+                ConfigFile(const std::string & file_name) : std::ifstream(file_name.c_str()) {
                     if (this->is_open() ? this->fail() : true) {
                         DAF_THROW_EXCEPTION(NotFoundException);  // Could Not Open config File
                     }

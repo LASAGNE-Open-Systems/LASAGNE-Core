@@ -1,11 +1,14 @@
 project(TestGestaltService ) : daflib {
   sharedname = *
 
+  libout = .
+
   dynamicflags += TEST_SERVICE_BUILD_DLL
 
   prebuild += $(ACE_ROOT)/bin/generate_export_file.pl TEST_SERVICE > TEST_SERVICE_export.h
 
   Header_Files {
+    Macros.h
     TestGestaltService.h
   }
   Source_Files {
@@ -21,6 +24,8 @@ project(TestGestalt): daflib {
   libs += TestGestaltService
 
   Header_Files {
+    Macros.h
+    TestGestaltService.h
   }
   Source_Files {
     TestGestalt.cpp
