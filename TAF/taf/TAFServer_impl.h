@@ -38,9 +38,9 @@ namespace TAF
     typedef class CORBAInterfaceHandler_T<POA_taf::TAFServer>   TAFServerInterfaceHandler;
 
     /** @class TAFServer_impl
-    * @brief Brief \todo{Add Brief}
-    *
-    * details \todo{Details}
+    * @brief The TAFServer is the primary process level interface to the service container
+    * itself is a service contained within the primary (global) gestalt specifically inserted 
+    * after the infrastructure middleware for dependant unload purposes
     */
     class TAF_Export TAFServer_impl : virtual public TAFServerInterfaceHandler, virtual public ACE_Service_Object
         , virtual public TAFGestaltServiceImpl
@@ -50,17 +50,17 @@ namespace TAF
 
     public:
 
-        /** \todo{Fill this in} */
+        /** Default Constructor */
         TAFServer_impl(void);
         virtual ~TAFServer_impl(void);
 
-        /** \todo{Fill this in} */
+        /** Provide a descriptor for this process interface */
         virtual taf::EntityDescriptor *entity_descriptor(void);
 
-        /** \todo{Fill this in} */
+        /** Provide a formal name for this instance */
         virtual char*   svc_name(void);
 
-        /** \todo{Fill this in} */
+        /** Provide an Object ID for this interface */
         static const char*  svc_ident(void)
         {
             return taf::TAFSERVER_OID;
@@ -68,31 +68,32 @@ namespace TAF
 
     public:  /* IDL Interface Methods */
 
-        /** \todo{Fill this in} */
+        /** Send a Console message to this process */
         virtual void    sendConsoleMsg(const char *msg);
-        /** \todo{Fill this in} */
+        /** Direct the process to close down - and Unwind all its services */
         virtual void    shutdown(void);         // Handle Shutdown Request
 
-        /** \todo{Fill this in} */
+        /** Provide an interface to get the hostname */
         virtual char *  getHostName(void);
-        /** \todo{Fill this in} */
+        /** Provide an interface to get roundtrip timing to an interface */
         virtual char *  getRepoQOS(CORBA::Object_ptr obj, CORBA::Long_out time);
 
     protected:  /* Service Interface */
 
-        /** \todo{Fill this in} */
+        /** Initialize the service */
         virtual int init(int argc, ACE_TCHAR *argv[]);
-        /** \todo{Fill this in} */
+        /** Suspend the service - Not Supported */
         virtual int suspend(void);
-        /** \todo{Fill this in} */
+        /** Resume the service - Not Supported */
         virtual int resume(void);
-        /** \todo{Fill this in} */
+        /** Finish the service */
         virtual int fini(void);
-        /** \todo{Fill this in} */
+        /** Provide information about the service */
         virtual int info(ACE_TCHAR **info_string, size_t length = 0) const;
 
     protected:
 
+        /** Provide the Config Switch for file set to load */
         virtual const char * config_switch(void) const
         {
             return TAF_SERVICES;  // Switch for ServiceGestaltLoader
