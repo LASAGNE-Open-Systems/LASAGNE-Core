@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -28,8 +28,13 @@
 TAF_BEGIN_DDS_NAMESPACE_DECL
 
 namespace TAFDDS {
-    struct Listener : virtual DDS::Listener, ACE_Copy_Disabled {
-        virtual ~Listener(void) {}  // Ensure We destruct OK
+
+    struct Listener : virtual DDS::Listener
+    {
+        Listener(void) {}
+    private: // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const Listener &))
+        ACE_UNIMPLEMENTED_FUNC(Listener(const Listener &))
     };
 
     struct TopicListener : virtual TAFDDS::Listener, virtual DDS::TopicListener

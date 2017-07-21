@@ -52,7 +52,6 @@ namespace DAF
      * sections and the key-value pairs.
      */
     class DAF_Export Configurator : public property_map_type
-        , ACE_Copy_Disabled
     {
         mutable ACE_SYNCH_RW_MUTEX config_lock_;
 
@@ -159,6 +158,12 @@ namespace DAF
     private:
 
         size_t  load_count_;
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const Configurator &))
+        ACE_UNIMPLEMENTED_FUNC(Configurator(const Configurator &))
     };
 
 } // namespace DAF

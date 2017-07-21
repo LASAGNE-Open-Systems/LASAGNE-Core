@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,16 +20,6 @@
 ***************************************************************/
 #ifndef DAF_OS_H
 #define DAF_OS_H
-
-/**
-* @file     OS.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF_OS
-*/
 
 #include "DAF_export.h"
 
@@ -85,6 +75,26 @@ namespace DAF_OS
     DAF_Export long                 thread_PRIORITY(ACE_hthread_t ht_id = thread_HANDLE());
 
     DAF_Export int                  thread_0_SIGSET_T(void);
+
+#if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)
+
+    /* These are implemented in <daf/TerminateRepository.cpp> */
+
+    DAF_Export int                  cond_timedwait(ACE_cond_t *, ACE_thread_mutex_t *, ACE_Time_Value *);
+
+    DAF_Export int                  sleep(const ACE_Time_Value &);
+
+    inline int                      sleep(u_int seconds)
+    {
+        return DAF_OS::sleep(ACE_Time_Value(time_t(seconds)));
+    }
+
+    inline void                     thr_yield(void)
+    {
+        DAF_OS::sleep(ACE_Time_Value::zero); ACE_OS::thr_yield();
+    }
+
+#endif
 
    /*
     * The abs() function is required to ensure that the

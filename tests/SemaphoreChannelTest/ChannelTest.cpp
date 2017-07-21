@@ -35,6 +35,10 @@
 // - capacity works
 // - size is valid
 //
+const int INITIAL_RESULT_VALUE  = -2;
+const int CHANNEL_PUTTER_VALUE  = 456;
+const int INITIAL_SEED_VALUE    = 12345;
+
 namespace test
 {
     bool debug = false;
@@ -54,6 +58,11 @@ namespace test
 
         }
 
+        operator int() const
+        {
+            return this->value;
+        }
+
         LongAss& operator=(const LongAss& that)
         {
             if (this == &that)
@@ -70,13 +79,28 @@ namespace test
         }
     };
 
+    struct UserLevelException
+    {
+    };
+
     struct ThrowAss
     {
         int value;
+        bool throw_ex;
 
-        ThrowAss(int val_in = 0) : value(val_in)
+        ThrowAss(int val_in = 0, bool throw_except = false)
+            : value(val_in)
+            , throw_ex(throw_except)
         {
+        }
 
+        ThrowAss(const ThrowAss &that) : value(that.value), throw_ex(that.throw_ex)
+        {
+        }
+
+        operator int() const
+        {
+            return this->value;
         }
 
         ThrowAss &operator=(const ThrowAss& that)
@@ -86,15 +110,16 @@ namespace test
 
             if ( debug )
             {
-                ACE_DEBUG((LM_INFO, "(%P|%t) %T ThrowAss Throwing %d\n", throw_exception));
-            }
-
-            if ( throw_exception )
-            {
-                throw DAF::InternalException();
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T ThrowAss Throwing %d\n", throw_ex));
             }
 
             this->value = that.value;
+            this->throw_ex = that.throw_ex;
+
+            if (this->throw_ex)
+            {
+                throw UserLevelException();
+            }
 
             return *this;
         }
@@ -116,13 +141,14 @@ namespace test
         time_t timevalue;
         DAF::Channel<T> &channel;
 
-        TestTakerGen(DAF::Semaphore &sema_in, DAF::Channel<T> &channel_in, time_t timeout_in = 0)
+        TestTakerGen(DAF::Semaphore &sema_in, DAF::Channel<T> &channel_in, time_t timeout_in = 0, T value_in = T())
             : DAF::Runnable()
-            , value(0)
+            , value(value_in)
             , internal(0)
             , timeout(0)
             , notfound(0)
             , unknown(0)
+            , result(-99)
             , sema(sema_in)
             , timevalue(timeout_in)
             , channel(channel_in)
@@ -167,14 +193,14 @@ namespace test
     {
 
         TestPutterGen(DAF::Semaphore &sema_in, DAF::Channel<T> &channel_in, time_t timeout_in = 0, T value_in = T())
-            : TestTakerGen<T>(sema_in, channel_in, timeout_in)
+            : TestTakerGen<T>(sema_in, channel_in, timeout_in, value_in)
         {
-            this->value = value_in;
+//            this->value = value_in;
         }
 
         virtual int run(void)
         {
-            if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Putter from Channel 0x%08X %d\n", &this->channel, this->value));
+            if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Putter from Channel 0x%08X %d\n", &this->channel, int(this->value)));
             try
             {
                 this->sema.release();
@@ -189,7 +215,7 @@ namespace test
                     this->result = this->channel.put(this->value);
                 }
 
-                if ( this->result == -1 && errno == ETIME)
+                if ( this->result == -1 && DAF_OS::last_error()== ETIME)
                 {
                     this->timeout++;
                     if (debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Timeout\n"), this ));
@@ -337,7 +363,7 @@ namespace test
     {
         int capacity = (threadCount > 10 ? threadCount+5 : 10);
         int result = 1;
-        int expected = 12345;
+        int expected = INITIAL_SEED_VALUE;
         int value = 0;
 
 
@@ -390,7 +416,7 @@ namespace test
     int test_SyncChannel_ThreadKill_LostSample(int )
     {
         int result = 1;
-        int expected = 12345;
+        int expected = CHANNEL_PUTTER_VALUE;
         int value = 0;
 
 
@@ -420,7 +446,7 @@ namespace test
 
             counter.acquire();
 
-            executor.execute(new TestPutter(counter, channel, 500, 456));
+            executor.execute(new TestPutter(counter, channel, 500, CHANNEL_PUTTER_VALUE));
 
             counter.acquire();
 
@@ -449,7 +475,7 @@ namespace test
     int test_SyncChannel_ThreadKill_LostSample_Poll(int )
     {
         int result = 1;
-        int expected = 12345;
+        int expected = CHANNEL_PUTTER_VALUE;
         int value = 0;
 
 
@@ -477,7 +503,7 @@ namespace test
 
             counter.acquire();
 
-            executor.execute(new TestPutter(counter, channel, 1500, 456));
+            executor.execute(new TestPutter(counter, channel, 1500, CHANNEL_PUTTER_VALUE));
 
             counter.acquire();
 
@@ -546,42 +572,57 @@ namespace test
     int test_SyncChannel_Putter_User_throw(int )
     {
         int result = 1;
-        int expected = -1;
+        int expected = CHANNEL_PUTTER_VALUE;
         int value = 0;
-
 
         DAF::Semaphore counter(0);
 
         // Long Assignment Channel
         SyncChannelThrowAss_t channel;
 
-        ThrowAss put_value(123456);
+        ThrowAss throw_value(INITIAL_SEED_VALUE, true);
+        // For the putter, don't throw an exception and make sure the taker can take unaffected after the throw from the thrower
+        ThrowAss put_value(CHANNEL_PUTTER_VALUE, false);
 
+        TestTakerGen<ThrowAss> *takeTester = new TestTakerGen<ThrowAss>(counter, channel);
+        DAF::Runnable_ref runner(takeTester);
 
-        TestTakerGen<ThrowAss> *tester = new TestTakerGen<ThrowAss>(counter, channel);
-        DAF::Runnable_ref runner(tester);
+        TestPutterGen<ThrowAss> *throwTester = new TestPutterGen<ThrowAss>(counter, channel, 0, throw_value);
+        DAF::Runnable_ref thrower(throwTester);
 
-        DAF::Runnable_ref putter(new TestPutterGen<ThrowAss>(counter,channel, 0, put_value));
+        TestPutterGen<ThrowAss> *putTester = new TestPutterGen<ThrowAss>(counter, channel, 0, put_value);
+        DAF::Runnable_ref putter(putTester);
 
         {
-            throw_exception = 1;
             DAF::TaskExecutor executor;
 
             executor.execute(runner);
 
             counter.acquire();
 
+            executor.execute(thrower);
 
+            counter.acquire();
+
+            // DAF_OS::sleep(1); // Allow some time for the thrower to attempt what it needs to
 
             executor.execute(putter);
 
             counter.acquire();
 
-
             DAF_OS::sleep(2);
         }
 
-        value = tester->result;
+        // Expected results
+        if (takeTester->result == -99)          { // Taker doesn't change the result
+            if (throwTester->result == -99)     { // The thrower shouldn't change it's result
+                if (throwTester->unknown == 1)  { // The thrower should have caught a user-level exception
+                    if (putTester->result == 0) { // The putter should have been ultimately successful
+                        value = takeTester->value.value;    // Ensure we got the expected value from putter to channel
+                    }
+                }
+            }
+        }
 
         result &= (value == expected);
 
@@ -614,7 +655,7 @@ namespace test
         // Long Assignment Channel
         SyncChannelLongAss_t channel;
 
-        LongAss put_value(123456);
+        LongAss put_value(INITIAL_SEED_VALUE);
 
         wait_time = DAF::TaskExecutor::THREAD_EVICT_TIMEOUT * 2;
 
@@ -670,6 +711,8 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char *argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
+
     int result = 1, threadCount = 3;
 
     ACE_Get_Opt cli_opt(argc, argv, "hzn:");
@@ -689,10 +732,11 @@ int main(int argc, char *argv[])
     result &= test::test_Channel_Size(threadCount);
     result &= test::test_Channel_TimeoutTaker(threadCount);
     result &= test::test_Channel_TimeoutPutter(threadCount);
-
     result &= test::test_SyncChannel_Timeout_Poll(threadCount);
+#if 1 // Addressing this test will require a rewrite of the synchronous channel to avoid deadly embrace problems
     result &= test::test_SyncChannel_Putter_User_throw(threadCount);
-#ifndef ACE_WIN32
+#endif
+#if 1 //!defined(ACE_WIN32)
     result &= test::test_Channel_ThreadKill_Taker(threadCount);
     result &= test::test_SyncChannel_ThreadKill_LostSample(threadCount);
     result &= test::test_SyncChannel_ThreadKill_LostSample_Poll(threadCount);

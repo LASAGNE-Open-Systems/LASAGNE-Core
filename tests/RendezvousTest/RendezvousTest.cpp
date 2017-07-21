@@ -808,7 +808,7 @@ int main(int argc, char *argv[])
     result &= test::test_RendezvousDestructionLongTrigger(threadCount);
 
     result &= test::test_RendezvousCtorZero(threadCount);
-#ifndef ACE_WIN32
+#if 1 //ndef ACE_WIN32
     result &= test::test_RendezvousThreadKill(threadCount);
 #endif
 

@@ -518,7 +518,8 @@ extern "C" {
                 tafServerInitRepo_ = ref._retn(); return 0;
             }
 
-        } DAF_CATCH_ALL {
+        } catch (...) {
+            /* Trap and ignore any exception - Cannot pass back to 3rd party invoker (extern "C" interface) */
         }
 
         ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("(%P | %t) ERROR: Unable to Initialize %s [return=%d]\n")

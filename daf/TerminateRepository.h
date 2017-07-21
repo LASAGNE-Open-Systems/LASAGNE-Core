@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,9 +18,19 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
+#ifndef DAF_TERMINATEREPOSITORY_H
+#define DAF_TERMINATEREPOSITORY_H
 
-#if defined(_MSC_VER)
-# pragma message("DAF::WaiterPreferenceSemaphore has been deprecated:- use DAF::Semaphore through <daf/Semaphore.h>")
-#endif
+#include "OS.h"
 
-#include <daf/Semaphore.h>
+namespace DAF_OS
+{
+
+    int         insertTerminateEvent(ACE_thread_t thr_id);
+    int         removeTerminateEvent(ACE_thread_t thr_id);
+    int         signalTerminateEvent(ACE_thread_t thr_id);
+    ACE_HANDLE  locateTerminateEvent(ACE_thread_t thr_id);
+
+}  // namespace DAF_OS
+
+#endif // DAF_TERMINATEREPOSITORY_H
