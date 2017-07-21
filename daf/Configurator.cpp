@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -33,9 +33,9 @@
 
 namespace DAF
 {
-    // NOTE: We can only use ACE::debug here as DAF::debug() may not have been set up yet and caused infinate recursion.
+    // NOTE: We can only use ACE::debug here as DAF::debug() may not have been set up yet and caused infinite recursion.
 
-    namespace { // annanomous
+    namespace { // Anonymous
 
         typedef std::map< Configurator::section_type, Configurator::property_list_type >  fileloader_map_type;
 
@@ -141,7 +141,7 @@ namespace DAF
             }
         }
 
-    } // ananomous
+    } // Anonymous
 
     /*********************************************************************************************************/
 
