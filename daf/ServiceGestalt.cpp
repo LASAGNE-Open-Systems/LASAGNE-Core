@@ -490,7 +490,7 @@ namespace DAF
     ServiceGestalt::process_svc_action(const ServiceActivity_ref & svc_action, time_t timeout)
     {
         try { // Touch User Code (init)
-            if (SingletonExecute(svc_action) == 0) {
+            if (this->execute(svc_action) == 0) {
                 return svc_action->wait_result(timeout);
             }
         } DAF_CATCH_ALL {
@@ -669,6 +669,12 @@ namespace DAF
         }
 #endif
         DAF_THROW_EXCEPTION(LockFailureException);
+    }
+
+    int
+    ServiceGestalt::execute(const DAF::Runnable_ref & command)
+    {
+        return SingletonExecute(command);
     }
 
     /****************************************************************************************************************/

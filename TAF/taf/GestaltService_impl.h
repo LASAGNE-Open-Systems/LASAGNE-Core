@@ -91,6 +91,11 @@ namespace TAF
 
     protected:
 
+        virtual int execute(const DAF::Runnable_ref & command)
+        {
+            return DAF::SingletonExecute(command);
+        }
+
         /** Make a descriptor for a service entity (by ident) within this gestalt */
         taf::EntityDescriptor_var   makeEntityDescriptor(const ident_type &ident) const;
         /** Make a descriptor for a service entity (by descriptor type) within this gestalt */
@@ -112,6 +117,13 @@ namespace TAF
             virtual const char * config_switch(void) const
             {
                 return this->gestalt_impl_.config_switch();
+            }
+
+        private:
+
+            virtual int execute(const DAF::Runnable_ref & command)
+            {
+                return this->gestalt_impl_.execute(command);
             }
 
         } gestalt_;

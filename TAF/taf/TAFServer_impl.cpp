@@ -92,6 +92,7 @@ namespace TAF
 
     TAFServer_impl::~TAFServer_impl(void)
     {
+        this->module_closed();
     }
 
     char *
@@ -315,21 +316,9 @@ namespace TAF
     }
 
     int
-    TAFServer_impl::suspend(void)
-    {
-        ACE_NOTSUP_RETURN(-1);
-    }
-
-    int
-    TAFServer_impl::resume(void)
-    {
-        ACE_NOTSUP_RETURN(-1);
-    }
-
-    int
     TAFServer_impl::fini(void)
     {
-        this->fini_bind(); return 0;
+        this->fini_bind(); return this->module_closed();
     }
 
     int

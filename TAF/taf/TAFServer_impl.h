@@ -30,7 +30,7 @@ License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "TAFServerS.h"
 
-#include <ace/Service_Object.h>
+#include <daf/TaskExecutor.h>
 
 namespace TAF
 {
@@ -42,7 +42,7 @@ namespace TAF
     * itself is a service contained within the primary (global) gestalt specifically inserted 
     * after the infrastructure middleware for dependant unload purposes
     */
-    class TAF_Export TAFServer_impl : virtual public TAFServerInterfaceHandler, virtual public ACE_Service_Object
+    class TAF_Export TAFServer_impl : virtual public TAFServerInterfaceHandler, public DAF::TaskExecutor
         , virtual public TAFGestaltServiceImpl
         , virtual public TAFPropertyServerImpl
     {
@@ -82,16 +82,17 @@ namespace TAF
 
         /** Initialize the service */
         virtual int init(int argc, ACE_TCHAR *argv[]);
-        /** Suspend the service - Not Supported */
-        virtual int suspend(void);
-        /** Resume the service - Not Supported */
-        virtual int resume(void);
         /** Finish the service */
         virtual int fini(void);
         /** Provide information about the service */
         virtual int info(ACE_TCHAR **info_string, size_t length = 0) const;
 
     protected:
+
+        virtual int execute(const DAF::Runnable_ref & command)
+        {
+            return DAF::TaskExecutor::execute(command);
+        }
 
         /** Provide the Config Switch for file set to load */
         virtual const char * config_switch(void) const

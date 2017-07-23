@@ -283,6 +283,10 @@ namespace DAF
         /// Translation method from ident to ACE_Service_Configurator Syntax
         static std::string  remove_directive    (const std::string & ident);
 
+    protected:
+
+        virtual int execute(const Runnable_ref & command);
+
     private:
 
         class ServiceDescriptors : public service_map_type
