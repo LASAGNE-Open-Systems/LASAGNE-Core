@@ -5,7 +5,7 @@ project(TestGestaltService ) : daflib {
 
   dynamicflags += TEST_SERVICE_BUILD_DLL
 
-  prebuild += $(ACE_ROOT)/bin/generate_export_file.pl TEST_SERVICE > TEST_SERVICE_export.h
+  prebuild = perl $(ACE_ROOT)/bin/generate_export_file.pl TEST_SERVICE > TEST_SERVICE_export.h
 
   Header_Files {
     Macros.h
