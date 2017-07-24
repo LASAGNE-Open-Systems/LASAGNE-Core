@@ -46,7 +46,7 @@ namespace TAF
         , virtual public TAFGestaltServiceImpl
         , virtual public TAFPropertyServerImpl
     {
-        int parse_args(int argc, ACE_TCHAR *argv[]);
+        using DAF::TaskExecutor::execute; // Make this private
 
     public:
 
@@ -89,9 +89,10 @@ namespace TAF
 
     protected:
 
-        virtual int execute(const DAF::Runnable_ref & command)
+        /** Execute a service action - Overloaded to call Executors implementation in the base */
+        virtual int execute_svc_action(const DAF::Runnable_ref & command)
         {
-            return DAF::TaskExecutor::execute(command);
+            return this->execute(command);
         }
 
         /** Provide the Config Switch for file set to load */
@@ -99,6 +100,10 @@ namespace TAF
         {
             return TAF_SERVICES;  // Switch for ServiceGestaltLoader
         }
+
+    private:
+
+        int parse_args(int argc, ACE_TCHAR *argv[]);
     };
 } // namespace TAF
 

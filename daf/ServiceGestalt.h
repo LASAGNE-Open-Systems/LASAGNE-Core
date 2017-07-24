@@ -285,7 +285,7 @@ namespace DAF
 
     protected:
 
-        virtual int execute(const Runnable_ref & command);
+        virtual int execute_svc_action(const Runnable_ref & command);
 
     private:
 

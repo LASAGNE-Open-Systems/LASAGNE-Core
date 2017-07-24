@@ -91,7 +91,8 @@ namespace TAF
 
     protected:
 
-        virtual int execute(const DAF::Runnable_ref & command)
+        /** Execute a service action - Overloaded if super class has an executor base */
+        virtual int execute_svc_action(const DAF::Runnable_ref & command)
         {
             return DAF::SingletonExecute(command);
         }
@@ -101,7 +102,7 @@ namespace TAF
         /** Make a descriptor for a service entity (by descriptor type) within this gestalt */
         taf::EntityDescriptor_var   makeEntityDescriptor(const service_descriptor_type &svc_desc) const;
 
-        /** The actual underlying Gestalt instance - composition */
+        /** The actual underlying Gestalt instance - composition stops interface collisions */
         class GestaltService : public DAF::ServiceGestalt
         {
             GestaltService_impl &gestalt_impl_;
@@ -121,9 +122,10 @@ namespace TAF
 
         private:
 
-            virtual int execute(const DAF::Runnable_ref & command)
+            /** Execute a service action - redirect to overloadable implementation */
+            virtual int execute_svc_action(const DAF::Runnable_ref & command)
             {
-                return this->gestalt_impl_.execute(command);
+                return this->gestalt_impl_.execute_svc_action(command);
             }
 
         } gestalt_;
