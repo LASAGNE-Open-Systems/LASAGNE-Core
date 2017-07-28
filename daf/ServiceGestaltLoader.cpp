@@ -25,7 +25,7 @@ License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace DAF
 {
-    ServiceGestaltLoader::ServiceGestaltLoader(ServiceGestalt & gestalt) :Configurator()
+    ServiceGestaltLoader::ServiceGestaltLoader(ServiceGestalt & gestalt) : Configurator()
         , gestalt_(gestalt)
     {
     }

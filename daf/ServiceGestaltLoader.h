@@ -1,22 +1,22 @@
 /***************************************************************
-Copyright 2016, 2017 Defence Science and Technology Group,
-Department of Defence,
-Australian Government
+    Copyright 2016, 2017 Defence Science and Technology Group,
+    Department of Defence,
+    Australian Government
 
-This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
-LASAGNE is free software: you can redistribute it and/or modify
-it under the terms of the GNU Lesser General Public License as
-published by the Free Software Foundation, either version 3
-of the License, or (at your option) any later version.
+    LASAGNE is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Lesser General Public License as
+    published by the Free Software Foundation, either version 3
+    of the License, or (at your option) any later version.
 
-LASAGNE is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU Lesser General Public License for more details.
+    LASAGNE is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
+    You should have received a copy of the GNU Lesser General Public
+    License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
 #ifndef DAF_SERVICEGESTALTLOADER_H
 #define DAF_SERVICEGESTALTLOADER_H
@@ -52,9 +52,17 @@ namespace DAF
     * call it will then call this->load_service(..) to be implemented by the
     * loading logic (not implemented here).
     */
-    class DAF_Export ServiceGestaltLoader : public Configurator
+    class DAF_Export ServiceGestaltLoader : protected Configurator
     {
-        typedef std::list< property_key_type >  ident_list_type;
+    public:
+
+        typedef typename Configurator::property_key_type    property_key_type;
+        typedef typename Configurator::property_val_type    property_val_type;
+        typedef typename Configurator::value_type           value_type;
+
+    private:
+
+        typedef std::list< property_key_type >              ident_list_type;
 
     public:
 
@@ -69,6 +77,11 @@ namespace DAF
         virtual int process_directives(void);  // Takes The Lock
 
         virtual int load_config_args(int & argc, ACE_TCHAR * argv[], bool use_poperty = true);
+
+        // Upscope these methods
+        using Configurator::size;
+        using Configurator::load;
+        using Configurator::load_file_profile;
 
     protected:
 
@@ -99,14 +112,12 @@ namespace DAF
         */
         virtual int load_property(const property_key_type & key, const property_val_type & val); // Locks already held
 
-    public:
+    private:
 
         virtual const char * config_switch(void) const
         {
             return this->gestalt_.config_switch();
         }
-
-    private:
 
         ServiceGestalt &    gestalt_; // Home patterned Gestalt
         ident_list_type     ident_list_;

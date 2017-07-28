@@ -135,10 +135,10 @@ namespace DAF
   };
 
  /** \struct IllegalStateException
-  * \brief An inconsistent state is detected
+  * \brief An inconsistent or non-usable state is detected
   *
   * Used internally by the framework to identify when a resource is in an
-  * inconsistent state.
+  * inconsistent or non-usable state.
   * \ingroup exception
   */
   struct IllegalStateException : std::runtime_error {

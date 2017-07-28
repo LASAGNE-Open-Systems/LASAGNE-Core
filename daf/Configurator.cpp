@@ -98,13 +98,13 @@ namespace DAF
                         }
                     }
 
-                    throw "Invalid-Section-Syntax"; // Section Entry is Invalid
+                    throw InitializationException("Invalid-Section-Syntax"); // Section Entry is Invalid
                 }
 
                 // Look At Entry (Must Be contained within a Section);
 
                 if (it == this->end()) {  // We Are Currently in a Section?
-                    throw "Entry-Outside-Section"; // Entry outside a Section - Illegal
+                    throw InitializationException("Entry-Outside-Section"); // Entry outside a Section - Illegal
                 }
 
                 std::string cfgKey, cfgArg; // The resultant property fields
@@ -121,11 +121,11 @@ namespace DAF
                     cfgKey.assign(cfgLine); // No '=' so use full line as entry key with no arg.
                 }
                 else {  // '=' at column 0 - Invalid
-                    throw "Invalid-Property-Syntax";
+                    throw InitializationException("Invalid-Property-Syntax");
                 }
 
                 if (cfgKey.length() ? int(cfgKey.find_first_of(' ')) > 0 : true) { // Check that we have a valid key
-                    throw "Invalid-Key-Syntax";
+                    throw InitializationException("Invalid-Key-Syntax");
                 }
 
                 if (ACE::debug()) { // Allow for debug output from parser
@@ -134,10 +134,10 @@ namespace DAF
 
                 it->second.push_back(mapped_type::value_type(cfgKey, cfgArg));
             }
-            catch (const char *what_error) {
+            catch (const InitializationException & ie) {
                 ACE_DEBUG((LM_DEBUG,
                     ACE_TEXT("DAF::Configurator (%P | %t) ERROR:[file=%s,line=%d]\n\terror=\"%s\"\n")
-                    , filename.c_str(), line_no, what_error)); throw InitializationException(what_error);
+                    , filename.c_str(), line_no, ie.what())); throw ie;
             }
         }
 
