@@ -44,7 +44,7 @@ project(DAF) : dafbasedefaults, acelib {
     SemaphoreControlledQueue_T.h
     ServiceAdapter.h
     ServiceGestalt.h
-    ServiceLoader.h
+    ServiceGestaltLoader.h
     ShutdownHandler.h
     SignalHandler.h
     SOCKEndpoint_T.h
@@ -77,7 +77,7 @@ project(DAF) : dafbasedefaults, acelib {
     RefCount.cpp
     Semaphore.cpp
     ServiceGestalt.cpp
-    ServiceLoader.cpp
+    ServiceGestaltLoader.cpp
     ShutdownHandler.cpp
     SignalHandler.cpp
     TaskExecutor.cpp

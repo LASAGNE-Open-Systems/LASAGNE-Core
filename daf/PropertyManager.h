@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -52,9 +52,14 @@ namespace DAF
     * - for example properties with value "%Dg" will evaluate a timestamp
     *   every time the value is called and evaluated.
     */
-    class DAF_Export PropertyManager : public DAF::Configurator
+    class DAF_Export PropertyManager : protected Configurator
     {
     public:
+
+        /** Upscope these meta types from protected configurator */
+        typedef typename Configurator::property_key_type    property_key_type;
+        typedef typename Configurator::property_val_type    property_val_type;
+        typedef typename Configurator::property_list_type   property_list_type;
 
         /**
         Access the property within the property map with a key value.
@@ -70,7 +75,7 @@ namespace DAF
         the corresponding environment variable is not specified.
         \return property value
          */
-        std::string get_property(const property_key_type &ident, bool use_env = true) const;
+        std::string get_property(const property_key_type & ident, bool use_env = true) const;
 
         /**
         Access the property within the property map with a key value.
@@ -84,7 +89,7 @@ namespace DAF
 
         \return property value
          */
-        std::string get_property(const property_key_type &ident, const property_val_type &default_val, bool use_env = true) const;
+        std::string get_property(const property_key_type & ident, const property_val_type & default_val, bool use_env = true) const;
 
         /**
         Set the property key with value.
@@ -92,20 +97,20 @@ namespace DAF
         \param value value associated with key in property map
         \return result from #load_property
         */
-        int         set_property(const property_key_type &ident, const property_val_type &value);
+        int         set_property(const property_key_type & ident, const property_val_type & value);
 
         /**
         Delete the property associated with key from the map.
         \param ident key to remove from map.
         */
-        void        del_property(const property_key_type &ident);
+        void        del_property(const property_key_type & ident);
 
         /**
         Return all properties in the property map.
         \param value_list returned list of all the properties
         \return property count in value_list.
         */
-        int         list_properties(property_list_type &value_list) const;
+        int         list_properties(property_list_type & value_list) const;
 
         /**
         Print all the properties to std::cout
@@ -125,7 +130,7 @@ namespace DAF
         \sa #get_property
         */
         template <typename T>
-        T get_numeric_property(const property_key_type &ident, bool use_env = true) const;
+        T get_numeric_property(const property_key_type & ident, bool use_env = true) const;
 
         /**
         Templated variants to perform numeric conversion of the map's key value
@@ -141,19 +146,19 @@ namespace DAF
         \sa #get_property
         */
         template <typename T>
-        T get_numeric_property(const property_key_type &ident, const T &default_val, bool use_env = true) const;
+        T get_numeric_property(const property_key_type & ident, const T & default_val, bool use_env = true) const;
     };
 
 
     template <typename T> inline T
-    PropertyManager::get_numeric_property(const property_key_type &ident, bool use_env) const
+    PropertyManager::get_numeric_property(const property_key_type & ident, bool use_env) const
     {
         return static_cast<T>(DAF_OS::atof(this->get_property(ident, use_env).c_str()));
     }
 
 
     template <typename T> inline T
-    PropertyManager::get_numeric_property(const property_key_type &ident, const T &default_val, bool use_env) const
+    PropertyManager::get_numeric_property(const property_key_type & ident, const T & default_val, bool use_env) const
     {
         try {
             return this->get_numeric_property<T>(ident, use_env);
@@ -166,7 +171,7 @@ namespace DAF
 
 
     template <> inline bool  /* Sepecialization for bool type property */
-    PropertyManager::get_numeric_property<bool>(const property_key_type &ident, bool use_env) const
+    PropertyManager::get_numeric_property<bool>(const property_key_type & ident, bool use_env) const
     {
         const property_val_type val(this->get_property(ident, use_env));
         if (DAF_OS::strncasecmp(val.c_str(), ACE_TEXT("true"), 4) == 0) {
@@ -177,7 +182,7 @@ namespace DAF
 
 
     template <> inline bool
-    PropertyManager::get_numeric_property<bool>(const property_key_type &ident, const bool &default_val, bool use_env) const
+    PropertyManager::get_numeric_property<bool>(const property_key_type & ident, const bool & default_val, bool use_env) const
     {
         try {
             return this->get_numeric_property<bool>(ident, use_env);
@@ -200,7 +205,7 @@ namespace DAF
     *         ThePropertyRepository - macro
     *         ThePropertyRepository->get_property("global_key");
     */
-    class DAF_Export PropertySingleton : public DAF::PropertyManager
+    class DAF_Export PropertySingleton : public PropertyManager
     {
     public:
 
@@ -249,35 +254,34 @@ namespace DAF
 namespace DAF
 {
     template <typename T> inline T
-    get_numeric_property(const PropertyManager::property_key_type &ident, bool use_env = true)
+    get_numeric_property(const PropertyManager::property_key_type & ident, bool use_env = true)
     {
         return ThePropertyRepository()->get_numeric_property<T>(ident, use_env);
     }
 
     template <typename T> inline T
-    get_numeric_property(const PropertyManager::property_key_type &ident, const T &default_val, bool use_env = true)
+    get_numeric_property(const PropertyManager::property_key_type & ident, const T & default_val, bool use_env = true)
     {
         return ThePropertyRepository()->get_numeric_property<T>(ident, default_val, use_env);
     }
 
     inline std::string
-    get_property(const PropertyManager::property_key_type &ident, bool use_env = true)
+    get_property(const PropertyManager::property_key_type & ident, bool use_env = true)
     {
         return ThePropertyRepository()->get_property(ident, use_env);
     }
 
     inline std::string
-    get_property(const PropertyManager::property_key_type &ident, const PropertyManager::property_val_type &default_val, bool use_env = true)
+    get_property(const PropertyManager::property_key_type & ident, const PropertyManager::property_val_type & default_val, bool use_env = true)
     {
         return ThePropertyRepository()->get_property(ident, default_val, use_env);
     }
 
     inline int
-    set_property(const PropertyManager::property_key_type &ident, const PropertyManager::property_val_type &val)
+    set_property(const PropertyManager::property_key_type & ident, const PropertyManager::property_val_type & val)
     {
         return ThePropertyRepository()->set_property(ident, val);
     }
-
 
     inline int
     print_properties(void)
