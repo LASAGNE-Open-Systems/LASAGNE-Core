@@ -21,6 +21,7 @@
 #define DAF_OS_CPP
 
 #include "OS.h"
+#include "PropertyManager.h"
 
 #include "TerminateRepository.h"
 
@@ -73,6 +74,22 @@ namespace DAF_OS
             return long(ACE_DEFAULT_THREAD_PRIORITY);
         }
         return long(priority);
+    }
+
+    ACE_Sched_Priority  sched_PRIORITY(long priority)
+    {
+        if (DAF::get_numeric_property<bool>(DAF_THREADPRIORITYENABLE, true, false)) {
+# if defined(ACE_WIN32)
+            switch (int(priority)) {
+#  if !defined(DAF_DISABLE_WIN32_PRIORITY_TIME_CRITICAL)
+            case THREAD_PRIORITY_TIME_CRITICAL:
+#  endif
+            case THREAD_PRIORITY_IDLE: return ACE_Sched_Priority(priority);
+            }
+# endif // defined(ACE_WIN32)
+            return ACE_Sched_Priority(ace_range(-2, +2, int(priority)) + ACE_DEFAULT_THREAD_PRIORITY);
+        }
+        return ACE_Sched_Priority(ACE_DEFAULT_THREAD_PRIORITY);
     }
 
     const std::string & gethostname(void)

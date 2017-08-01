@@ -74,6 +74,17 @@ namespace DAF_OS
 
     DAF_Export long                 thread_PRIORITY(ACE_hthread_t ht_id = thread_HANDLE());
 
+    /*
+    *  Windows:
+    *  case 1: - Accept THREAD_PRIORITY_IDLE || THREAD_PRIORITY_TIME_CRITICAL
+    *  case 2: - Adjusted +/- around THREAD_PRIORITY_NORMAL (range adjusted to be between)
+    *              THREAD_PRIORITY_HIGHEST [boost]
+    *              THREAD_PRIORITY_LOWEST
+    *
+    *  Linux: Ignores @a priority and simply returns the OS dependant ACE_DEFAULT_THREAD_PRIORITY
+    */
+    DAF_Export ACE_Sched_Priority   sched_PRIORITY(long priority);
+
     DAF_Export int                  thread_0_SIGSET_T(void);
 
 #if defined (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD) && (DAF_HAS_WAIT_FOR_TERMINATE_WTHREAD > 0)

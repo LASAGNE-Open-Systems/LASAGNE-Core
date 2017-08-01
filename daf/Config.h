@@ -35,6 +35,25 @@
 # define DAF_HAS_EVENTFD 1
 #endif
 
+#if defined(ACE_WIN32)
+
+// Setting the THREAD_PRIORITY_TIME_CRITICAL on Windows
+// is almost always a VERY BAD THING. This guard will allow people
+// to easily disable this priority features in DAF.
+# define DAF_DISABLE_WIN32_PRIORITY_TIME_CRITICAL
+
+# if defined(ACE_HAS_WIN32_PRIORITY_CLASS)
+
+#  define DAF_HAS_WIN32_PRIORITY_CLASS
+
+// Setting the REALTIME_PRIORITY_CLASS on Windows
+// is almost always a VERY BAD THING. This guard will allow people
+// to easily disable this priority class features in DAF.
+#  define DAF_DISABLE_WIN32_REALTIME_PRIORITY_CLASS
+
+# endif
+#endif
+
 #define DAF_UNUSED_STATIC(ID) \
 template <typename T> inline void ID ## _UNUSED(const T& = (ID)) {}
 

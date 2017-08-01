@@ -87,6 +87,7 @@
 #define DAF_PROPERTIES              ACE_TEXT("DAFProperties")
 
 // Properties
+#define DAF_THREADPRIORITYENABLE    ACE_TEXT("DAFThreadPriorityEnable")
 #define DAF_HEXDUMPWIDTH            ACE_TEXT("DAFHexDumpWidth")
 #define DAF_TASKHANDOFFTIMEOUT      ACE_TEXT("DAFTaskHandoffTimeout")
 #define DAF_TASKEVICTTIMEOUT        ACE_TEXT("DAFTaskEvictTimeout")
