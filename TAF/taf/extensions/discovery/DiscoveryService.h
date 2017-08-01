@@ -36,6 +36,10 @@ namespace TAF
 
     public:
 
+        enum {
+            SEND_QUERYREPLY_TIMEOUT  = 5 // Seconds
+        };
+
         DiscoveryService(void);
         ~DiscoveryService(void);
 
@@ -44,18 +48,25 @@ namespace TAF
             return this->active_;
         }
 
-        static const ACE_TCHAR * svc_ident(void);
+        static const char * svc_ident(void)
+        {
+            return taf::TAFDISCOVERY_OID;
+        }
 
     protected: /* Service Interface */
 
         /// Initializes object when dynamic linking occurs.
         virtual int init(int argc, ACE_TCHAR *argv[]);
 
-        /// Suspends object.
-        virtual int suspend(void);
+        virtual int suspend(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
 
-        /// Resume object.
-        virtual int resume(void);
+        virtual int resume(void)
+        {
+            ACE_NOTSUP_RETURN(-1);
+        }
 
         /// Terminates object when dynamic unlinking occurs.
         virtual int fini(void);
