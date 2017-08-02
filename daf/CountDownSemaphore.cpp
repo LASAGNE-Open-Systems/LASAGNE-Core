@@ -39,16 +39,6 @@
 
 namespace DAF
 {
-    CountDownSemaphore::CountDownSemaphore(int count) : Monitor()
-        , count_(ace_max(0,count))
-    {
-    }
-
-    CountDownSemaphore::~CountDownSemaphore(void)
-    {
-        this->interrupt();
-    }
-
     int
     CountDownSemaphore::count(void) const
     {

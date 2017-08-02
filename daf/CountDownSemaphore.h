@@ -53,9 +53,6 @@ namespace DAF
         /** Constructor @a count >= 0 */
         CountDownSemaphore(int count);
 
-        /** Destructor */
-        virtual ~CountDownSemaphore(void);
-
         /** Current count value */
         int count(void) const;
 
@@ -75,6 +72,12 @@ namespace DAF
 
         int count_;
     };
+
+    inline
+    CountDownSemaphore::CountDownSemaphore(int count) : Monitor()
+        , count_(ace_max(0, count))
+    {
+    }
 
     inline int
     CountDownSemaphore::acquire(const ACE_Time_Value & tv)
