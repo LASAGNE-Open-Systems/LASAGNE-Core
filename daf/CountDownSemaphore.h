@@ -27,6 +27,8 @@
 
 #include "Monitor.h"
 
+#include <ace/Min_Max.h>
+
 namespace DAF
 {
     /** @class CountDownSemaphore
@@ -47,10 +49,14 @@ namespace DAF
         using Monitor::wait; // Hide Wait
 
     public:
-        /** \todo{Fill this in}   */
+
+        /** Constructor @a count >= 0 */
         CountDownSemaphore(int count);
 
-        /** \todo{Fill this in}   */
+        /** Destructor */
+        virtual ~CountDownSemaphore(void);
+
+        /** Current count value */
         int count(void) const;
 
         int acquire(const ACE_Time_Value *abstime = 0);
