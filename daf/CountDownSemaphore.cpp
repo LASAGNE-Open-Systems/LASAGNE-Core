@@ -77,12 +77,12 @@ namespace DAF
         if (this->count() > 0) {
             while (count-- > 0) {
                 if (--this->count_ == 0) {
-                    break;
+                    return this->broadcast();
                 }
             }
         }
 
-        return this->broadcast();
+        return 0;
     }
 
 }  // namespace DAF
