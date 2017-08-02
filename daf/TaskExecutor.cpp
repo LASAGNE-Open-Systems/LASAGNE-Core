@@ -133,7 +133,9 @@ namespace DAF
 
             ACE_Thread_Descriptor * td = static_cast<Thread_Manager *>(task->thr_mgr())->thread_desc_self();
 
-            const ACE_thread_t thr_id = td->self(); DAF_OS::insertTerminateEvent(thr_id);
+            const ACE_thread_t thr_id = td->self();  // Cache Our thread ID for registration/deregistration
+
+            DAF_OS::insertTerminateEvent(thr_id); worker->release(); // Register the worker and release start synchronization
 
             // Register ourself with our <Thread_Manager>'s thread exit hook
             // mechanism so that our close() hook will be sure to get invoked
@@ -335,7 +337,7 @@ namespace DAF
 
         if (n_threads && this->isAvailable()) do {
 
-            WorkerTask_ref tp(new WorkerTask(this));
+            WorkerTask_ref tp(new WorkerTask(this, n_threads));
 
             { // Scope Lock
 
@@ -389,9 +391,7 @@ namespace DAF
                 this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
             }
 
-            ACE_OS::thr_yield(); // Let the thread(s) start up - Use ACE's native thr_yield here!!
-
-            return 0;
+            return tp->acquire(); // Synchronise on the threads all starting
 
         } while (false);
 
@@ -476,9 +476,7 @@ namespace DAF
                 } else break; // Not Available
             }
 
-            ACE_OS::thr_yield(); // Let the thread start up - Use ACE's native thr_yield here!!
-
-            return 0;
+            return tp->acquire(); // Synchronise on the thread starting
 
         } while (false);
 
