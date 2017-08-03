@@ -51,7 +51,7 @@ namespace DAF
      * Various implicit rules are associated with how Configurators are parsing
      * sections and the key-value pairs.
      */
-    class DAF_Export Configurator : public property_map_type
+    class DAF_Export Configurator : protected property_map_type
     {
         mutable ACE_SYNCH_RW_MUTEX config_lock_;
 
@@ -61,22 +61,15 @@ namespace DAF
         */
         ///@{
         typedef std::string                     profile_type;
-
         typedef std::list< profile_type >       profile_list_type;
 
 
         typedef std::string                     section_type;
-
         typedef std::list< section_type >       section_list_type;
 
-
-        typedef property_map_type::value_type   value_type;
-
-
         typedef property_map_type::key_type     property_key_type;
-
         typedef property_map_type::mapped_type  property_val_type;
-
+        typedef property_map_type::value_type   value_type;
 
         typedef std::list< value_type >         property_list_type;
         ///@}
@@ -85,7 +78,7 @@ namespace DAF
         The format for this argument is specific to how configuration files are
         input. It uses a "filename:<section>,<section>" format.
         */
-        virtual int load_file_profile(const std::string &profile_arg);
+        virtual int load_file_profile(const std::string & profile_arg);
 
         /** Load a configuration element via the CLI
         This method couples with the #config_switch method and will parse the
@@ -99,7 +92,7 @@ namespace DAF
         find the 'file2.conf' parameter and load the default section of that
         configurator.
         */
-        virtual int load(int &argc, ACE_TCHAR *argv[], bool use_env = false);
+        virtual int load(int & argc, ACE_TCHAR * argv[], bool use_env = false);
 
         /** \return the number of loaded key-value pairs.*/
         size_t  load_count(void) const
@@ -107,13 +100,13 @@ namespace DAF
             return this->load_count_;
         }
 
-    protected:
+        using property_map_type::size;
 
+    protected:
 
         Configurator(void);
 
         virtual ~Configurator(void);
-
 
         /**
         Insert or overwrite the key with new value.
@@ -121,7 +114,7 @@ namespace DAF
         \param key the map key to use
         \param val the new value.
         */
-        virtual int load_property(const property_key_type &key, const property_val_type &val);
+        virtual int load_property(const property_key_type & key, const property_val_type & val);
 
         /**
         Configurator switch for CLI argument parse
@@ -138,16 +131,17 @@ namespace DAF
         into file and sections.
         */
         ///@{
-        static size_t   make_config_profiles(const profile_type &profile_arg, profile_list_type &profiles);
+        static size_t   make_config_profiles(const profile_type & profile_arg, profile_list_type & profiles);
 
-        static size_t   make_config_sections(const section_type &section_arg, section_list_type &sections);
+        static size_t   make_config_sections(const section_type & section_arg, section_list_type & sections);
         ///@}
 
     protected:
+
         /** Parse Helpers
         File parser to aid in filling the key-value pair from a file and section.
          */
-        virtual int load_file_sections(const std::string &filename, const section_list_type &sections);
+        virtual int load_file_sections(const std::string & filename, const section_list_type & sections);
 
         /** Mutex Accessor */
         operator ACE_SYNCH_RW_MUTEX & () const

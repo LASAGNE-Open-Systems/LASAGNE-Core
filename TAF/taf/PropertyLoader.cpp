@@ -34,11 +34,11 @@ namespace TAF
             TAF_DISCOVERYENABLE,
             TAF_DISCOVERYENDPOINT,
 #if defined(TAF_HAS_SECURITY)
-            TAF_SECURITYDISABLE,
+            TAF_SECURITYENABLE,
             TAF_DEFAULTALLOWANCE,
             TAF_COLLOCATEDALLOWANCE,
 # if defined(TAF_HAS_SSLIOP)
-            TAF_SSLNOPROTECTION,
+            TAF_SSLPROTECTION,
 # endif
 #endif
             TAF_ORBTHREADS,

@@ -97,7 +97,11 @@ namespace TAF
             const ACE_Time_Value peek_timeout(time_limit - current_time);
 
             if (this->udpSock_.recv(&io_header, sizeof(io_header), io_address, MSG_PEEK, &peek_timeout) != sizeof(io_header)) {
-                if (errno == ETIME) break; else continue;
+                if (DAF_OS::last_error() == ETIME) {
+                    break;
+                } else {
+                    continue;
+                }
             }
 
             size_t io_len = size_t(ACE_UINT16_MAX & ACE_NTOHL(io_header));
@@ -109,7 +113,11 @@ namespace TAF
                 char *io_ptr = io_buf.get();
 
                 if (size_t(this->udpSock_.recv(io_ptr, io_len, io_address, 0, &timeout)) != io_len) {
-                    if (errno == ETIME) break; else continue;
+                    if (DAF_OS::last_error() == ETIME) {
+                        break;
+                    } else {
+                        continue;
+                    }
                 }
 
                 TAF::InputCDR io_cdr(io_ptr, io_len);
