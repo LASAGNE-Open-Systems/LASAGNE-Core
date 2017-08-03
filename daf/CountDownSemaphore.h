@@ -56,7 +56,7 @@ namespace DAF
         /** Current count value */
         int count(void) const;
 
-        int acquire(const ACE_Time_Value *abstime = 0);
+        int acquire(const ACE_Time_Value * abstime = 0);
         int acquire(const ACE_Time_Value & abstime);
         int acquire(time_t msecs);
 
