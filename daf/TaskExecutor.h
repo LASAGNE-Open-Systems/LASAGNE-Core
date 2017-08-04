@@ -27,6 +27,7 @@
 
 #include "DAF.h"
 #include "Executor.h"
+#include "CountDownSemaphore.h"
 #include "SynchronousChannel_T.h"
 
 #include <ace/Task.h>
@@ -309,13 +310,13 @@ namespace DAF
 
     private:
 
-        class WorkerTask : public Runnable
+        class WorkerTask : public Runnable, public CountDownSemaphore
         {
             TaskExecutor * taskExecutor_;
 
         public:
 
-            WorkerTask(TaskExecutor *);
+            WorkerTask(TaskExecutor *, size_t threads);
 
             virtual int run(void);
 
@@ -378,7 +379,7 @@ namespace DAF
     /**********************************************************************************/
 
     inline
-    TaskExecutor::WorkerTask::WorkerTask(TaskExecutor * taskExecutor) : Runnable()
+    TaskExecutor::WorkerTask::WorkerTask(TaskExecutor * taskExecutor, size_t threads) : CountDownSemaphore(int(threads))
         , taskExecutor_(taskExecutor)
     {
     }
@@ -387,7 +388,7 @@ namespace DAF
 
     inline
     TaskExecutor::WorkerTaskExtended::WorkerTaskExtended(TaskExecutor * taskExecutor, const Runnable_ref & command)
-        : WorkerTask(taskExecutor), command_(command)
+        : WorkerTask(taskExecutor, 1), command_(command)
     {
     }
 
