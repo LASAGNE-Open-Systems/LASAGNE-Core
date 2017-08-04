@@ -34,7 +34,7 @@
 namespace
 {
     int
-    throw_last_error(int error = DAF_OS::last_error()) throw (CORBA::Exception)
+    throw_last_error(int error = DAF_OS::last_error())
     {
         switch (DAF_OS::last_error(error)) {
             case 0:         break;
