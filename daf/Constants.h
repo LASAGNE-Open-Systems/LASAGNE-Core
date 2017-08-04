@@ -173,10 +173,10 @@
 /******************* TAF SECURITY CONSTANTS *******************/
 
 #define TAF_SECURITY                ACE_TEXT("TAFSecurity")
-#define TAF_SECURITYDISABLE         ACE_TEXT("TAFSecurityDisable")
+#define TAF_SECURITYENABLE          ACE_TEXT("TAFSecurityEnable")
 #define TAF_DEFAULTALLOWANCE        ACE_TEXT("TAFSecurityDefaultAllowance")
 #define TAF_COLLOCATEDALLOWANCE     ACE_TEXT("TAFSecurityCollocatedAllowance")
-#define TAF_SSLNOPROTECTION         ACE_TEXT("TAFSSLNoProtection")
+#define TAF_SSLPROTECTION           ACE_TEXT("TAFSecuritySSLProtection")
 
 /******************* OTHER CONSTANTS *************************/
 

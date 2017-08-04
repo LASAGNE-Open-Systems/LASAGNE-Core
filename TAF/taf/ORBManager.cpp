@@ -294,7 +294,7 @@ namespace TAF {
                 throw "Security-Load-Failed";
             }
         } DAF_CATCH_ALL {
-            DAF::set_property(TAF_SECURITYDISABLE, "1");
+            DAF::set_property(TAF_SECURITYENABLE, "0");
             ACE_DEBUG((LM_WARNING, ACE_TEXT("TAFSecurity (%P | %t) WARNING:")
                 ACE_TEXT(" Unable to initialize %s instance with SSLIOP - Security enforcement disabled!\n")
                 , tafORBName()));
@@ -555,7 +555,7 @@ namespace TAF  // Helper Functions to Singleton
     bool    isSecurityEnabled(void)
     {
 #if defined(TAF_HAS_SECURITY)
-        return DAF::get_numeric_property<bool>(TAF_SECURITYDISABLE, false, true) ? false : true;
+        return DAF::get_numeric_property<bool>(TAF_SECURITYENABLE, true, true);
 #else
         return false;
 #endif
