@@ -72,7 +72,7 @@ namespace DAF
     int
     CountDownSemaphore::release(int count)
     {
-        ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
+        ACE_GUARD_RETURN(_mutex_type, guard, *this, (DAF_OS::last_error(ENOLCK), -1));
 
         if (this->count() > 0) {
             while (count-- > 0) {
