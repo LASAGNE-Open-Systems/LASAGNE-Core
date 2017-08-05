@@ -511,20 +511,21 @@ namespace DAF
 
         ACE_Service_Repository *repo = const_cast<ServiceGestalt *>(this)->current_service_repository();
 
-        if (repo) do {
+        if (repo) {
+            do {
+                ACE_GUARD_REACTION(ACE_Recursive_Thread_Mutex, mon, ServiceGestalt::repository_lock(repo), { DAF_OS::last_error(ENOLCK); break; });
 
-            ACE_GUARD_REACTION(ACE_Recursive_Thread_Mutex, mon, ServiceGestalt::repository_lock(repo), { DAF_OS::last_error(ENOLCK); break; });
+                ACE_Service_Repository_Iterator repo_it(*repo, false);
 
-            ACE_Service_Repository_Iterator repo_it(*repo, false);
-
-            for (const ACE_Service_Type *svc_type = 0; repo_it.next(svc_type); repo_it.advance()) {
-                service_map_type::const_iterator it = this->svc_descriptors().find(svc_type->name());
-                if (it != this->svc_descriptors().end()) {
-                    reverse ? svc_list.push_front(it->second) : svc_list.push_back(it->second);
+                for (const ACE_Service_Type *svc_type = 0; repo_it.next(svc_type); repo_it.advance()) {
+                    service_map_type::const_iterator it = this->svc_descriptors().find(svc_type->name());
+                    if (it != this->svc_descriptors().end()) {
+                        reverse ? svc_list.push_front(it->second) : svc_list.push_back(it->second);
+                    }
                 }
-            }
 
-        } while (false);
+            } while (false);
+        }
 
         return int(svc_list.size());
     }

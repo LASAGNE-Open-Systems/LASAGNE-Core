@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -21,30 +21,6 @@
 #define DAF_BARRIER_CPP
 
 /************************ Barrier ******************************
-*
-*(c)Copyright 2011,
-*   Defence Science and Technology Organisation,
-*   Department of Defence,
-*   Australia.
-*
-* All rights reserved.
-*
-* This is unpublished proprietary source code of DSTO.
-* The copyright notice above does not evidence any actual or
-* intended publication of such source code.
-*
-* The contents of this file must not be disclosed to third
-* parties, copied or duplicated in any form, in whole or in
-* part, without the express prior written permission of DSTO.
-*
-*
-* @file     Barrier.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-*
 * A Barrier for a fixed number of threads with an all-or-none breakage model.
 *
 * A Barrier is a reasonable choice for a barrier in
@@ -91,7 +67,9 @@ namespace DAF
         , triggered_        (false)
         , barrierCommand_   (command)
     {
-        if ( parties == 0 ) throw InitializationException("DAF::Barrier Initialization Error parties == 0");
+        if (parties == 0) {
+            throw InitializationException("DAF::Barrier Initialization Error parties == 0");
+        }
     }
 
     Barrier::~Barrier(void)

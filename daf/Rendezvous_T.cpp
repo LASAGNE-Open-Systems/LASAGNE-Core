@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -28,9 +28,11 @@ namespace DAF
     template <typename T> void
     RendezvousRotator<T>::operator () (std::vector<T> &val)
     {
-        if (!val.empty()) try {
-            val.push_back(val.front()); val.erase(val.begin());
-        } DAF_CATCH_ALL { /* Ignore Error */ }
+        if (!val.empty()) {
+            try {
+                val.push_back(val.front()); val.erase(val.begin());
+            } DAF_CATCH_ALL{ /* Ignore Error */ }
+        }
     }
 
     /********************************************************************/
@@ -47,7 +49,9 @@ namespace DAF
         , triggered_    (false)
         , fn_           (fn)
     {
-        if ( parties == 0 ) throw InitializationException("DAF::Rendezvous Initialization Error parties == 0");
+        if (parties == 0) {
+            throw InitializationException("DAF::Rendezvous Initialization Error parties == 0");
+        }
 
         this->slots_.reserve(parties + 2);  // Reserve enough space for manipulation (+2)
     }

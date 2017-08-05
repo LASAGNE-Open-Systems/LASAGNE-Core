@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -75,7 +75,9 @@ namespace DAF
     template <typename T> int
     SynchValue<T>::setValue(const T &value)
     {
-        if ( this->shutdown_ ) return -1;
+        if (this->shutdown_) {
+            return -1;
+        }
 
         this->setterGate_.acquire();
 
@@ -149,7 +151,7 @@ namespace DAF
 
         if (this->value_ == value) { // DCL
             return 0;
-        } else if(!shutdown_) {
+        } else if (!shutdown_) {
             ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
             ++this->waiters_;
             bool timeout = false;
