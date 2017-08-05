@@ -41,8 +41,10 @@ namespace TAFSecurity {
         {
             if (TAF::isSecurityActive()) {
                 CORBA::Object_var security_manager_obj(orb->resolve_initial_references(SECURITY_L2_MANAGER));
-                if (security_manager_obj) for (SecurityManager_var security_manager(SecurityManager::_narrow(security_manager_obj.in())); security_manager;) {
-                    return security_manager._retn();
+                if (security_manager_obj) {
+                    for (SecurityManager_var security_manager(SecurityManager::_narrow(security_manager_obj.in())); security_manager;) {
+                        return security_manager._retn();
+                    }
                 }
             }
             throw CORBA::INV_OBJREF();
@@ -140,18 +142,21 @@ namespace TAFSecurity {
     int
     AccessDecision::set_servant_access(PortableServer::Servant ps, bool allow_insecure_access)
     {
-        if (ps) for (PortableServer::POA_var poa(ps->_default_POA()); poa;) try {
+        if (ps) {
+            for (PortableServer::POA_var poa(ps->_default_POA()); poa;) {
+                try {
 
-            CORBA::String_var               orb_id = this->orb_->id();
-            CORBA::OctetSeq_var             poa_id = poa->id();
-            PortableServer::ObjectId_var    obj_id = poa->servant_to_id(ps);
+                    CORBA::String_var               orb_id = this->orb_->id();
+                    CORBA::OctetSeq_var             poa_id = poa->id();
+                    PortableServer::ObjectId_var    obj_id = poa->servant_to_id(ps);
 
-            (*this)->add_object(orb_id.in(), poa_id.in(), obj_id.in(), allow_insecure_access);
+                    (*this)->add_object(orb_id.in(), poa_id.in(), obj_id.in(), allow_insecure_access);
 
-            return 0;
+                    return 0;
 
-        } DAF_CATCH_ALL { /* Fall through to return error */ }
-
+                } DAF_CATCH_ALL{ /* Fall through to return error */ }
+            }
+        }
         return -1;
     }
 

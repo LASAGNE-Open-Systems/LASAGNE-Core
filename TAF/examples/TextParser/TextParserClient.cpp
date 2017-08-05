@@ -304,18 +304,20 @@ int main(int argc, char *argv[])
                     size_t seq_len  = size_t(seq->length());
                     size_t col_inc  = size_t((seq_len + _max_columns - 1) / _max_columns);
 
-                    if (seq_len) for (CORBA::ULong seq_index = 0;;) {
-                        std::cout   << std::setw(3) << std::left << int(seq_index + 1)
-                                    << "(" << std::setw(2) << std::right << seq[seq_index].count_ << ") "
-                                    << std::setw(18) << std::left << seq[seq_index].word_.in();
-                        word_count += size_t(seq[seq_index].count_);
-                        seq_index += CORBA::ULong(col_inc);
-                        if (seq_index >= seq_len) {
-                            index++;
-                            if (index >= col_inc) {
-                                break;
-                            } else {
-                                std::cout << std::endl; seq_index = CORBA::ULong(index);
+                    if (seq_len) {
+                        for (CORBA::ULong seq_index = 0;;) {
+                            std::cout << std::setw(3) << std::left << int(seq_index + 1)
+                                << "(" << std::setw(2) << std::right << seq[seq_index].count_ << ") "
+                                << std::setw(18) << std::left << seq[seq_index].word_.in();
+                            word_count += size_t(seq[seq_index].count_);
+                            seq_index += CORBA::ULong(col_inc);
+                            if (seq_index >= seq_len) {
+                                index++;
+                                if (index >= col_inc) {
+                                    break;
+                                } else {
+                                    std::cout << std::endl; seq_index = CORBA::ULong(index);
+                                }
                             }
                         }
                     }

@@ -263,31 +263,33 @@ namespace TAF
 
                     const std::string ident(ior_query.svc_ident.in());
 
-                    if (ident.length()) do {
+                    if (ident.length()) {
 
-                        const ACE_INET_Addr reply_address(makePeerAddress(io_address, u_short(ior_query.svc_port)));
-                        {
-                            TAF::IORServantRepository *queryRepository = TheIORQueryRepository();
+                        do {
+                            const ACE_INET_Addr reply_address(makePeerAddress(io_address, u_short(ior_query.svc_port)));
+                            {
+                                TAF::IORServantRepository *queryRepository = TheIORQueryRepository();
 
-                            ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, taf_mon, *queryRepository, break);
+                                ACE_GUARD_REACTION(DAF_SYNCH_MUTEX, taf_mon, *queryRepository, break);
 
-                            for (TAF::IORServantRepository::iterator it(queryRepository->begin()); it != queryRepository->end();) {
-                                if (this->isActive()) {
-                                    try {
-                                        if (it->is_ident(ident)) { // Hand Off For UDP Send (can throw CORBA Exception)
-                                            if (DAF::SingletonExecute(new IORReplySender(*it, reply_address, u_short(ior_query.svc_flags)))) {
-                                                break; // Not able to spawn (not Available?)
+                                for (TAF::IORServantRepository::iterator it(queryRepository->begin()); it != queryRepository->end();) {
+                                    if (this->isActive()) {
+                                        try {
+                                            if (it->is_ident(ident)) { // Hand Off For UDP Send (can throw CORBA Exception)
+                                                if (DAF::SingletonExecute(new IORReplySender(*it, reply_address, u_short(ior_query.svc_flags)))) {
+                                                    break; // Not able to spawn (not Available?)
+                                                }
                                             }
+                                            ++it;
+                                        } catch (const CORBA::Exception &) { // Could not contact endpoint
+                                            it = TheIORQueryRepository()->erase(it);
                                         }
-                                        ++it;
-                                    } catch (const CORBA::Exception &) { // Could not contact endpoint
-                                        it = TheIORQueryRepository()->erase(it);
-                                    }
-                                } else break;
+                                    } else break;
+                                }
                             }
-                        }
 
-                    } while (false);
+                        } while (false);
+                    }
 
                     return this->isActive() ? 0 : -1; // May Unhook From Reactor
                 }

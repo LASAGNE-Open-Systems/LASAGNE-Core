@@ -107,27 +107,29 @@ namespace TAFSecurity
 
 #if defined(TAF_HAS_SSLIOP)
 
-            if (argc) for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
+            if (argc) {
+                for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
 
-                if (arg_shifter.is_option_next()) {
-                    if (arg_shifter.cur_arg_strncasecmp(TAF_SECURITY_FLAG) == 0) {
-                        for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
-                            try {
-                                if (this->load_file_profile(arg_shifter.get_current()) == 0) {
-                                    continue;
+                    if (arg_shifter.is_option_next()) {
+                        if (arg_shifter.cur_arg_strncasecmp(TAF_SECURITY_FLAG) == 0) {
+                            for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
+                                try {
+                                    if (this->load_file_profile(arg_shifter.get_current()) == 0) {
+                                        continue;
+                                    }
+                                } DAF_CATCH_ALL{
+                                    /* Drop Through to WARNING */
                                 }
-                            } DAF_CATCH_ALL{
-                                /* Drop Through to WARNING */
-                            }
 
-                            ACE_DEBUG((LM_WARNING, ACE_TEXT("TAF (%P | %t) TAFSecurity::Loader WARNING: ")
-                                ACE_TEXT("Unable to load security properties from file argument '%s' - Removed.\n")
-                                , arg_shifter.get_current()));
+                                ACE_DEBUG((LM_WARNING, ACE_TEXT("TAF (%P | %t) TAFSecurity::Loader WARNING: ")
+                                    ACE_TEXT("Unable to load security properties from file argument '%s' - Removed.\n")
+                                    , arg_shifter.get_current()));
+                            }
+                            continue;
                         }
-                        continue;
                     }
+                    arg_shifter.ignore_arg();
                 }
-                arg_shifter.ignore_arg();
             }
 
             if (this->load_count() ? false : use_property) {

@@ -200,43 +200,45 @@ namespace DAF
 
             TaskExecutor * task(reinterpret_cast<TaskExecutor *>(obj));
 
-            if (task) do {
+            if (task) {
 
-                ACE_thread_t thr_mine = DAF_OS::thr_self(), thr_self(0);
+                do {
+                    ACE_thread_t thr_mine = DAF_OS::thr_self(), thr_self(0);
 
-                {
-                    ACE_GUARD_REACTION(ACE_Thread_Mutex, ace_mon, task->lock_, break);
+                    {
+                        ACE_GUARD_REACTION(ACE_Thread_Mutex, ace_mon, task->lock_, break);
 
-                    if (args) {
+                        if (args) {
 
-                        Thread_Descriptor * td = reinterpret_cast<Thread_Descriptor *>(args);
+                            Thread_Descriptor * td = reinterpret_cast<Thread_Descriptor *>(args);
 
-                        if (td) {
-                            thr_self = td->self();
-                            if (DAF::debug() > 2) {
-                                ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %08Q) TaskExecutor::cleanup; ")
-                                    ACE_TEXT("grp_id=%u,thr_count=%03d,ThreadState=0x%08X\n")
-                                    , static_cast<unsigned long long>(thr_self)
-                                    , unsigned(task->grp_id())
-                                    , int(task->thr_count())
-                                    , unsigned(td->threadState())));
+                            if (td) {
+                                thr_self = td->self();
+                                if (DAF::debug() > 2) {
+                                    ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %08Q) TaskExecutor::cleanup; ")
+                                        ACE_TEXT("grp_id=%u,thr_count=%03d,ThreadState=0x%08X\n")
+                                        , static_cast<unsigned long long>(thr_self)
+                                        , unsigned(task->grp_id())
+                                        , int(task->thr_count())
+                                        , unsigned(td->threadState())));
+                                }
                             }
+
                         }
 
+                        if (0 == --task->thr_count_) {
+                            task->last_thread_id_ = (thr_self ? thr_self : thr_mine);
+                        }
+
+                        task->zeroCondition_.signal(); // Signal thread is leaving (only 1 waiter)
                     }
 
-                    if (0 == --task->thr_count_) {
-                        task->last_thread_id_ = (thr_self ? thr_self : thr_mine);
+                    if (thr_mine == thr_self) { // Only call close here if we ARE the closing thread
+                        task->close(0);
                     }
 
-                    task->zeroCondition_.signal(); // Signal thread is leaving (only 1 waiter)
-                }
-
-                if (thr_mine == thr_self) { // Only call close here if we ARE the closing thread
-                    task->close(0);
-                }
-
-            } while (false);
+                } while (false);
+            }
         }
     }
 

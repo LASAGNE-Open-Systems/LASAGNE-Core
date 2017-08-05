@@ -312,13 +312,15 @@ namespace DAF
 
         for (int i = 0; i < args.argc(); i++) {
             int pos = 0; const std::string arg(args[i]);
-            if (arg.length()) do {
-                int e_pos = int(arg.find_first_of(',', pos));
-                const std::string section(DAF::trim_string(arg.substr(pos, e_pos - pos))); pos = e_pos;
-                if (section.length()) {
-                    sections.push_back(section);
-                }
-            } while (pos++ > 0);
+            if (arg.length()) {
+                do {
+                    int e_pos = int(arg.find_first_of(',', pos));
+                    const std::string section(DAF::trim_string(arg.substr(pos, e_pos - pos))); pos = e_pos;
+                    if (section.length()) {
+                        sections.push_back(section);
+                    }
+                } while (pos++ > 0);
+            }
         }
 
         return sections.size();

@@ -251,8 +251,8 @@ namespace TAF
 
             if (repo->find(ed->ident_.in(), &svc_type, false) == 0 && svc_type) {
 
-                if (svc_type->active())         ed->flags_ |= CORBA::UShort(1U << taf::SVC_ACTIVE);
-                if (svc_type->fini_called())    ed->flags_ |= CORBA::UShort(1U << taf::SVC_FINIED);
+                if (svc_type->active())         { ed->flags_ |= CORBA::UShort(1U << taf::SVC_ACTIVE); }
+                if (svc_type->fini_called())    { ed->flags_ |= CORBA::UShort(1U << taf::SVC_FINIED); }
 
                 const ACE_Service_Type_Impl *svc_type_impl = svc_type->type();
 
@@ -266,8 +266,10 @@ namespace TAF
                             ACE_Service_Object *so = static_cast<ACE_Service_Object*>(svc_type_impl->object());
                             if (so) {
                                 PortableServer::Servant sb = dynamic_cast<PortableServer::Servant>(so);
-                                if (sb) for (PortableServer::POA_var poa(sb->_default_POA()); poa;) {
-                                    ed->obj_ = poa->servant_to_reference(sb); break;
+                                if (sb) {
+                                    for (PortableServer::POA_var poa(sb->_default_POA()); poa;) {
+                                        ed->obj_ = poa->servant_to_reference(sb); break;
+                                    }
                                 }
                             }
                         } DAF_CATCH_ALL { /* Ignore */ } break;

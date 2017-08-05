@@ -507,22 +507,24 @@ namespace DAF
     {
         char s[64];  // Build String
 
-        if (assertDateRange(dt)) do {
+        if (assertDateRange(dt)) {
 
-            // The DTG is often used in message traffic. EXAMPLE: 091630Z JUL 11 represents 1630 GMT on 9 July 2011
+            do {
+                // The DTG is often used in message traffic. EXAMPLE: 091630Z JUL 11 represents 1630 GMT on 9 July 2011
 
-            if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_DTGTIME_FORMAT,
-                int(dt.day()),
-                int(dt.hour()),
-                int(dt.minute()),
-                monthDTGNAME(dt.month()),
-                int(dt.year() % 100))) {
-                break;
-            }
+                if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_DTGTIME_FORMAT,
+                    int(dt.day()),
+                    int(dt.hour()),
+                    int(dt.minute()),
+                    monthDTGNAME(dt.month()),
+                    int(dt.year() % 100))) {
+                    break;
+                }
 
-            return std::string(s);  // Return string
+                return std::string(s);  // Return string
 
-        } while (false);
+            } while (false);
+        }
 
         DAF_THROW_EXCEPTION(IllegalArgumentException);     // "DAF::Date invalid_time_value");
     }

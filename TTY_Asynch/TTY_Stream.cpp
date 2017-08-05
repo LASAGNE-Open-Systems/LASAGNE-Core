@@ -96,8 +96,10 @@ namespace DEV
     {
         size_t get_len = 0;
 
-        if (len) while (this->is_empty() ? false : len--) {
-            this->tail_ = ((this->tail_ + 1) % this->size_); get_len++;
+        if (len) {
+            while (this->is_empty() ? false : len--) {
+                this->tail_ = ((this->tail_ + 1) % this->size_); get_len++;
+            }
         }
 
         this->b_cond_.signal(); return get_len;

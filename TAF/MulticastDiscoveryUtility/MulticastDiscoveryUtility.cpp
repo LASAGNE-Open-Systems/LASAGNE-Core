@@ -71,53 +71,55 @@ namespace {
         get_opts.long_option("debug", 'z', ACE_Get_Opt::ARG_OPTIONAL);
         get_opts.long_option("help", '?', ACE_Get_Opt::NO_ARG);  // Help
 
-        for (;;) switch (get_opts()) {
-        case EOF: return 0; // Indicates sucessful parsing of the command line
+        for (;;) {
+            switch (get_opts()) {
+            case EOF: return 0; // Indicates sucessful parsing of the command line
 
-            // SHOW IORTags
-        case 't':   ior_tags_ = true; break;
-            // SHOW Properties
-        case 'p':   properties_ = true; break;
-            // SHOW IOR Profiles
-        case 'i':   ior_profiles_ = true; break;
+                // SHOW IORTags
+            case 't':   ior_tags_ = true; break;
+                // SHOW Properties
+            case 'p':   properties_ = true; break;
+                // SHOW IOR Profiles
+            case 'i':   ior_profiles_ = true; break;
 
-            // LOOPTIME
-        case 'l':
-            for (const ACE_TCHAR *looptime_val = get_opts.opt_arg(); looptime_val;) {
-                if (::isdigit(int(*looptime_val))) {
-                    DISCOVER_TIMOUT.set(ace_range(2, 120, DAF_OS::atoi(looptime_val)), 0);
-                }
-                break;
-            } break;
+                // LOOPTIME
+            case 'l':
+                for (const ACE_TCHAR *looptime_val = get_opts.opt_arg(); looptime_val;) {
+                    if (::isdigit(int(*looptime_val))) {
+                        DISCOVER_TIMOUT.set(ace_range(2, 120, DAF_OS::atoi(looptime_val)), 0);
+                    }
+                    break;
+                } break;
 
-            // VERBOSE level
-        case 'v':   verbose_ = 1;
-            for (const ACE_TCHAR *verbose_val = get_opts.opt_arg(); verbose_val;) {
-                if (::isdigit(int(*verbose_val))) {
-                    verbose_ = ace_range(1, 10, DAF_OS::atoi(verbose_val));
-                }
-                break;
-            } break;
+                // VERBOSE level
+            case 'v':   verbose_ = 1;
+                for (const ACE_TCHAR *verbose_val = get_opts.opt_arg(); verbose_val;) {
+                    if (::isdigit(int(*verbose_val))) {
+                        verbose_ = ace_range(1, 10, DAF_OS::atoi(verbose_val));
+                    }
+                    break;
+                } break;
 
-        case 'z':   debug_ = 1;
-            for (const ACE_TCHAR *debug_val = get_opts.opt_arg(); debug_val;) {
-                if (::isdigit(int(*debug_val))) {
-                    debug_ = ace_range(1, 10, DAF_OS::atoi(debug_val));
-                }
-                break;
-            } break;
+            case 'z':   debug_ = 1;
+                for (const ACE_TCHAR *debug_val = get_opts.opt_arg(); debug_val;) {
+                    if (::isdigit(int(*debug_val))) {
+                        debug_ = ace_range(1, 10, DAF_OS::atoi(debug_val));
+                    }
+                    break;
+                } break;
 
-        case '?':
-            ACE_DEBUG((LM_INFO,
-                "usage:  %s\n"
-                "-l LoopTime [sec]\n"
-                "-p Show Properties\n"
-                "-t Show IOR Tags\n"
-                "-i Show IOR Profiles\n"
-                "-v Verbose ON[level]\n"
-                "-z Debug ON[level]\n"
-                "\n", argv[0]
-                )); break;
+            case '?':
+                ACE_DEBUG((LM_INFO,
+                    "usage:  %s\n"
+                    "-l LoopTime [sec]\n"
+                    "-p Show Properties\n"
+                    "-t Show IOR Tags\n"
+                    "-i Show IOR Profiles\n"
+                    "-v Verbose ON[level]\n"
+                    "-z Debug ON[level]\n"
+                    "\n", argv[0]
+                    )); break;
+            }
         }
 
         return 0;
@@ -299,9 +301,13 @@ namespace {
         {
             EntityDescriptorVector ed(taf_server->listServices());
 
-            if (ed.size()) for (size_t i = 0; i < ed.size(); i++) try {
-                this->insert_descriptor(ed[i], i + 1);
-            } DAF_CATCH_ALL{}
+            if (ed.size()) {
+                for (size_t i = 0; i < ed.size(); i++) {
+                    try {
+                        this->insert_descriptor(ed[i], i + 1);
+                    } DAF_CATCH_ALL {}
+                }
+            }
         }
 
         std::ends(*this);

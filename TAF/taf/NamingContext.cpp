@@ -75,8 +75,8 @@ namespace {
             } while (CORBA::is_nil(it.in()) ? false : it->next_n(MAX_CHUNK, bl));
 
         } catch (const CORBA::Exception &ex) {
-            for (size_t pad = 0; pad++ < depth; ss << '|' << ' ')
-                ;
+            for (size_t pad = 0; pad++ < depth; ss << '|' << ' ') {
+            }
             ss << "|->\"" << ex._rep_id() << '\"' << std::endl;
         } DAF_CATCH_ALL{
         }

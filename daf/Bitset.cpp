@@ -133,21 +133,23 @@ namespace DAF
     Bitset &
     Bitset::operator = (const Bitset &bitset)
     {
-        if (this != &bitset) do { // Doing it to ourselves?
+        if (this != &bitset) {
+            do { // Doing it to ourselves?
 
-            size_t len = bit_bytes(this->bits_ = bitset.bits());
+                size_t len = bit_bytes(this->bits_ = bitset.bits());
 
-            if (len) {
-                BIT_BYTE_ptr p(0); ACE_NEW_NORETURN(p, BIT_BYTE_type[len]);
-                this->bit_buffer_.reset(p); if (p == 0) {
-                    DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
+                if (len) {
+                    BIT_BYTE_ptr p(0); ACE_NEW_NORETURN(p, BIT_BYTE_type[len]);
+                    this->bit_buffer_.reset(p); if (p == 0) {
+                        DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
+                    }
+                    DAF_OS::memcpy(p, bitset, len); break;
                 }
-                DAF_OS::memcpy(p, bitset, len); break;
-            }
 
-            this->bit_buffer_.reset(0);
+                this->bit_buffer_.reset(0);
 
-        } while (false);
+            } while (false);
+        }
 
         return *this;
     }
@@ -326,7 +328,9 @@ namespace DAF
                 }
                 DAF_OS::memset(p, (val ? -1 : 0), len); this->bits_ = bits;
 
-                if (val) this->trim_bits();
+                if (val) {
+                    this->trim_bits();
+                }
 
             } else this->bit_buffer_.reset(0);
 

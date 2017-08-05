@@ -56,21 +56,22 @@ namespace DAF
     {
         ACE_Service_Repository *repo = (sg ? const_cast<ACE_Service_Gestalt *>(sg)->current_service_repository() : 0);
 
-        if (repo && svc_obj) do {
+        if (repo && svc_obj) {
 
-            ACE_GUARD_REACTION(ACE_Recursive_Thread_Mutex, mon, ServiceGestalt::repository_lock(repo), break);
+            do {
+                ACE_GUARD_REACTION(ACE_Recursive_Thread_Mutex, mon, ServiceGestalt::repository_lock(repo), break);
 
-            ACE_Service_Repository_Iterator it(*repo, false);
-            for (const ACE_Service_Type *svc_type = 0; it.next(svc_type); it.advance()) {
-                if (svc_type) {
-                    const ACE_Service_Object_Type * so = dynamic_cast<const ACE_Service_Object_Type*>(svc_type->type());
-                    if (so && so->object() == svc_obj) {
-                        return svc_type->name();
+                ACE_Service_Repository_Iterator it(*repo, false);
+                for (const ACE_Service_Type *svc_type = 0; it.next(svc_type); it.advance()) {
+                    if (svc_type) {
+                        const ACE_Service_Object_Type * so = dynamic_cast<const ACE_Service_Object_Type*>(svc_type->type());
+                        if (so && so->object() == svc_obj) {
+                            return svc_type->name();
+                        }
                     }
                 }
-            }
-
-        } while (false);
+            } while (false);
+        }
 
         DAF_THROW_EXCEPTION(NotFoundException);
     }
@@ -82,25 +83,26 @@ namespace DAF
     {
         ACE_Service_Repository * repo = (sg ? const_cast<ACE_Service_Gestalt *>(sg)->current_service_repository() : 0);
 
-        if (repo) do { // Scope lock
+        if (repo) {
 
-            ACE_GUARD_REACTION(ACE_Recursive_Thread_Mutex, mon, ServiceGestalt::repository_lock(repo), break);
+            do { // Scope lock
+                ACE_GUARD_REACTION(ACE_Recursive_Thread_Mutex, mon, ServiceGestalt::repository_lock(repo), break);
 
-            ACE_Service_Repository_Iterator it(*repo, false);
+                ACE_Service_Repository_Iterator it(*repo, false);
 
-            const ACE_Service_Type *svc_type = 0;
+                const ACE_Service_Type *svc_type = 0;
 
-            for (int i = 0; it.next(svc_type); it.advance()) {
-                if (svc_type) {
-                    ACE_DEBUG((LM_DEBUG, ACE_TEXT("Service[%03d] - %s:%s %s\n")
-                        , i++
-                        , svc_type->name()
-                        , svc_type->dll().dll_name_
-                        , ACE_TEXT(svc_type->fini_called() ? "(finished)" : (svc_type->active() ? "(active)" : ""))));
+                for (int i = 0; it.next(svc_type); it.advance()) {
+                    if (svc_type) {
+                        ACE_DEBUG((LM_DEBUG, ACE_TEXT("Service[%03d] - %s:%s %s\n")
+                            , i++
+                            , svc_type->name()
+                            , svc_type->dll().dll_name_
+                            , ACE_TEXT(svc_type->fini_called() ? "(finished)" : (svc_type->active() ? "(active)" : ""))));
+                    }
                 }
-            }
-
-        } while (false);
+            } while (false);
+        }
     }
 
     /****************************************************************************************/
@@ -654,7 +656,9 @@ namespace DAF
     ServiceGestalt::repository_lock(const ACE_Service_Repository *repo) // Hack to get hold of Repository Lock
     {
 #if defined(ACE_HAS_SERVICE_REPOSITORY_LOCK_ACCESS)
-        if (repo) { return repo->lock(); }
+        if (repo) {
+            return repo->lock();
+        }
 #else
         // Hack to gain access to Repository Lock - relies on ACE_Service_Repository being non-polymorphic
         struct Service_Repository : ACE_Service_Repository {
@@ -664,8 +668,10 @@ namespace DAF
             }
         };
 
-        if (repo) for (const Service_Repository *repo_hack = reinterpret_cast<const Service_Repository *>(repo); repo_hack;) {
-            return repo_hack->_repositoryLock(); // Hack
+        if (repo) {
+            for (const Service_Repository *repo_hack = reinterpret_cast<const Service_Repository *>(repo); repo_hack;) {
+                return repo_hack->_repositoryLock(); // Hack
+            }
         }
 #endif
         DAF_THROW_EXCEPTION(LockFailureException);

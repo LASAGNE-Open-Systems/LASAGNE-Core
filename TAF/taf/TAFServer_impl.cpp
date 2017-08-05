@@ -261,56 +261,59 @@ namespace TAF
     int
     TAFServer_impl::init(int argc, ACE_TCHAR *argv[])
     {
-        if (this->parse_args(argc, argv) == 0) do try {
-
-            {
-                const PortableServer::ObjectId_var tafServerOID(PortableServer::string_to_ObjectId(taf::TAFSERVER_OID));
-                if (this->init_bind(TAFServerImpl::svc_ident(), tafServerOID.in())) {
-                    break;
-                }
-            }
-
-#if defined(TAF_HAS_SECURITY)
-            if (TAF::isSecurityActive() && TAFSecurityAccessDecision().set_servant_access(this, true)) {
-                ACE_DEBUG((LM_WARNING, ACE_TEXT("TAFServer_impl (%P | %t) TAFSecurityAccessDecision:")
-                    ACE_TEXT(" Unable to allow insecure access for %s.\n")
-                    , tafServerName()));
-            }
-#endif
-            GestaltServiceLoader svcLoader(this->gestalt_);
-
-            int svc_loads = svcLoader.load_config_args(argc, argv);
+        if (this->parse_args(argc, argv) == 0) {
 
             do {
 
-                if (svc_loads > 0) {
-
-                    int svc_failures = svcLoader.process_directives();
-
-                    if (0 > svc_failures) { // Big failure in process_directives()
-                        DAF_THROW_EXCEPTION(DAF::InvocationTargetException);
-                    } else if (svc_failures) { // Some Load failures
-                        ACE_ERROR_BREAK((LM_INFO, ACE_TEXT("TAFServerImpl (%P | %t) WARNING: ")
-                            ACE_TEXT("%s failed to load %d service entries - Ignored.\n")
-                            , tafServerName(), svc_failures));
+                try {
+                    {
+                        const PortableServer::ObjectId_var tafServerOID(PortableServer::string_to_ObjectId(taf::TAFSERVER_OID));
+                        if (this->init_bind(TAFServerImpl::svc_ident(), tafServerOID.in())) {
+                            break;
+                        }
                     }
 
-                    break; // No Loading Problems
-                }
+#if defined(TAF_HAS_SECURITY)
+                    if (TAF::isSecurityActive() && TAFSecurityAccessDecision().set_servant_access(this, true)) {
+                        ACE_DEBUG((LM_WARNING, ACE_TEXT("TAFServer_impl (%P | %t) TAFSecurityAccessDecision:")
+                            ACE_TEXT(" Unable to allow insecure access for %s.\n")
+                            , tafServerName()));
+                    }
+#endif
+                    GestaltServiceLoader svcLoader(this->gestalt_);
 
-                if (TAF::debug() > 1) {
-                    ACE_DEBUG((LM_WARNING, ACE_TEXT("TAFServerImpl (%P | %t) WARNING: ")
-                        ACE_TEXT("%s configured without any loadable service entities. - Ignored.\n")
-                        , tafServerName()));
-                }
+                    int svc_loads = svcLoader.load_config_args(argc, argv);
 
+                    do {
+                        if (svc_loads > 0) {
+
+                            int svc_failures = svcLoader.process_directives();
+
+                            if (0 > svc_failures) { // Big failure in process_directives()
+                                DAF_THROW_EXCEPTION(DAF::InvocationTargetException);
+                            } else if (svc_failures) { // Some Load failures
+                                ACE_ERROR_BREAK((LM_INFO, ACE_TEXT("TAFServerImpl (%P | %t) WARNING: ")
+                                    ACE_TEXT("%s failed to load %d service entries - Ignored.\n")
+                                    , tafServerName(), svc_failures));
+                            }
+
+                            break; // No Loading Problems
+                        }
+
+                        if (TAF::debug() > 1) {
+                            ACE_DEBUG((LM_WARNING, ACE_TEXT("TAFServerImpl (%P | %t) WARNING: ")
+                                ACE_TEXT("%s configured without any loadable service entities. - Ignored.\n")
+                                , tafServerName()));
+                        }
+                    } while (false);
+
+                    return 0;
+
+                } DAF_CATCH_ALL{
+                    /* FAll Through to Error */
+                }
             } while (false);
-
-            return 0;
-
-        } DAF_CATCH_ALL {
-            /* FAll Through to Error */
-        } while (false);
+        }
 
         ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("TAFServer (%P | %t) ERROR:")
             ACE_TEXT(" Failed to initialize %s.\n")
