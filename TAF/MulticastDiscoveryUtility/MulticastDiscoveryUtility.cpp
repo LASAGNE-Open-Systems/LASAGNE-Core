@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -199,14 +199,17 @@ namespace {
 
                         const IOP::MultipleComponentProfile &mcp(profile->tagged_components().components());
 
-                        if (ior_tags_ || verbose() > 2) for (CORBA::ULong j = 0; j < mcp.length(); j++) {
-                            const IOP::TaggedComponent &tc(mcp[j]);
-                            char tags[16]; DAF_OS::sprintf(tags, "-Tag[%03x]:", int(tc.tag));
-                            *this << '\t' << std::setw(10) << tags;
-                            const size_t tc_data_len = size_t(tc.component_data.length()); if (tc_data_len) {
-                                *this << DAF::hex_dump_data(tc.component_data.get_buffer(), tc_data_len, (tc_data_len % 32));
+                        if (ior_tags_ || verbose() > 2) {
+                            for (CORBA::ULong j = 0; j < mcp.length(); j++) {
+                                const IOP::TaggedComponent &tc(mcp[j]);
+                                char tags[16]; DAF_OS::sprintf(tags, "-Tag[%03x]:", int(tc.tag));
+                                *this << '\t' << std::setw(10) << tags;
+                                const size_t tc_data_len = size_t(tc.component_data.length()); 
+                                if (tc_data_len) {
+                                    *this << DAF::hex_dump_data(tc.component_data.get_buffer(), tc_data_len, (tc_data_len % 32));
+                                }
+                                *this << std::endl;
                             }
-                            *this << std::endl;
                         }
                     }
                 }
@@ -334,49 +337,46 @@ int main(int argc, char *argv[])
 
                 if (ior_seq.size()) {
 
-                    if (!shutdown_) for (size_t i = 0; i < ior_seq.size(); i++) {
+                    if (!shutdown_) {
+                        for (size_t i = 0; i < ior_seq.size(); i++) {
 
-                        CORBA::Object_var   tafServerObj(ior_seq[i].svc_obj);
-                        const std::string   ident(ior_seq[i].svc_ident.in());
+                            CORBA::Object_var   tafServerObj(ior_seq[i].svc_obj);
+                            const std::string   ident(ior_seq[i].svc_ident.in());
 
-                        try {
-                            std::cout << TAFServerFormatter(taf::TAFServer::_narrow(tafServerObj), i) << std::endl;
-                        }
-                        catch (const CORBA::NO_PERMISSION &) {
-                            if (debug()) {
-                                ACE_DEBUG((LM_WARNING,
-                                    ACE_TEXT("WARNING: NO_PERMISSION; Attempted security permission violation [ident=%s].\n")
-                                    , ident.c_str()));
+                            try {
+                                std::cout << TAFServerFormatter(taf::TAFServer::_narrow(tafServerObj), i) << std::endl;
+                            } catch (const CORBA::NO_PERMISSION &) {
+                                if (debug()) {
+                                    ACE_DEBUG((LM_WARNING,
+                                        ACE_TEXT("WARNING: NO_PERMISSION; Attempted security permission violation [ident=%s].\n")
+                                        , ident.c_str()));
+                                }
+                            } catch (const CORBA::INV_POLICY &) {
+                                if (debug()) {
+                                    ACE_DEBUG((LM_WARNING,
+                                        ACE_TEXT("WARNING: CORBA::INV_POLICY; Attempted security policy violation [ident=%s].\n")
+                                        , ident.c_str()));
+                                }
+                            } catch (const CORBA::OBJECT_NOT_EXIST &) {
+                                if (debug()) {
+                                    ACE_DEBUG((LM_WARNING,
+                                        ACE_TEXT("WARNING: CORBA::OBJECT_NOT_EXIST; Unable to locate instance [ident=%s].\n")
+                                        , ident.c_str()));
+                                }
+                            } catch (const CORBA::TRANSIENT &) {
+                                if (debug()) {
+                                    ACE_DEBUG((LM_WARNING,
+                                        ACE_TEXT("WARNING: CORBA::TRANSIENT; Unable to locate instance [ident=%s].\n")
+                                        , ident.c_str()));
+                                }
+                            } catch (const CORBA::Exception &ex) {
+                                if (debug_) { // Ignore and keep going - TAFServer probably shutdown
+                                    ex._tao_print_exception("WE BROKE - Inner Loop.");
+                                }
                             }
-                        }
-                        catch (const CORBA::INV_POLICY &) {
-                            if (debug()) {
-                                ACE_DEBUG((LM_WARNING,
-                                    ACE_TEXT("WARNING: CORBA::INV_POLICY; Attempted security policy violation [ident=%s].\n")
-                                    , ident.c_str()));
+                            DAF_CATCH_ALL{
+                                break;
                             }
-                        }
-                        catch (const CORBA::OBJECT_NOT_EXIST &) {
-                            if (debug()) {
-                                ACE_DEBUG((LM_WARNING,
-                                    ACE_TEXT("WARNING: CORBA::OBJECT_NOT_EXIST; Unable to locate instance [ident=%s].\n")
-                                    , ident.c_str()));
-                            }
-                        }
-                        catch (const CORBA::TRANSIENT &) {
-                            if (debug()) {
-                                ACE_DEBUG((LM_WARNING,
-                                    ACE_TEXT("WARNING: CORBA::TRANSIENT; Unable to locate instance [ident=%s].\n")
-                                    , ident.c_str()));
-                            }
-                        }
-                        catch (const CORBA::Exception &ex) {
-                            if (debug_) { // Ignore and keep going - TAFServer probably shutdown
-                                ex._tao_print_exception("WE BROKE - Inner Loop.");
-                            }
-                        }
-                        DAF_CATCH_ALL {
-                            break;
                         }
                     }
                     continue;

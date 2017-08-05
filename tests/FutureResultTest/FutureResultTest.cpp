@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -449,13 +449,15 @@ int test_FutureResultThreadKill(int threadCount)
         blocker.acquire();
 
         if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing TaskExecutor\n"));
-        delete kill_executor;
+        delete kill_executor; kill_executor = 0;
     }
 
     value = fut->isError();
 
     result = (value == expected) ;
     std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
+
+    delete fut; fut = 0;
 
     return result;
 }

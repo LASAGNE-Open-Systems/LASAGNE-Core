@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -82,7 +82,7 @@ namespace  {  // Anonymous
                 throw CORBA::INTERNAL();
             }
 
-            const std::string svc_args(DAF::get_property(TAF_SERVICE_ARGS, false)); // Get The Current Service Arguments
+            const std::string svc_args(DAF::get_property(TAF_SERVICE_ARGS, false)); ACE_UNUSED_ARG(svc_args); // Get The Current Service Arguments
 
             {   // Scope the Gestalt Guard
 

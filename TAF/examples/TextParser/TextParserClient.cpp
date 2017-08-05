@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -55,44 +55,46 @@ namespace {
         get_opts.long_option("debug", 'z', ACE_Get_Opt::ARG_OPTIONAL);
         get_opts.long_option("help", 'h', ACE_Get_Opt::NO_ARG);  // Help
 
-        for (int arg = 0;;) switch (arg = get_opts()) {
-        case EOF: return 0; // Indicates successful parsing of the command line
+        for (int arg = 0;;) {
+            switch (arg = get_opts()) {
+            case EOF: return 0; // Indicates successful parsing of the command line
 
-        case 'c':
-            for (const ACE_TCHAR *max_columns = get_opts.opt_arg(); max_columns;) {
-                _max_columns = unsigned(ace_range(1, 10, DAF_OS::atoi(max_columns))); break;
-            } break;
-
-        case 'f':
-            _TXT_FILENAME.assign(DAF::trim_string(get_opts.opt_arg())); break;
-
-        case 'w':
-            for (const ACE_TCHAR *loop_delay = get_opts.opt_arg(); loop_delay;) {
-                _loop_delay = unsigned(ace_range(1, 30, DAF_OS::atoi(loop_delay))); break;
-            } break;
-
-        case 'n': _use_naming = true;
-            for (const ACE_TCHAR *naming = get_opts.opt_arg(); naming;) {
-                _use_naming = (ace_range(0, 1, DAF_OS::atoi(naming)) ? true : false); break;
-            } break; // Turn on Naming optionally.
-
-        case 'z': _debug = 1;
-            for (const ACE_TCHAR *debug_lvl = get_opts.opt_arg(); debug_lvl;) {
-                if (::isdigit(int(*debug_lvl))) {
-                    _debug = ace_range(1, 10, DAF_OS::atoi(debug_lvl));
+            case 'c':
+                for (const ACE_TCHAR *max_columns = get_opts.opt_arg(); max_columns;) {
+                    _max_columns = unsigned(ace_range(1, 10, DAF_OS::atoi(max_columns))); break;
                 } break;
-            } break; // Turn on Debug optionally at a level
 
-        case 'h':
-            ACE_DEBUG((LM_INFO,
-                "usage:  %s\n"
-                "-c Columns to print output (1-10 ->Default=3)\n"
-                "-w Inter-Loop delay seconds (1-30 ->Default=2)\n"
-                "-f Textfile to parse\n"
-                "-d Loop delay time (sec)\n"
-                "-z Testing Debug ON(level)\n"
-                "\n",
-                argv[0])); break;
+            case 'f':
+                _TXT_FILENAME.assign(DAF::trim_string(get_opts.opt_arg())); break;
+
+            case 'w':
+                for (const ACE_TCHAR *loop_delay = get_opts.opt_arg(); loop_delay;) {
+                    _loop_delay = unsigned(ace_range(1, 30, DAF_OS::atoi(loop_delay))); break;
+                } break;
+
+            case 'n': _use_naming = true;
+                for (const ACE_TCHAR *naming = get_opts.opt_arg(); naming;) {
+                    _use_naming = (ace_range(0, 1, DAF_OS::atoi(naming)) ? true : false); break;
+                } break; // Turn on Naming optionally.
+
+            case 'z': _debug = 1;
+                for (const ACE_TCHAR *debug_lvl = get_opts.opt_arg(); debug_lvl;) {
+                    if (::isdigit(int(*debug_lvl))) {
+                        _debug = ace_range(1, 10, DAF_OS::atoi(debug_lvl));
+                    } break;
+                } break; // Turn on Debug optionally at a level
+
+            case 'h':
+                ACE_DEBUG((LM_INFO,
+                    "usage:  %s\n"
+                    "-c Columns to print output (1-10 ->Default=3)\n"
+                    "-w Inter-Loop delay seconds (1-30 ->Default=2)\n"
+                    "-f Textfile to parse\n"
+                    "-d Loop delay time (sec)\n"
+                    "-z Testing Debug ON(level)\n"
+                    "\n",
+                    argv[0])); break;
+            }
         }
 
         return 0;
@@ -141,12 +143,15 @@ namespace {
             ifile.seekg(0, std::ios::beg).read(iov_ptr, iov_len);
 
             for (int i = 0; i < int(iov_len); i++) {
-                if (iov_ptr[i] == 0) iov_ptr[i] = ' '; // Ensure we have no embedded nulls
+                if (iov_ptr[i] == 0) {
+                    iov_ptr[i] = ' '; // Ensure we have no embedded nulls
+                }
             }
 
             iov_ptr[iov_len] = 0; // Ensure Null terminated
 
             return iov_len;
+
         } DAF_CATCH_ALL { /* return with error */ }
 
         ACE_ERROR_RETURN((LM_ERROR,

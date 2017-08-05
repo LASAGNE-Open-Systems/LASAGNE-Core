@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-  This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -62,13 +62,17 @@ namespace TAF_XMPL
     int
     CORBAService::parse_args(int argc, char *argv[])
     {
-        if (argc) this->svc_args_.assign(DAF::parse_args(argc, argv));
+        if (argc) {
+            this->svc_args_.assign(DAF::parse_args(argc, argv));
+        }
 
-        for (ACE_Get_Opt get_opts(argc, argv, "ho:");;) switch(get_opts()) {
-            case -1 :   return 0; // Indicates sucessful parsing of the command line
-            case 'o':   _ior_file.assign(get_opts.opt_arg()); break;
-            case 'h':   ACE_DEBUG((LM_DEBUG, "usage: %s -o <ior filename>.\n", argv[0])); break;
-            default :   break; // Ignore
+        for (ACE_Get_Opt get_opts(argc, argv, "ho:");;) {
+            switch (get_opts()) {
+            case -1:   return 0; // Indicates sucessful parsing of the command line
+            case 'o':  _ior_file.assign(get_opts.opt_arg()); break;
+            case 'h':  ACE_DEBUG((LM_DEBUG, "usage: %s -o <ior filename>.\n", argv[0])); break;
+            default:   break; // Ignore
+            }
         }
 
         ACE_NOTREACHED (return -1;) // Should Never Get Here (Keep Compiler happy)

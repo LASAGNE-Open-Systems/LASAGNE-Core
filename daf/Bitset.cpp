@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -58,16 +58,18 @@ namespace DAF
             if (len) {
                 BIT_BYTE_ptr p(0); ACE_NEW_NORETURN(p, BIT_BYTE_type[len]);
                 this->bit_buffer_.reset(p); if (p == 0) {
-                    DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
+                    DAF_THROW_EXCEPTION(ResourceExhaustionException);
                 }
                 DAF_OS::memset(p, (val ? -1 : 0), len);
 
-                if (val) this->trim_bits();
+                if (val) {
+                    this->trim_bits();
+                }
             }
             return;
         }
 
-        DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);
+        DAF_THROW_EXCEPTION(IllegalArgumentException);
     }
 
     Bitset::Bitset(const Bitset &bitset)
@@ -77,7 +79,7 @@ namespace DAF
         if (len) {
             BIT_BYTE_ptr p(0); ACE_NEW_NORETURN(p, BIT_BYTE_type[len]);
             this->bit_buffer_.reset(p); if (p == 0) {
-                DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
+                DAF_THROW_EXCEPTION(ResourceExhaustionException);
             }
             DAF_OS::memcpy(p, bitset, len);
         }
@@ -86,14 +88,17 @@ namespace DAF
     Bitset::BIT_BYTE_ptr
     Bitset::bit_buffer(size_t off) const
     {
-        if (this->bits()) for (Bitset::BIT_BYTE_ptr p = this->bit_buffer_.get(); p;) {
+        if (this->bits()) {
 
-            if (off >= this->size()) {
-                DAF_THROW_EXCEPTION(DAF::IndexOutOfRange);
+            for (Bitset::BIT_BYTE_ptr p = this->bit_buffer_.get(); p;) {
+
+                if (off >= this->size()) {
+                    DAF_THROW_EXCEPTION(IndexOutOfRange);
+                }
+                return p + off;
             }
-            return p + off;
 
-        } else DAF_THROW_EXCEPTION(DAF::IndexOutOfRange);
+        } else DAF_THROW_EXCEPTION(IndexOutOfRange);
 
         return 0;  // returns 0 when no buffer or bits.
     }
@@ -266,7 +271,7 @@ namespace DAF
             }
             return bitset;
         }
-        DAF_THROW_EXCEPTION(DAF::IndexOutOfRange);
+        DAF_THROW_EXCEPTION(IndexOutOfRange);
     }
 
     Bitset &
@@ -297,7 +302,7 @@ namespace DAF
         if (*this && ace_range(size_t(0), this->bits() - 1, bit) == bit) {
             return bitraits(this->bit_buffer_[int(bit / BIT_BYTE_bits)], bit_mask(bit));
         }
-        DAF_THROW_EXCEPTION(DAF::IndexOutOfRange);
+        DAF_THROW_EXCEPTION(IndexOutOfRange);
     }
 
     bool
@@ -306,7 +311,7 @@ namespace DAF
         if (*this && ace_range(size_t(0), this->bits() - 1, bit) == bit) {
             return (this->bit_buffer_[int(bit / BIT_BYTE_bits)] & bit_mask(bit)) ? true : false;
         }
-        DAF_THROW_EXCEPTION(DAF::IndexOutOfRange);
+        DAF_THROW_EXCEPTION(IndexOutOfRange);
     }
 
     Bitset &
@@ -317,7 +322,7 @@ namespace DAF
             if (len) {
                 BIT_BYTE_ptr p(0); ACE_NEW_NORETURN(p, BIT_BYTE_type[len]);
                 this->bit_buffer_.reset(p); if (p == 0) {
-                    DAF_THROW_EXCEPTION(DAF::ResourceExhaustionException);
+                    DAF_THROW_EXCEPTION(ResourceExhaustionException);
                 }
                 DAF_OS::memset(p, (val ? -1 : 0), len); this->bits_ = bits;
 
@@ -328,7 +333,7 @@ namespace DAF
             return *this;
         }
 
-        DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);
+        DAF_THROW_EXCEPTION(IllegalArgumentException);
     }
 
     Bitset &

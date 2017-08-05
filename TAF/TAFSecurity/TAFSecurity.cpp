@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -66,8 +66,10 @@ namespace TAFSecurity {
         {
             if (TAF::isSecurityActive()) {
                 CORBA::Object_var security_manager_obj(orb->resolve_initial_references(SECURITY_L3_MANAGER));
-                if (security_manager_obj) for (SecurityManager_var security_manager(SecurityManager::_narrow(security_manager_obj.in())); security_manager;) {
-                    return security_manager._retn();
+                if (security_manager_obj) {
+                    for (SecurityManager_var security_manager(SecurityManager::_narrow(security_manager_obj.in())); security_manager;) {
+                        return security_manager._retn();
+                    }
                 }
             }
             throw CORBA::INV_OBJREF();
@@ -77,8 +79,10 @@ namespace TAFSecurity {
         {
             if (TAF::isSecurityActive()) {
                 CORBA::Object_var security_current_obj(orb->resolve_initial_references(SECURITY_L3_CURRENT));
-                if (security_current_obj) for (SecurityCurrent_var security_current(SecurityCurrent::_narrow(security_current_obj.in())); security_current;) {
-                    return security_current._retn();
+                if (security_current_obj) {
+                    for (SecurityCurrent_var security_current(SecurityCurrent::_narrow(security_current_obj.in())); security_current;) {
+                        return security_current._retn();
+                    }
                 }
             }
             throw CORBA::INV_OBJREF();
@@ -88,8 +92,10 @@ namespace TAFSecurity {
         {
             if (TAF::isSecurityActive()) {
                 CORBA::Object_var credentials_curator_obj(orb->resolve_initial_references(SECURITY_L3_CURATOR));
-                if (credentials_curator_obj) for (CredentialsCurator_var credentials_curator(CredentialsCurator::_narrow(credentials_curator_obj.in())); credentials_curator;) {
-                    return credentials_curator._retn();
+                if (credentials_curator_obj) {
+                    for (CredentialsCurator_var credentials_curator(CredentialsCurator::_narrow(credentials_curator_obj.in())); credentials_curator;) {
+                        return credentials_curator._retn();
+                    }
                 }
             }
             throw CORBA::INV_OBJREF();
@@ -111,8 +117,10 @@ namespace TAFSecurity {
     {
         if (TAF::isSecurityActive()) {
             CORBA::Object_var ssliop_current_obj(orb->resolve_initial_references(SECURITY_SSLIOP_CURRENT));
-            if (ssliop_current_obj) for (SSLIOP::Current_var ssliop_current(SSLIOP::Current::_narrow(ssliop_current_obj.in())); ssliop_current;) {
-                return ssliop_current._retn();
+            if (ssliop_current_obj) {
+                for (SSLIOP::Current_var ssliop_current(SSLIOP::Current::_narrow(ssliop_current_obj.in())); ssliop_current;) {
+                    return ssliop_current._retn();
+                }
             }
         }
         throw CORBA::INV_OBJREF();
@@ -124,7 +132,9 @@ namespace TAFSecurity {
         : TAO_SL2_AccessDecision_ref(TAO_SL2_AccessDecision::_narrow(TAFSecurity::SL2::accessDecision(orb).in()))
         , orb_(CORBA::ORB::_duplicate(orb))
     {
-        if (CORBA::is_nil(this->in())) throw CORBA::INV_OBJREF();
+        if (CORBA::is_nil(this->in())) {
+            throw CORBA::INV_OBJREF();
+        }
     }
 
     int
@@ -151,7 +161,9 @@ namespace TAFSecurity {
         : SSLIOP::ASN_1_Cert_var(TAFSecurity::ssliop_current(orb)->get_peer_certificate())
         , certificate_((*this)->get_buffer())
     {
-        if (CORBA::is_nil(this->certificate_)) throw CORBA::INV_OBJREF();
+        if (CORBA::is_nil(this->certificate_)) {
+            throw CORBA::INV_OBJREF();
+        }
     }
 
     const std::string

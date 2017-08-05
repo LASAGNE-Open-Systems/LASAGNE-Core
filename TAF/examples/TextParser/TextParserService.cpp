@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -193,34 +193,38 @@ namespace TAF_XMPL
         get_opts.long_option("debug",   'z', ACE_Get_Opt::ARG_OPTIONAL);
         get_opts.long_option("help",    'h', ACE_Get_Opt::NO_ARG);  // Help
 
-        for(;;) switch (get_opts()) {
-        case -1: return 0; // Indicates sucessful parsing of the command line
+        for (;;) {
+            switch (get_opts()) {
+            case -1: return 0; // Indicates sucessful parsing of the command line
 
-        case 'n': this->use_naming_ = true; for (const ACE_TCHAR *naming = get_opts.opt_arg(); naming;) {
-            this->use_naming_ = (ace_range(0, 1, DAF_OS::atoi(naming)) ? true : false); break;
-        } break; // Turn on Naming optionally.
+            case 'n': this->use_naming_ = true; 
+                for (const ACE_TCHAR *naming = get_opts.opt_arg(); naming;) {
+                    this->use_naming_ = (ace_range(0, 1, DAF_OS::atoi(naming)) ? true : false); break;
+                } break; // Turn on Naming optionally.
 
-        case 'o': for (const ACE_TCHAR * iorFile = get_opts.opt_arg(); iorFile;) {
-            if (DAF_OS::strlen(iorFile) > 0) { this->ior_file_.assign(iorFile); } break;
-        } break; // Turn on IOR File write.
+            case 'o': 
+                for (const ACE_TCHAR * iorFile = get_opts.opt_arg(); iorFile;) {
+                    if (DAF_OS::strlen(iorFile) > 0) { this->ior_file_.assign(iorFile); } break;
+                } break; // Turn on IOR File write.
 
-        case 'z': this->debug_ = 1;
-            for (const ACE_TCHAR *debug_lvl = get_opts.opt_arg(); debug_lvl;) {
-                if (::isdigit(int(*debug_lvl))) {
-                    this->debug_ = ace_range(0, 10, DAF_OS::atoi(debug_lvl));
+            case 'z': this->debug_ = 1;
+                for (const ACE_TCHAR *debug_lvl = get_opts.opt_arg(); debug_lvl;) {
+                    if (::isdigit(int(*debug_lvl))) {
+                        this->debug_ = ace_range(0, 10, DAF_OS::atoi(debug_lvl));
+                    } break;
+                } break; // Turn on Debug at level optionally.
+
+            default: if (DAF::debug()) {
+            case 'h':
+                ACE_DEBUG((LM_INFO,
+                    "usage:  %s\n"
+                    "-o ior filename\n"
+                    "-n Use Naming (0,1)\n"
+                    "-z Debug ON[level]\n"
+                    "\n", TextParserService::svc_ident()
+                    ));
                 } break;
-            } break; // Turn on Debug at level optionally.
-
-        default: if (DAF::debug()) {
-        case 'h':
-            ACE_DEBUG((LM_INFO,
-                "usage:  %s\n"
-                "-o ior filename\n"
-                "-n Use Naming (0,1)\n"
-                "-z Debug ON[level]\n"
-                "\n", TextParserService::svc_ident()
-                ));
-            } break;
+            }
         }
 
         return 0;

@@ -164,18 +164,20 @@ namespace DAF
 
             bool load_property = true;
 
-            if (argc) for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
-                if (arg_shifter.is_option_next()) {
-                    if (0 == arg_shifter.cur_arg_strncasecmp(arg_switch.c_str())) {
-                        for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
-                            if (this->load_file_profile(DAF::trim_string(arg_shifter.get_current())) == 0) {
-                                load_property = false; // Dont use properties if we found from arguments with switch
+            if (argc) {
+                for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
+                    if (arg_shifter.is_option_next()) {
+                        if (0 == arg_shifter.cur_arg_strncasecmp(arg_switch.c_str())) {
+                            for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
+                                if (this->load_file_profile(DAF::trim_string(arg_shifter.get_current())) == 0) {
+                                    load_property = false; // Dont use properties if we found from arguments with switch
+                                }
                             }
+                            continue;
                         }
-                        continue;
                     }
+                    arg_shifter.ignore_arg();
                 }
-                arg_shifter.ignore_arg();
             }
 
             if (load_property) try {
@@ -205,8 +207,13 @@ namespace DAF
                 for (int pos = 0; (pos = int(it->find_first_of(':', pos))) > 0; pos++) {
 #if defined(ACE_WIN32)
                     if (int(it->length()) > ++pos) {
-                        if (::isalpha(int((*it)[0]))) switch ((*it)[pos]) {   // look for windows 'D:\' or 'D:/' type string
-                        case '/': case '\\': if (pos == 2) continue;    // Not section seperator
+                        if (::isalpha(int((*it)[0]))) {
+                            switch ((*it)[pos]) {   // look for windows 'D:\' or 'D:/' type string
+                            case '/': case '\\': 
+                                if (pos == 2) { // Not section seperator
+                                    continue;
+                                }
+                            }
                         }
                     } pos -= 1; // Point back to ':'
 #endif
@@ -284,13 +291,15 @@ namespace DAF
 
         for (int i = 0; i < args.argc(); i++) {
             int pos = 0; const std::string arg(args[i]);
-            if (arg.length()) do {
-                int e_pos = int(arg.find_first_of(';', pos));
-                const std::string profile(DAF::trim_string(arg.substr(pos, e_pos - pos))); pos = e_pos;
-                if (profile.length()) {
-                    profiles.push_back(profile);
-                }
-            } while (pos++ > 0);
+            if (arg.length()) {
+                do {
+                    int e_pos = int(arg.find_first_of(';', pos));
+                    const std::string profile(DAF::trim_string(arg.substr(pos, e_pos - pos))); pos = e_pos;
+                    if (profile.length()) {
+                        profiles.push_back(profile);
+                    }
+                } while (pos++ > 0);
+            }
         }
 
         return profiles.size();

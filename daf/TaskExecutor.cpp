@@ -129,62 +129,65 @@ namespace DAF
 
         // This is exactly the same logics as ACE_Task_Base::svc_run however it works through a svc proxy
 
-        if (worker) for (TaskExecutor * task(worker->taskExecutor()); task;) {
+        if (worker) {
 
-            ACE_Thread_Descriptor * td = static_cast<Thread_Manager *>(task->thr_mgr())->thread_desc_self();
+            for (TaskExecutor * task(worker->taskExecutor()); task;) {
 
-            const ACE_thread_t thr_id = td->self();  // Cache Our thread ID for registration/deregistration
+                ACE_Thread_Descriptor * td = static_cast<Thread_Manager *>(task->thr_mgr())->thread_desc_self();
 
-            DAF_OS::insertTerminateEvent(thr_id); worker->release(); // Register the worker and release start synchronization
+                const ACE_thread_t thr_id = td->self();  // Cache Our thread ID for registration/deregistration
 
-            // Register ourself with our <Thread_Manager>'s thread exit hook
-            // mechanism so that our close() hook will be sure to get invoked
-            // when this thread exits.
+                DAF_OS::insertTerminateEvent(thr_id); worker->release(); // Register the worker and release start synchronization
+
+                // Register ourself with our <Thread_Manager>'s thread exit hook
+                // mechanism so that our close() hook will be sure to get invoked
+                // when this thread exits.
 
 #if defined(ACE_HAS_SIG_C_FUNC)
-            td->at_exit(task, DAF_TaskExecutor_threadCleanup, td);
+                td->at_exit(task, DAF_TaskExecutor_threadCleanup, td);
 #else
-            td->at_exit(task, DAF::TaskExecutor::threadCleanup, td);
+                td->at_exit(task, DAF::TaskExecutor::threadCleanup, td);
 #endif /* ACE_HAS_SIG_C_FUNC */
 
-            ACE_THR_FUNC_RETURN status = 0;
+                ACE_THR_FUNC_RETURN status = 0;
 
-            try {  // Stop Application code from killing Server
+                try {  // Stop Application code from killing Server
 
-                // Call the Task's run() hook method.
+                    // Call the Task's run() hook method.
 #if defined(ACE_HAS_INTEGRAL_TYPE_THR_FUNC_RETURN)
-                status = static_cast<ACE_THR_FUNC_RETURN>(worker->run());
+                    status = static_cast<ACE_THR_FUNC_RETURN>(worker->run());
 #else
-                status = reinterpret_cast<ACE_THR_FUNC_RETURN>(worker->run());
+                    status = reinterpret_cast<ACE_THR_FUNC_RETURN>(worker->run());
 #endif /* ACE_HAS_INTEGRAL_TYPE_THR_FUNC_RETURN */
 
-            }
+                }
 
 #if defined(DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION) && (DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION > 0)
-            catch (const ::abi::__forced_unwind &) {
+                catch (const ::abi::__forced_unwind &) {
 # if defined(ACE_WIN32)
-                status = ACE_THR_FUNC_RETURN(0xDEAD); // Signify that we were forced closed and swallow exception
+                    status = ACE_THR_FUNC_RETURN(0xDEAD); // Signify that we were forced closed and swallow exception
 # else
 #  if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
-                static_cast<Thread_Descriptor *>(td)->threadAtExit();
+                    static_cast<Thread_Descriptor *>(td)->threadAtExit();
 #  endif
-                DAF_OS::removeTerminateEvent(thr_id); throw;
+                    DAF_OS::removeTerminateEvent(thr_id); throw;
 # endif
-            }
-#endif
-            catch (...) {
-                if (ACE::debug() || DAF::debug()) {
-                    ACE_DEBUG((LM_ERROR, ACE_TEXT("DAF (%P | %t) TaskExecutor ERROR: ")
-                        ACE_TEXT("Unhandled exception caught from executeThread() : TaskExecutor=0x%@.\n"), task));
                 }
-            }
+#endif
+                catch (...) {
+                    if (ACE::debug() || DAF::debug()) {
+                        ACE_DEBUG((LM_ERROR, ACE_TEXT("DAF (%P | %t) TaskExecutor ERROR: ")
+                            ACE_TEXT("Unhandled exception caught from executeThread() : TaskExecutor=0x%@.\n"), task));
+                    }
+                }
 
 #if defined(DAF_HANDLES_THREAD_CLEANUP) && (DAF_HANDLES_THREAD_CLEANUP > 0)
-            static_cast<Thread_Descriptor *>(td)->threadAtExit();
+                static_cast<Thread_Descriptor *>(td)->threadAtExit();
 #endif
-            DAF_OS::removeTerminateEvent(thr_id);
+                DAF_OS::removeTerminateEvent(thr_id);
 
-            return status;
+                return status;
+            }
         }
 
         return ACE_THR_FUNC_RETURN(-1);
@@ -335,65 +338,68 @@ namespace DAF
 
         ACE_SET_BITS(flags, (THR_NEW_LWP | THR_JOINABLE)); // Ensure all threads in pool have consistant attributes
 
-        if (n_threads && this->isAvailable()) do {
+        if (n_threads && this->isAvailable()) {
 
-            WorkerTask_ref tp(new WorkerTask(this, n_threads));
+            do {
 
-            { // Scope Lock
+                WorkerTask_ref tp(new WorkerTask(this, n_threads));
 
-                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, break);
+                { // Scope Lock
 
-                if (this->isAvailable() ? (force_active ? false : this->thr_count()) : true) {  // DCL
-                    break; // Not available OR already active without being forced
-                }
+                    ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, break);
 
-                for (size_t thr_count = n_threads; thr_count--;) {
-                    ++this->thr_count_; WorkerTask::intrusive_add_ref(tp);  // Increment refcount by n_threads
-                }
-
-                int grp_spawned = -1;
-
-                if (thread_ids) {
-                    // thread names were specified
-                    grp_spawned = this->thr_mgr_->spawn_n(thread_ids, n_threads
-                        , TaskExecutor::threadExecute
-                        , tp // Give the cmd to the thread (it will delete)
-                        , flags
-                        , priority
-                        , this->grp_id()
-                        , stack
-                        , stack_size
-                        , thread_handles
-                        , this
-                        , thr_name);
-                } else {
-                    // Thread Ids were not specified
-                    grp_spawned = this->thr_mgr_->spawn_n(n_threads
-                        , TaskExecutor::threadExecute
-                        , tp // Give the cmd to the thread (it will delete)
-                        , flags
-                        , priority
-                        , this->grp_id()
-                        , this
-                        , thread_handles
-                        , stack
-                        , stack_size
-                        , thr_name);
-                }
-
-                if (grp_spawned == -1) {
-                    for (size_t thr_count = n_threads; thr_count--;) {
-                        --this->thr_count_; WorkerTask::intrusive_remove_ref(tp);
+                    if (this->isAvailable() ? (force_active ? false : this->thr_count()) : true) {  // DCL
+                        break; // Not available OR already active without being forced
                     }
-                    break;
+
+                    for (size_t thr_count = n_threads; thr_count--;) {
+                        ++this->thr_count_; WorkerTask::intrusive_add_ref(tp);  // Increment refcount by n_threads
+                    }
+
+                    int grp_spawned = -1;
+
+                    if (thread_ids) {
+                        // thread names were specified
+                        grp_spawned = this->thr_mgr_->spawn_n(thread_ids, n_threads
+                            , TaskExecutor::threadExecute
+                            , tp // Give the cmd to the thread (it will delete)
+                            , flags
+                            , priority
+                            , this->grp_id()
+                            , stack
+                            , stack_size
+                            , thread_handles
+                            , this
+                            , thr_name);
+                    } else {
+                        // Thread Ids were not specified
+                        grp_spawned = this->thr_mgr_->spawn_n(n_threads
+                            , TaskExecutor::threadExecute
+                            , tp // Give the cmd to the thread (it will delete)
+                            , flags
+                            , priority
+                            , this->grp_id()
+                            , this
+                            , thread_handles
+                            , stack
+                            , stack_size
+                            , thr_name);
+                    }
+
+                    if (grp_spawned == -1) {
+                        for (size_t thr_count = n_threads; thr_count--;) {
+                            --this->thr_count_; WorkerTask::intrusive_remove_ref(tp);
+                        }
+                        break;
+                    }
+
+                    this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
                 }
 
-                this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
-            }
+                return tp->acquire(); // Synchronise on the threads all starting
 
-            return tp->acquire(); // Synchronise on the threads all starting
-
-        } while (false);
+            } while (false);
+        }
 
         DAF_OS::last_error(ENOEXEC); return -1;
     }
@@ -447,38 +453,41 @@ namespace DAF
     int
     TaskExecutor::task_handOff(const Runnable_ref & command)
     {
-        if (DAF::is_nil(command) ? false : this->isAvailable()) do {
+        if (DAF::is_nil(command) ? false : this->isAvailable()) {
 
-            WorkerTask_ref tp(new WorkerTaskExtended(this, command));
+            do {
 
-            {
-                ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, break);
+                WorkerTask_ref tp(new WorkerTaskExtended(this, command));
 
-                if (this->isAvailable()) { // DCL
+                {
+                    ACE_GUARD_REACTION(ACE_Thread_Mutex, mon, this->lock_, break);
 
-                    ++this->thr_count_; WorkerTask::intrusive_add_ref(tp); // Increment permits by threadcount
+                    if (this->isAvailable()) { // DCL
 
-                    int grp_spawned = this->thr_mgr()->spawn_n(1
-                        , TaskExecutor::threadExecute
-                        , tp // Give the cmd to the thread (it will delete)
-                        , (THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED)
-                        , ACE_DEFAULT_THREAD_PRIORITY
-                        , this->grp_id()
-                        , this
-                    );
+                        ++this->thr_count_; WorkerTask::intrusive_add_ref(tp); // Increment permits by threadcount
 
-                    if (grp_spawned == -1) {
-                        --this->thr_count_; WorkerTask::intrusive_remove_ref(tp); break; // Clean up command after failed handoff
-                    }
+                        int grp_spawned = this->thr_mgr()->spawn_n(1
+                            , TaskExecutor::threadExecute
+                            , tp // Give the cmd to the thread (it will delete)
+                            , (THR_NEW_LWP | THR_JOINABLE | THR_INHERIT_SCHED)
+                            , ACE_DEFAULT_THREAD_PRIORITY
+                            , this->grp_id()
+                            , this
+                        );
 
-                    this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
+                        if (grp_spawned == -1) {
+                            --this->thr_count_; WorkerTask::intrusive_remove_ref(tp); break; // Clean up command after failed handoff
+                        }
 
-                } else break; // Not Available
-            }
+                        this->last_thread_id_ = ACE_thread_t(0);    // Reset to prevent inadvertant match on ID
 
-            return tp->acquire(); // Synchronise on the thread starting
+                    } else break; // Not Available
+                }
 
-        } while (false);
+                return tp->acquire(); // Synchronise on the thread starting
+
+            } while (false);
+        }
 
         return -1;
     }
