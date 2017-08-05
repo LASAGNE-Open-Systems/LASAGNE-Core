@@ -18,12 +18,16 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#include "daf/FutureResult_T.h"
-#include "daf/Barrier.h"
-#include "daf/TaskExecutor.h"
-#include "daf/DirectExecutor.h"
-#include "ace/Thread.h"
-#include "ace/Get_Opt.h"
+
+#include <daf/FutureResult_T.h>
+#include <daf/Barrier.h>
+#include <daf/TaskExecutor.h>
+#include <daf/DirectExecutor.h>
+
+#include <ace/Thread.h>
+#include <ace/Get_Opt.h>
+#include <ace/Min_Max.h>
+
 #include <iostream>
 #include <vector>
 #include <functional>
@@ -46,7 +50,9 @@ typedef DAF::FutureResult<int> FutureInt_t;
 int FutureFuncCalculator(void *op)
 {
     int *in1 = reinterpret_cast<int*>(op);
-    if (debug) ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - Func Value %d %d %d 0x%08X\n"),*in1, in1[0],in1[1], op));
+    if (debug) {
+        ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - Func Value %d %d %d 0x%08X\n"), *in1, in1[0], in1[1], op));
+    }
 
     return *in1+1;
 }
@@ -95,7 +101,9 @@ struct TestFutureGet : DAF::Runnable
 
     virtual int run(void)
     {
-        if (debug) ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X Get Future 0x%08X ... \n"),this  , &future));
+        if (debug) {
+            ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X Get Future 0x%08X ... \n"), this, &future));
+        }
 
         try {
             sema.release();
@@ -106,13 +114,19 @@ struct TestFutureGet : DAF::Runnable
             }
             if ( sema_post) sema_post->release();
 
-            if (debug) ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X Got Future 0x%08X ... \n"),this, &future));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X Got Future 0x%08X ... \n"), this, &future));
+            }
         } catch( const DAF::InvocationTargetException &) {
             invoke++;
-            if (debug) ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X InvocationException 0x%08X ... \n"),this, &future));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X InvocationException 0x%08X ... \n"), this, &future));
+            }
         } catch( const DAF::TimeoutException &) {
             timeout++;
-            if (debug) ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X TimeoutException 0x%08X ... \n"),this, &future));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X TimeoutException 0x%08X ... \n"), this, &future));
+            }
         }
 
         return 0;
@@ -131,13 +145,17 @@ struct TestFutureBind : DAF::Runnable
     int testBind(void *op)
     {
         int *i = reinterpret_cast<int*>(op);
-        if(debug) ACE_DEBUG((LM_INFO, "Bind Function Called 0x%08 %d 0x%08X\n", this, *i, op));
+        if (debug) {
+            ACE_DEBUG((LM_INFO, "Bind Function Called 0x%08 %d 0x%08X\n", this, *i, op));
+        }
         return *i + 2;
     }
 
     virtual int run(void)
     {
-        if (debug) ACE_DEBUG((LM_INFO, "Running 0x%08X %d 0x%08X\n", this, value, &value));
+        if (debug) {
+            ACE_DEBUG((LM_INFO, "Running 0x%08X %d 0x%08X\n", this, value, &value));
+        }
 
         // Want to see FutureResult changed to include either
         // std::bind compatibilty or Functor/std::unary_function support.
@@ -161,7 +179,9 @@ struct TestTrigger : DAF::Runnable
     virtual int run(void)
     {
         count++;
-        if (debug) ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X Trigger Count %d\n"), this, count));
+        if (debug) {
+            ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X Trigger Count %d\n"), this, count));
+        }
         return 0;
     }
 };
@@ -190,7 +210,9 @@ int test_FutureResultBasicFunctor(int threadCount)
 
         value = future.get();
 
-        if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Functor Future Value  %d\n", value));
+        if (debug) {
+            ACE_DEBUG((LM_INFO, "(%P|%t) %T Functor Future Value  %d\n", value));
+        }
     }
 
     result = (value == expected) ;
@@ -222,7 +244,9 @@ int test_FutureResultBasicSetter(int threadCount)
 
         value = future.get();
 
-        if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Setter Future Value  %d\n", value));
+        if (debug) {
+            ACE_DEBUG((LM_INFO, "(%P|%t) %T Setter Future Value  %d\n", value));
+        }
     }
 
     result = (value == expected) ;
@@ -402,7 +426,7 @@ int test_FutureResultDestruction(int threadCount)
             blocker.acquire();
         }
 
-        delete fut;
+        delete fut; fut = 0;
     }
 
     value = getter->invoke;
@@ -448,7 +472,9 @@ int test_FutureResultThreadKill(int threadCount)
 
         blocker.acquire();
 
-        if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing TaskExecutor\n"));
+        if (debug) {
+            ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing TaskExecutor\n"));
+        }
         delete kill_executor; kill_executor = 0;
     }
 
@@ -476,6 +502,8 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char *argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
+
     int result = 1, threadCount = 4;
 
     ACE_Get_Opt cli_opt(argc, argv, "hzn:");
@@ -483,14 +511,14 @@ int main(int argc, char *argv[])
     cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
     cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
 
-    for( int i = 0; i < argc; ++i ) switch(cli_opt()) {
+    for( int i = 0; i < argc; ++i ) {
+        switch (cli_opt()) {
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
-        case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
+        case 'z': DAF::debug(true); test::debug = true; break;
+        case 'n': threadCount = ace_max(4, DAF_OS::atoi(cli_opt.opt_arg())); break;
+        }
     }
-
-    std::cout << test::TEST_NAME << std::endl;
 
     result &= test::test_FutureResultBasicFunctor(threadCount);
     result &= test::test_FutureResultBasicSetter(threadCount);

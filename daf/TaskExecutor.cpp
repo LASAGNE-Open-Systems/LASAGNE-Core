@@ -131,7 +131,7 @@ namespace DAF
 
         if (worker) {
 
-            for (TaskExecutor * task(worker->taskExecutor()); task;) {
+            TaskExecutor * task(worker->taskExecutor()); if (task) {
 
                 ACE_Thread_Descriptor * td = static_cast<Thread_Manager *>(task->thr_mgr())->thread_desc_self();
 

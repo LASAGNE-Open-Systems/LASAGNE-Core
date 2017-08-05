@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,11 +18,13 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#include "daf/TaskExecutor.h"
-#include "daf/Exception.h"
+#include <daf/TaskExecutor.h>
+#include <daf/Exception.h>
 
-#include "ace/Get_Opt.h"
-#include "ace/Refcounted_Auto_Ptr.h"
+#include <ace/Get_Opt.h>
+#include <ace/Min_Max.h>
+#include <ace/Refcounted_Auto_Ptr.h>
+
 #include <iostream>
 
 //
@@ -60,11 +62,17 @@ namespace test
         int run(void)
         {
             sema_counter.release();
-            if ( debug ) ACE_DEBUG((LM_INFO, "%t - %T Sleeping for Time %d ms\n", delay.msec()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "%t - %T Sleeping for Time %d ms\n", delay.msec()));
+            }
             DAF_OS::sleep(delay);
-            if ( debug ) ACE_DEBUG((LM_INFO, "%t - %T Exit Sleep\n"));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "%t - %T Exit Sleep\n"));
+            }
             int count = sema_counter.permits();
-            if ( debug ) ACE_DEBUG((LM_INFO, "%t - %T %d Exit Sleep\n", count));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "%t - %T %d Exit Sleep\n", count));
+            }
             return 0;
         }
     };
@@ -103,7 +111,9 @@ namespace test
         }
         virtual int run(void)
         {
-            if ( debug ) ACE_DEBUG((LM_DEBUG, "%t - Acquiring 0x%08X\n", &sema));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "%t - Acquiring 0x%08X\n", &sema));
+            }
             sema_count.release();
             sema.acquire();
             return 0;
@@ -120,7 +130,9 @@ namespace test
 
         virtual int run(void)
         {
-            if ( debug ) ACE_DEBUG((LM_DEBUG, "%t - %T Throwing\n"));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "%t - %T Throwing\n"));
+            }
             sema_count.release();
             throw DAF::InternalException("Tester");
 
@@ -148,7 +160,9 @@ namespace test
 
         int svc(void)
         {
-            if(debug) ACE_DEBUG((LM_DEBUG, "%t - svcs \n"));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "%t - svcs \n"));
+            }
             ++svc_run;
             sema_count.release();
             sema_block.acquire();
@@ -242,10 +256,14 @@ namespace test
                 ACE_thread_t id = this->thr_mgr()->thr_self();
 
                 this->thr_mgr()->get_grp(id, thr_grp_id);
-                if (debug) ACE_DEBUG((LM_DEBUG, "%t - GrpId %d\n", thr_grp_id));
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "%t - GrpId %d\n", thr_grp_id));
+                }
             }
 
-            if (debug) ACE_DEBUG((LM_DEBUG, "%t - Task GrpId %d\n", this->grp_id()));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "%t - Task GrpId %d\n", this->grp_id()));
+            }
 
             sema.release();
             if (long_or_short )
@@ -300,11 +318,15 @@ namespace test
                 counter.attempt(ATTEMPT_TIMEOUT);
             }
 
-            if (debug) ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            }
 
             value = int(executor.size());
 
-            if (debug) ACE_DEBUG((LM_INFO, "Releasing %d \n", threads));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "Releasing %d \n", threads));
+            }
             svc_blocker.release(threads);
 
             blocker.release(threads);
@@ -357,7 +379,9 @@ namespace test
                 counter.attempt(ATTEMPT_TIMEOUT);
             }
 
-            if (debug) ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            }
 
             diff = int(executor.size());
 
@@ -374,7 +398,9 @@ namespace test
                 std::cout << __FUNCTION__ << " ERROR on Svc Thread Exit Expected " << diff-1 << " result " << executor.size() << std::endl;
             }
 
-            if (debug) ACE_DEBUG((LM_INFO, "S2 Current Pool Size: %d\n", executor.size()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "S2 Current Pool Size: %d\n", executor.size()));
+            }
 
             svc_blocker.release(1);
             DAF_OS::sleep(ACE_Time_Value(0, 50000));
@@ -384,7 +410,9 @@ namespace test
                 std::cout << __FUNCTION__ << " ERROR on Svc Thread Exit Expected " << diff - 2 << " result " << executor.size() << std::endl;
             }
 
-            if (debug) ACE_DEBUG((LM_INFO, "S3 Current Pool Size: %d\n", executor.size()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "S3 Current Pool Size: %d\n", executor.size()));
+            }
 
             svc_blocker.release(threads-2);
 
@@ -443,11 +471,15 @@ namespace test
                 counter.attempt(ATTEMPT_TIMEOUT);
             }
 
-            if (debug) ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            }
 
             value = int(executor.size());
 
-            if (debug) ACE_DEBUG((LM_INFO, "S3 Current Pool Size: %d\n", executor.size()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "S3 Current Pool Size: %d\n", executor.size()));
+            }
 
             svc_blocker.release(threads);
 
@@ -500,7 +532,9 @@ namespace test
                 counter.attempt(ATTEMPT_TIMEOUT);
             }
 
-            if (debug) ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            }
 
             diff = int(executor.size());
 
@@ -510,11 +544,15 @@ namespace test
 
             // Checking Debug on thread count --> output should decrement
 
-            if (debug) ACE_DEBUG((LM_INFO, "Going for a LONG sleep... %d\n", DAF::TaskExecutor::THREAD_DECAY_TIMEOUT / 1000));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "Going for a LONG sleep... %d\n", DAF::TaskExecutor::THREAD_DECAY_TIMEOUT / 1000));
+            }
 
             while ( executor.size() > 0 )
             {
-                if ( debug ) ACE_DEBUG((LM_DEBUG, "%T Current Pool Size %d\n", executor.size()));
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "%T Current Pool Size %d\n", executor.size()));
+                }
                 DAF_OS::sleep(ACE_Time_Value(DAF::TaskExecutor::THREAD_DECAY_TIMEOUT / 10000, 1000));
             }
 
@@ -528,7 +566,9 @@ namespace test
                 std::cout << __FUNCTION__ << " ERROR on Svc Thread Exit Expected " << diff-1 << " result " << executor.size() << std::endl;
             }
 
-            if (debug) ACE_DEBUG((LM_INFO, "S2 Current Pool Size: %d\n", executor.size()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "S2 Current Pool Size: %d\n", executor.size()));
+            }
 
         } DAF_CATCH_ALL{
             ACE_DEBUG((LM_WARNING, ACE_TEXT("Exception caughtin %s\n"),__FUNCTION__)); expected = -1; // Forced Error Result
@@ -564,7 +604,9 @@ namespace test
             executor.execute(new TestThrower(counter));
 
             counter.attempt(ATTEMPT_TIMEOUT);
-            if (debug) ACE_DEBUG((LM_DEBUG, "%t - Did something Amazing Happen?\n"));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "%t - Did something Amazing Happen?\n"));
+            }
 
         } DAF_CATCH_ALL{
             ACE_DEBUG((LM_WARNING, ACE_TEXT("Exception caughtin %s\n"),__FUNCTION__)); expected = -1; // Forced Error Result
@@ -617,20 +659,26 @@ namespace test
                 counter.attempt(ATTEMPT_TIMEOUT);
             }
 
-            if (debug) ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "S1 Current Pool Size: %d\n", executor.size()));
+            }
 
             blocker.release(threads);
 
             int attempts = 0;
             for ( attempts = 0; executor.size() > 0 && attempts < max_attempts; ++attempts)
             {
-                if ( debug ) ACE_DEBUG((LM_DEBUG, "%T Current Pool Size %d\n", executor.size()));
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "%T Current Pool Size %d\n", executor.size()));
+                }
                 DAF_OS::sleep(ACE_Time_Value(0, TestKeepAliveTime_1 * 1000/(max_attempts-1)));
             }
             //value = (attempts < max_attempts);
             //DAF_OS::sleep(ACE_Time_Value(0, (TestKeepAliveTime_1 + 1) * 1000));
 
-            if (debug) ACE_DEBUG((LM_INFO, "S2 Current Pool Size: %d\n", executor.size()));
+                if (debug) {
+                    ACE_DEBUG((LM_INFO, "S2 Current Pool Size: %d\n", executor.size()));
+                }
 
             executor.setDecayTimeout(TestKeepAliveTime_2);
 
@@ -648,11 +696,16 @@ namespace test
 
             for ( attempts = 0; executor.size() > 0 && attempts < max_attempts; ++attempts)
             {
-                if ( debug ) ACE_DEBUG((LM_DEBUG, "%T  2 Current Pool Size %d\n", executor.size()));
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "%T  2 Current Pool Size %d\n", executor.size()));
+                }
+
                 DAF_OS::sleep(ACE_Time_Value(0, TestKeepAliveTime_2 * 1000/(max_attempts-1)));
             }
 
-            if (debug) ACE_DEBUG((LM_INFO, "S3 Current Pool Size: %d\n", executor.size()));
+                if (debug) {
+                    ACE_DEBUG((LM_INFO, "S3 Current Pool Size: %d\n", executor.size()));
+                }
 
             value = int(executor.size());
 
@@ -683,20 +736,17 @@ namespace test
             ACE_Refcounted_Auto_Ptr<TestACETask, ACE_SYNCH_MUTEX> task(new TestACETask);
 
             task->long_or_short = 0;
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count() ));
             }
 
             task->run();
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
             }
             task->sema.acquire();
             task->sema_post.acquire();
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
             }
 
@@ -704,13 +754,11 @@ namespace test
 
             task->run();
             DAF_OS::thr_yield();
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
             }
             task->sema.acquire();
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
             }
 
@@ -738,14 +786,12 @@ namespace test
             ACE_Refcounted_Auto_Ptr<TestTaskExecutorLongShort, ACE_SYNCH_MUTEX> task(new TestTaskExecutorLongShort);
 
             task->long_or_short = 0;
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count() ));
             }
 
             task->run();
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
             }
             task->sema.acquire();
@@ -757,8 +803,7 @@ namespace test
                 DAF_OS::sleep(ACE_Time_Value(0, 100));
             }
 
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
             }
 
@@ -766,15 +811,13 @@ namespace test
 
             task->run();
             DAF_OS::thr_yield();
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
             }
             task->sema.acquire();
             expected = task->thr_grp_id;
             value = task->grp_id();
-            if (debug)
-            {
+            if (debug) {
                 ACE_DEBUG((LM_INFO, "%t - Task GrpId %d ThrCount %d\n", task->grp_id(), task->thr_count()));
             }
 
@@ -852,7 +895,9 @@ namespace test
                 ACE_thread_t thread_list[THREAD_LIST_SIZE];
 
                 value = int(thr_man->thread_grp_list(grp_id, thread_list, THREAD_LIST_SIZE));
-                if (debug) ACE_DEBUG((LM_INFO, "%t - Main Checking GroupId %d thread Count %d\n", grp_id, value));
+                if (debug) {
+                    ACE_DEBUG((LM_INFO, "%t - Main Checking GroupId %d thread Count %d\n", grp_id, value));
+                }
             }
          }
 
@@ -922,7 +967,9 @@ namespace test
                 ACE_thread_t thread_list[THREAD_LIST_SIZE];
 
                 value = int(thr_man->thread_grp_list(grp_id, thread_list, THREAD_LIST_SIZE));
-                if (debug) ACE_DEBUG((LM_INFO, "%t - Main Checking GroupId %d thread Count %d\n", grp_id, value));
+                if (debug) {
+                    ACE_DEBUG((LM_INFO, "%t - Main Checking GroupId %d thread Count %d\n", grp_id, value));
+                }
             }
         }
 
@@ -1006,18 +1053,20 @@ int main(int argc, char *argv[])
 {
     ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
 
-    int result = 1;
-    int threadCount = 2;
-    ACE_Get_Opt cli_opt(argc, argv, "hzn:");
-    cli_opt.long_option("help",'h', ACE_Get_Opt::NO_ARG);
-    cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
-    cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
+    int result = 1, threadCount = 2;
 
-    for( int i = 0; i < argc; ++i ) switch(cli_opt()) {
+    ACE_Get_Opt cli_opt(argc, argv, "hzn:");
+    cli_opt.long_option("help", 'h', ACE_Get_Opt::NO_ARG);
+    cli_opt.long_option("debug", 'z', ACE_Get_Opt::NO_ARG);
+    cli_opt.long_option("count", 'n', ACE_Get_Opt::ARG_REQUIRED);
+
+    for (int i = 0; i < argc; ++i) {
+        switch (cli_opt()) {
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
         case 'z': DAF::debug(10); test::debug = DAF::debug(); break;
-        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
+        case 'n': threadCount = ace_max(2, DAF_OS::atoi(cli_opt.opt_arg())); break;
+        }
     }
 
     ACE::debug(test::debug ? 1 : 0);

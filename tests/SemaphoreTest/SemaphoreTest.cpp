@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,10 +18,13 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#include "daf/Semaphore.h"
-#include "daf/Runnable.h"
-#include "daf/TaskExecutor.h"
-#include "ace/Get_Opt.h"
+
+#include <daf/Semaphore.h>
+#include <daf/Runnable.h>
+#include <daf/TaskExecutor.h>
+
+#include <ace/Get_Opt.h>
+#include <ace/Min_Max.h>
 
 #include <iostream>
 
@@ -52,10 +55,14 @@ namespace test
         virtual int run(void)
         {
             permit_entry = sema.permits();
-            if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Acquire Semaphore %d\n", this, permit_entry ));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Acquire Semaphore %d\n", this, permit_entry));
+            }
             result = sema.acquire();
             permit_exit = sema.permits();
-            if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Acquire Semaphore %d\n", this, permit_exit));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Acquire Semaphore %d\n", this, permit_exit));
+            }
 
             return 0;
         }
@@ -76,10 +83,14 @@ namespace test
         virtual int run(void)
         {
             permit_entry = sema.permits();
-            if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Acquire Semaphore %d %d\n", this, permit_entry, sema.waiters() ));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Acquire Semaphore %d %d\n", this, permit_entry, sema.waiters()));
+            }
             result = sema.attempt(this->timeout);
             permit_exit = sema.permits();
-          //  if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Acquire Semaphore %d %d %d\n", this, permit_exit, sema.waiters(), result));
+            //if (debug) {
+            //    ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Acquire Semaphore %d %d %d\n", this, permit_exit, sema.waiters(), result));
+            //}
 
             return 0;
         }
@@ -323,7 +334,9 @@ namespace test
             DAF_OS::sleep(ACE_Time_Value(1,300));
 
             // Kill the Executor
-            if ( debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing Executor\n"));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing Executor\n"));
+            }
             delete kill_executor;
 
             // At this point the semaphore should still function.
@@ -380,15 +393,21 @@ namespace test
            // on this condition where permits > waiters is used off the
            // wait. This should be permits > 0
 
-           if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - ST Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+           if (debug) {
+               ACE_DEBUG((LM_INFO, "(%P|%t) %T - ST Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+           }
 
            sema.release();
 
-           if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - R1 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+           if (debug) {
+               ACE_DEBUG((LM_INFO, "(%P|%t) %T - R1 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+           }
 
            sema.release();
 
-           if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - R2 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+           if (debug) {
+               ACE_DEBUG((LM_INFO, "(%P|%t) %T - R2 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+           }
 
            DAF_OS::sleep(ACE_Time_Value(0,5000));
            value = sema.waiters();
@@ -423,8 +442,9 @@ namespace test
       DAF::Semaphore sema(0);
       time_t very_long= 10000;
 
-      if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - BEGIN semaphore permits %d waiters %d\n", sema.permits(), sema.waiters()));
-
+      if (debug) {
+          ACE_DEBUG((LM_INFO, "(%P|%t) %T - BEGIN semaphore permits %d waiters %d\n", sema.permits(), sema.waiters()));
+      }
 
       TestSemaphoreAttempt *tester = new TestSemaphoreAttempt(sema,very_long );
 
@@ -447,7 +467,9 @@ namespace test
           // on this condition where permits > waiters is used off the
           // wait. This should be permits > 0
 
-          if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - ST Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+          if (debug) {
+              ACE_DEBUG((LM_INFO, "(%P|%t) %T - ST Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+          }
           if (sema.permits() < 0 )
           {
             // force Failure
@@ -458,11 +480,15 @@ namespace test
 
           sema.release();
 
-          if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - R1 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+          if (debug) {
+              ACE_DEBUG((LM_INFO, "(%P|%t) %T - R1 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+          }
 
           sema.release();
 
-          if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - R2 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+          if (debug) {
+              ACE_DEBUG((LM_INFO, "(%P|%t) %T - R2 Executor Size %d semaphore permits %d waiters %d\n", executor.size(), sema.permits(), sema.waiters()));
+          }
           DAF_OS::sleep(ACE_Time_Value(0,5000));
           value = sema.waiters();
 
@@ -498,24 +524,21 @@ int main(int argc, char* argv[])
 {
     ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
 
-     int result = 1;
-    size_t threadCount = 3;
+     int result = 1, threadCount = 3; ACE_UNUSED_ARG(threadCount);
 
     ACE_Get_Opt cli_opt(argc, argv, "hzn:");
     cli_opt.long_option("help",'h', ACE_Get_Opt::NO_ARG);
     cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
     cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
 
-    for( int i = 0; i < argc; ++i ) switch(cli_opt()) {
+    for (int i = 0; i < argc; ++i) {
+        switch (cli_opt()) {
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
-        case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
+        case 'z': DAF::debug(true); test::debug = true; break;
+        case 'n': threadCount = ace_max(3, DAF_OS::atoi(cli_opt.opt_arg())); break;
+        }
     }
-
-    ACE_UNUSED_ARG(threadCount);
-
-    std::cout << test::TEST_NAME << std::endl;
 
     result &= test::test_SemaphoreCtorDefault();
     result &= test::test_SemaphoreCtor();

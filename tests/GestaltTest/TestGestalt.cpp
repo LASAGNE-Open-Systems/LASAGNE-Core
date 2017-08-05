@@ -111,17 +111,23 @@ struct ACEServiceAction : DAF::Runnable
     switch(this->directive_)
     {
       case SVC_SUSPEND:
-        if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing SUSPEND Command %d %s\n", this->directive_, this->ident_.c_str()));
+          if (debug) {
+              ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing SUSPEND Command %d %s\n", this->directive_, this->ident_.c_str()));
+          }
         //result = ACE_Service_Config::suspend(this->ident_.c_str());
         result = gestalt_.suspendService(this->ident_.c_str());
         break;
       case SVC_RESUME:
-        if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing RESUME Command %d %s\n", this->directive_, this->ident_.c_str()));
+          if (debug) {
+              ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing RESUME Command %d %s\n", this->directive_, this->ident_.c_str()));
+          }
         //result = ACE_Service_Config::resume(this->ident_.c_str());
         result = gestalt_.resumeService(this->ident_.c_str());
         break;
       case SVC_REMOVE:
-        if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing REMOVE Command %d %s\n", this->directive_, this->ident_.c_str()));
+          if (debug) {
+              ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing REMOVE Command %d %s\n", this->directive_, this->ident_.c_str()));
+          }
         //result = ACE_Service_Config::remove(this->ident_.c_str());
         result = gestalt_.removeService(this->ident_.c_str());
         break;
@@ -130,10 +136,8 @@ struct ACEServiceAction : DAF::Runnable
         break;
     }
 
-    if ( debug )
-    {
+    if (debug) {
       ACE_DEBUG((LM_INFO, "(%P|%t) %T Executed Command result=%d errno=%d %s\n",result,DAF_OS::last_error(), DAF::last_error_text().c_str() ));
-
     }
 
     return 0;
@@ -1090,13 +1094,17 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      test::TestGestaltService *svc = ACE_Dynamic_Service<test::TestGestaltService>::instance(&container,service_name(__FUNCTION__).c_str(),false);
      result &= (svc != 0 );
 
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Service 0x%@ %d \n", svc, result));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Service 0x%@ %d \n", svc, result));
+     }
 
      if ( result )
      {
        svc->ret_errno = EHOSTDOWN;
        svc->ret_val = -1;
-       if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Configuring service errno %d rc=%d\n", svc->ret_errno, svc->ret_val));
+       if (debug) {
+           ACE_DEBUG((LM_INFO, "(%P|%t) %T Configuring service errno %d rc=%d\n", svc->ret_errno, svc->ret_val));
+       }
      }
      result &=  (container.suspendService(service_name(__FUNCTION__).c_str() ) != 0);
 
@@ -1139,7 +1147,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      {
        svc->ret_errno = EHOSTDOWN;
        svc->ret_val = -1;
-       if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Configuring service errno %d rc=%d\n", svc->ret_errno, svc->ret_val));
+       if (debug) {
+           ACE_DEBUG((LM_INFO, "(%P|%t) %T Configuring service errno %d rc=%d\n", svc->ret_errno, svc->ret_val));
+       }
      }
 
      result &=  (container.resumeService(service_name(__FUNCTION__).c_str() ) != 0);
@@ -1148,7 +1158,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      {
        svc->ret_errno = 0;
        svc->ret_val = 0;
-       if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Configuring service errno %d rc=%d\n", svc->ret_errno, svc->ret_val));
+       if (debug) {
+           ACE_DEBUG((LM_INFO, "(%P|%t) %T Configuring service errno %d rc=%d\n", svc->ret_errno, svc->ret_val));
+       }
      }
 
      value = DAF_OS::last_error();
@@ -1241,20 +1253,28 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      // If we remove it underlying via ACE and then call suspend... will
      // it catch the fini_called method.
      std::string ident = service_name(__FUNCTION__).c_str();
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing Remove Runner\n"));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing Remove Runner\n"));
+     }
      executor.execute(new ACEServiceAction(container, SVC_REMOVE, ident));
 
      ACE_OS::sleep(ACE_Time_Value(1,0));
 
      // Call suspend in this window to be caught by "fini_called"
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing Suspend Runner\n"));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing Suspend Runner\n"));
+     }
      result &=  (container.suspendService(service_name(__FUNCTION__).c_str() ) != 0);
      value = DAF_OS::last_error();
 
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Completed Test\n"));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Completed Test\n"));
+     }
      // Thread Join?
      executor.wait();
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Thread Joined Test\n"));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Thread Joined Test\n"));
+     }
 
    }
 
@@ -1309,7 +1329,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      // during the Remove and change service state. This should be guarded on the
      // RW Mutex of the Service Gestalt.
      //
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing Remove Runner\n"));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing Remove Runner\n"));
+     }
      executor.execute(new ACEServiceAction(container, SVC_REMOVE, ident));
 
      // Give it some time to call it out. and Sleep
@@ -1325,8 +1347,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
 
      // Thread Join?
      executor.wait();
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Thread Joined Test\n"));
-
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Thread Joined Test\n"));
+     }
    }
 
    result &= (value == expected);
@@ -1379,7 +1402,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      // during the Remove and change service state. This should be guarded on the
      // RW Mutex of the Service Gestalt.
      //
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing Remove Runner\n"));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing Remove Runner\n"));
+     }
      executor.execute(new ACEServiceAction(container, SVC_REMOVE, ident));
 
      // This shouldn't really execute.
@@ -1388,8 +1413,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
 
      // Thread Join?
      executor.wait();
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Thread Joined Test\n"));
-
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Thread Joined Test\n"));
+     }
    }
 
    result &= (value == expected);
@@ -1444,7 +1470,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      }
 
      // Start Long SUSPEND
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing SUSPEND Runner\n"));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Executing SUSPEND Runner\n"));
+     }
      executor.execute(new ACEServiceAction(container, SVC_SUSPEND, ident));
 
      // Give it some time to enter the suspend
@@ -1470,7 +1498,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
 
      // Thread Join?
      executor.wait();
-     if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T Thread Joined Test\n"));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Thread Joined Test\n"));
+     }
 
    }
 
@@ -1521,7 +1551,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      }
 
      value = container.suspendServiceAll();
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Suspended Failures on suspendServiceAll %d\n", value));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Suspended Failures on suspendServiceAll %d\n", value));
+     }
 
      if ( result )
      {
@@ -1531,7 +1563,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      }
 
      result &= (0 == container.suspendServiceAll());
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Suspended Failures on suspendServiceAll %d\n", !result));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Suspended Failures on suspendServiceAll %d\n", !result));
+     }
 
    }
 
@@ -1582,7 +1616,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      }
 
      value = container.resumeServiceAll();
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Resume Failures on resumeServiceAll %d\n", value));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Resume Failures on resumeServiceAll %d\n", value));
+     }
 
      if ( result )
      {
@@ -1592,8 +1628,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      }
 
      result &= (0 == container.resumeServiceAll());
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Resume Failures on resumeServiceAll %d\n", !result));
-
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Resume Failures on resumeServiceAll %d\n", !result));
+     }
    }
 
    result &= (value == expected) ;
@@ -1646,11 +1683,15 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      }
 
      value = container.removeServiceAll();
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Remove Failures on resumeServiceAll %d\n", value));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Remove Failures on resumeServiceAll %d\n", value));
+     }
 
      // The question is have these really been removed
      int temp = container.removeServiceAll();
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Remove Failures  2 on removeServiceAll %d\n", temp));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Remove Failures  2 on removeServiceAll %d\n", temp));
+     }
 
      if ( result )
      {
@@ -1660,7 +1701,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      }
 
      result &= (0 == container.removeServiceAll());
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Remove Failures on removeServiceAll %d\n", !result));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Remove Failures on removeServiceAll %d\n", !result));
+     }
 
    }
 
@@ -1693,7 +1736,9 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
 
 
      ACE_Service_Gestalt *current = ACE_Service_Config::current();
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Gestalts Current %@ Global %@ Container %@\n", current, ACE_Service_Config::global(), &container));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Gestalts Current %@ Global %@ Container %@\n", current, ACE_Service_Config::global(), &container));
+     }
      result &= ( 0 == current->process_directive(directive.str().c_str()) );
 
      test::TestGestaltStream *stream;
@@ -1702,18 +1747,20 @@ int test_Gestalt_resume_ident_whitespace_EINVAL(int threadCount)
      test::TestGestaltModule *module;
      module = Dynamic_Locator<test::TestGestaltModule>::module("TestModuleA", &container);
 
-     if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T Stream 0x%@ Module 0x%@ name %s\n", stream, module, (module? module->name(): "null") ));
+     if (debug) {
+         ACE_DEBUG((LM_INFO, "(%P|%t) %T Stream 0x%@ Module 0x%@ name %s\n", stream, module, (module ? module->name() : "null")));
+     }
 
      result &= ( 0 !=  stream);
 
      if ( result )
      {
        // Put Message into Stream...
-       if ( debug )  ACE_DEBUG((LM_INFO, "Got a Stream !!\n"));
+         if (debug) {
+             ACE_DEBUG((LM_INFO, "Got a Stream !!\n"));
+         }
        //stream->close();
      }
-
-
    }
 
    result &= (value == expected);
@@ -1746,14 +1793,14 @@ int main(int argc, char *argv[])
     cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
     cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
 
-    for( int i = 0; i < argc; ++i ) switch(cli_opt()) {
+    for (int i = 0; i < argc; ++i) {
+        switch (cli_opt()) {
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
-        case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = ACE_OS::atoi(cli_opt.opt_arg());
+        case 'z': DAF::debug(true); test::debug = true; break;
+        case 'n': threadCount = ace_max(2, ACE_OS::atoi(cli_opt.opt_arg())); break;
+        }
     }
-
-    std::cout << test::TEST_NAME << std::endl;
 
 #if 1
     //
