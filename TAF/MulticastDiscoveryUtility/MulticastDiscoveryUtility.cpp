@@ -337,46 +337,48 @@ int main(int argc, char *argv[])
 
                 if (ior_seq.size()) {
 
-                    if (!shutdown_) {
-                        for (size_t i = 0; i < ior_seq.size(); i++) {
+                    if (shutdown_) {
+                        break;
+                    }
 
-                            CORBA::Object_var   tafServerObj(ior_seq[i].svc_obj);
-                            const std::string   ident(ior_seq[i].svc_ident.in());
+                    for (size_t i = 0; i < ior_seq.size(); i++) {
 
-                            try {
-                                std::cout << TAFServerFormatter(taf::TAFServer::_narrow(tafServerObj), i) << std::endl;
-                            } catch (const CORBA::NO_PERMISSION &) {
-                                if (debug()) {
-                                    ACE_DEBUG((LM_WARNING,
-                                        ACE_TEXT("WARNING: NO_PERMISSION; Attempted security permission violation [ident=%s].\n")
-                                        , ident.c_str()));
-                                }
-                            } catch (const CORBA::INV_POLICY &) {
-                                if (debug()) {
-                                    ACE_DEBUG((LM_WARNING,
-                                        ACE_TEXT("WARNING: CORBA::INV_POLICY; Attempted security policy violation [ident=%s].\n")
-                                        , ident.c_str()));
-                                }
-                            } catch (const CORBA::OBJECT_NOT_EXIST &) {
-                                if (debug()) {
-                                    ACE_DEBUG((LM_WARNING,
-                                        ACE_TEXT("WARNING: CORBA::OBJECT_NOT_EXIST; Unable to locate instance [ident=%s].\n")
-                                        , ident.c_str()));
-                                }
-                            } catch (const CORBA::TRANSIENT &) {
-                                if (debug()) {
-                                    ACE_DEBUG((LM_WARNING,
-                                        ACE_TEXT("WARNING: CORBA::TRANSIENT; Unable to locate instance [ident=%s].\n")
-                                        , ident.c_str()));
-                                }
-                            } catch (const CORBA::Exception &ex) {
-                                if (debug_) { // Ignore and keep going - TAFServer probably shutdown
-                                    ex._tao_print_exception("WE BROKE - Inner Loop.");
-                                }
+                        CORBA::Object_var   tafServerObj(ior_seq[i].svc_obj);
+                        const std::string   ident(ior_seq[i].svc_ident.in());
+
+                        try {
+                            std::cout << TAFServerFormatter(taf::TAFServer::_narrow(tafServerObj), i) << std::endl;
+                        } catch (const CORBA::NO_PERMISSION &) {
+                            if (debug()) {
+                                ACE_DEBUG((LM_WARNING,
+                                    ACE_TEXT("WARNING: NO_PERMISSION; Attempted security permission violation [ident=%s].\n")
+                                    , ident.c_str()));
                             }
-                            DAF_CATCH_ALL{
-                                break;
+                        } catch (const CORBA::INV_POLICY &) {
+                            if (debug()) {
+                                ACE_DEBUG((LM_WARNING,
+                                    ACE_TEXT("WARNING: CORBA::INV_POLICY; Attempted security policy violation [ident=%s].\n")
+                                    , ident.c_str()));
                             }
+                        } catch (const CORBA::OBJECT_NOT_EXIST &) {
+                            if (debug()) {
+                                ACE_DEBUG((LM_WARNING,
+                                    ACE_TEXT("WARNING: CORBA::OBJECT_NOT_EXIST; Unable to locate instance [ident=%s].\n")
+                                    , ident.c_str()));
+                            }
+                        } catch (const CORBA::TRANSIENT &) {
+                            if (debug()) {
+                                ACE_DEBUG((LM_WARNING,
+                                    ACE_TEXT("WARNING: CORBA::TRANSIENT; Unable to locate instance [ident=%s].\n")
+                                    , ident.c_str()));
+                            }
+                        } catch (const CORBA::Exception &ex) {
+                            if (debug_) { // Ignore and keep going - TAFServer probably shutdown
+                                ex._tao_print_exception("WE BROKE - Inner Loop.");
+                            }
+                        }
+                        DAF_CATCH_ALL{
+                            break;
                         }
                     }
                     continue;

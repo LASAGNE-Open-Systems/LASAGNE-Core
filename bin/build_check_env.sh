@@ -54,8 +54,8 @@ else
     #
     # Checks on ACE/TAO version
     #
-    ACE_MAJOR_VERSION=`cat $ACE_ROOT/ace/Version.h | grep MAJOR_VERSION | cut -d' ' -f3`
-    ACE_MINOR_VERSION=`cat $ACE_ROOT/ace/Version.h | grep MINOR_VERSION | cut -d' ' -f3`
+    export ACE_MAJOR_VERSION=`cat $ACE_ROOT/ace/Version.h | grep MAJOR_VERSION | cut -d' ' -f3`
+    export ACE_MINOR_VERSION=`cat $ACE_ROOT/ace/Version.h | grep MINOR_VERSION | cut -d' ' -f3`
     #echo "ACE_MAJOR_VERSION=$ACE_MAJOR_VERSION"
     #echo "ACE_MINOR_VERSION=$ACE_MINOR_VERSION"
     

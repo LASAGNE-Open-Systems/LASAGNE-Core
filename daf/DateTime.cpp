@@ -466,36 +466,39 @@ namespace DAF
     {
         char s[64];  // Build String
 
-        if (assertDateRange(dt)) do {
+        if (assertDateRange(dt)) {
 
-            if (verbose) {
-                if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_VERBOSE_FORMAT,
-                    weekdayNAME(dt.weekday()),
-                    int(dt.day()),
-                    dayACRONIUM(dt.day()),
-                    monthNAME(dt.month()),
+            do {
+
+                if (verbose) {
+                    if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_VERBOSE_FORMAT,
+                        weekdayNAME(dt.weekday()),
+                        int(dt.day()),
+                        dayACRONIUM(dt.day()),
+                        monthNAME(dt.month()),
+                        int(dt.year()),
+                        int((dt.hour() % 12) ? (dt.hour() % 12) : 12),
+                        int(dt.minute()),
+                        int(dt.second()),
+                        ((dt.hour() >= 12) ? "PM" : "AM"))) {
+                        break;
+                    }
+
+                } // SAME AS SQLite DATETIME string
+                else if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_DEFAULT_FORMAT,
                     int(dt.year()),
-                    int((dt.hour() % 12) ? (dt.hour() % 12) : 12),
+                    int(dt.month()),
+                    int(dt.day()),
+                    int(dt.hour()),
                     int(dt.minute()),
-                    int(dt.second()),
-                    ((dt.hour() >= 12) ? "PM" : "AM"))) {
+                    int(dt.second()))) {
                     break;
                 }
 
-            } // SAME AS SQLite DATETIME string
-            else if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_DEFAULT_FORMAT,
-                int(dt.year()),
-                int(dt.month()),
-                int(dt.day()),
-                int(dt.hour()),
-                int(dt.minute()),
-                int(dt.second()))) {
-                break;
-            }
+                return std::string(s);  // Return string
 
-            return std::string(s);  // Return string
-
-        } while (false);
+            } while (false);
+        }
 
         DAF_THROW_EXCEPTION(IllegalArgumentException);     // "DAF::Date invalid_time_value");
     }
