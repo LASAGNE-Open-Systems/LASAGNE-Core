@@ -171,7 +171,7 @@ namespace TAFDDS
     DDS_DomainParticipant_handle
     DDS_DomainParticipant_factory::create_participant(const DDS::DomainId_t &domain_id)
     {
-        if (!is_valid_dcps_domain(domain_id)) {
+        if (is_valid_dcps_domain(domain_id) ? false : true) {
             DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);
         }
 
