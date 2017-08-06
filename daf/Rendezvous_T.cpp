@@ -194,23 +194,25 @@ namespace DAF
         this->slots_.push_back(t);
         this->resets_ = ++this->count_;
 
-        while (!(this->broken_ || this->triggered_)) try {
-            if (this->shutdown_) {
+        while ((this->broken_ || this->triggered_) ? false : true) {
+            try {
+                if (this->shutdown_) {
+                    this->broken_ = true;
+                } else if (this->count_ != this->parties_) {
+                    if (end_time > DAF_OS::gettimeofday()) {
+                        this->wait(end_time);
+                    } else timeout = this->broken_ = true;
+                } else {
+                    this->fn_(this->slots_);
+                    this->triggered_ = true;
+                }
+            } catch (...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
+                --this->resets_;
+                --this->count_;
                 this->broken_ = true;
-            } else if (this->count_ != this->parties_) {
-                if (end_time > DAF_OS::gettimeofday()) {
-                    this->wait(end_time);
-                } else timeout = this->broken_ = true;
-            } else {
-                this->fn_(this->slots_);
-                this->triggered_ = true;
+                this->broadcast();
+                throw;
             }
-        } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-            --this->resets_;
-            --this->count_;
-            this->broken_ = true;
-            this->notifyAll();
-            throw;
         }
 
         if (index >= this->slots_.size()) {
@@ -221,7 +223,7 @@ namespace DAF
 
         bool broken = this->broken_, shutdown = this->shutdown_; // Get state onto the stack
 
-        this->notifyAll();
+        this->broadcast();
 
         if (--this->resets_ == 0) {
             this->slots_.clear();

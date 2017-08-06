@@ -74,9 +74,11 @@ namespace TAF
     {
         int rtn = -1;
 
-        if (this->stub_activated_) try {
-            this->stub_activated_ = false; rtn = this->ior_binder_.fini_bind(); _interface_activator_type::deactivate(this);
-        } DAF_CATCH_ALL {
+        if (this->stub_activated_) {
+            try {
+                this->stub_activated_ = false; rtn = this->ior_binder_.fini_bind(); _interface_activator_type::deactivate(this);
+            } DAF_CATCH_ALL{
+            }
         }
 
         return rtn;
