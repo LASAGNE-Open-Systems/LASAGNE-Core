@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -73,7 +73,9 @@ namespace DEV
                     while (this->is_active() && this->is_empty()) {
                         this->signal_reader();                              // Ensure Writer is Signalled
                         if (this->b_cond_.wait(timeout ? &tv : 0) == -1) {      // Wait on Full Condition
-                            if (this->is_empty()) return recv_len;
+                            if (this->is_empty()) {
+                                return recv_len;
+                            }
                         }
                     }
 

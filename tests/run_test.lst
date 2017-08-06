@@ -9,3 +9,4 @@ TaskExecutorTest/TaskExecutorTest -n 10
 MonitorTest/MonitorTest
 MonitorTest/MonitorChannelTest
 ServiceConfiguratorTest/ServiceConfiguratorTest
+BitsetTest/BitsetTest

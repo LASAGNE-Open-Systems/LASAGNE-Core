@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -142,7 +142,6 @@ public:
     virtual int open(void *args = 0 )
     {
         return TTY_Device::open(args) ? -1 : this->execute(1);
-        return -1;
     }
 
 protected:

@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -56,25 +56,28 @@ namespace TAF
 
     PropertyLoader::PropertyLoader(int &argc, ACE_TCHAR *argv[], bool use_env) : DAF_ARGV(false)
     {
-        if (argc) for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
+        if (argc) {
 
-            if (arg_shifter.is_option_next()) {
-                if (arg_shifter.cur_arg_strncasecmp(TAF_PROPERTIES_FLAG) == 0) {
-                    for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
-                        try {
-                            if (this->load_file_profile(arg_shifter.get_current()) == 0) {
-                                continue;
-                            }
-                        } DAF_CATCH_ALL { /* Drop Through to WARNING */ }
+            for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
 
-                        ACE_DEBUG((LM_WARNING, ACE_TEXT("TAF (%P | %t) PropertyLoader WARNING: ")
-                            ACE_TEXT("Unable to load properties from file argument '%s' - Removed.\n")
-                            , arg_shifter.get_current()));
+                if (arg_shifter.is_option_next()) {
+                    if (arg_shifter.cur_arg_strncasecmp(TAF_PROPERTIES_FLAG) == 0) {
+                        for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
+                            try {
+                                if (this->load_file_profile(arg_shifter.get_current()) == 0) {
+                                    continue;
+                                }
+                            } DAF_CATCH_ALL{ /* Drop Through to WARNING */ }
+
+                                ACE_DEBUG((LM_WARNING, ACE_TEXT("TAF (%P | %t) PropertyLoader WARNING: ")
+                                    ACE_TEXT("Unable to load properties from file argument '%s' - Removed.\n")
+                                    , arg_shifter.get_current()));
+                        }
+                        continue;
                     }
-                    continue;
                 }
+                arg_shifter.ignore_arg();
             }
-            arg_shifter.ignore_arg();
         }
 
         if (this->load_count() ? false : use_env) {

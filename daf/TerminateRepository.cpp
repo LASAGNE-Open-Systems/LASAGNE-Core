@@ -243,10 +243,12 @@ DAF_OS::cond_timedwait(ACE_cond_t * cv, ACE_thread_mutex_t * external_mutex, ACE
         result = -1; // Return an Error indication
     }
 
-    if (error) switch (DAF_OS::last_error(error)) {
+    if (error) {
+        switch (DAF_OS::last_error(error)) {
 #  if defined(DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION) && (DAF_HAS_ABI_FORCED_UNWIND_EXCEPTION > 0)
-    case EINTR: throw ::abi::__forced_unwind();
+        case EINTR: throw ::abi::__forced_unwind();
 #  endif
+        }
     }
 
     return result;

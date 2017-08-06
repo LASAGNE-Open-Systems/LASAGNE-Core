@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,9 +20,10 @@
 ***************************************************************/
 #define TAF_STRINGMANAGERTEST_CPP
 
-#include "taf/TAF.h"
-#include "taf/StringManager_T.h"
-#include "daf/OS.h"
+#include <taf/TAF.h>
+#include <taf/StringManager_T.h>
+
+#include <daf/OS.h>
 
 #include <tao/CORBA_String.h>
 #include <tao/StringSeqC.h>
@@ -132,48 +133,48 @@ int main(int argc, ACE_TCHAR *argv[])
 {
     ACE_UNUSED_ARG(argc); ACE_UNUSED_ARG(argv);
 
-    do try {
+    do {
+        try {
+            {
+                CRT_MEMORY_DIFF_MONITOR(fixed_mon);
 
-        {
-            CRT_MEMORY_DIFF_MONITOR(fixed_mon);
+                DAF::HighResTimer timer("StringManagerTest \t"); ACE_UNUSED_ARG(timer);
 
-            DAF::HighResTimer timer("StringManagerTest \t"); ACE_UNUSED_ARG(timer);
+                StringManagerType  s(generate_corba_string_type());
 
-            StringManagerType  s(generate_corba_string_type());
-
-            if (validate_string_type(s) == 0) break;
-            if (validate_string_var_type(s) == 0) break;
-            StringManagerType  s1(s);
-            CORBA::String_var sv1(s);
-            if (validate_string_var_type(sv1) == 0) break;
-            CORBA::String_var sv2(s1);
-            if (validate_string_var_type(sv2) == 0) break;
-            sv2 = s;
-            if (validate_string_var_type(sv2) == 0) break;
-            if (validate_string_var_type(s1) == 0) break;
+                if (validate_string_type(s) == 0) { break; }
+                if (validate_string_var_type(s) == 0) { break; }
+                StringManagerType  s1(s);
+                CORBA::String_var sv1(s);
+                if (validate_string_var_type(sv1) == 0) { break; }
+                CORBA::String_var sv2(s1);
+                if (validate_string_var_type(sv2) == 0) { break; }
+                sv2 = s;
+                if (validate_string_var_type(sv2) == 0) { break; }
+                if (validate_string_var_type(s1) == 0) { break; }
 
 
-            StringVectorType    sv(generate_corba_stringseq_type());
+                StringVectorType    sv(generate_corba_stringseq_type());
 
-            if (validate_string_vector_type(sv) == 0) break;
+                if (validate_string_vector_type(sv) == 0) { break; }
 
-            if (validate_string_type(s1) == 0) break;
+                if (validate_string_type(s1) == 0) { break; }
 
-            if (validate_stringseq_var_type(sv) == 0) break;
+                if (validate_stringseq_var_type(sv) == 0) { break; }
 
-            const char* xx = "Hello";
-            sv += xx;
-            s = "Hello";
+                const char* xx = "Hello";
+                sv += xx;
+                s = "Hello";
 
+            }
+
+            ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("StringManagerTest - PASSED!!\n")), 0);
+        } catch (const char *s) {
+            if (s) {
+                ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("StringManagerTest - FAILED with error '%s'!!\n"), s), -1);
+            }
+        } DAF_CATCH_ALL{
         }
-
-        ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("StringManagerTest - PASSED!!\n")), 0);
-    }
-    catch (const char *s) {
-        if (s) {
-            ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("StringManagerTest - FAILED with error '%s'!!\n"), s), -1);
-        }
-    } DAF_CATCH_ALL {
     } while (false);
 
     ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("StringManagerTest - FAILED!!\n")), -1);

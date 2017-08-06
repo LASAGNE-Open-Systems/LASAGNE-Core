@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -54,19 +54,22 @@ namespace TAF
     {
         const std::string ident(DAF::trim_string(name));
 
-        if (p && ident.length()) do {
+        if (p && ident.length()) {
 
-            ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, taf_mon, *this, break); // Protect List
+            do {
 
-            for (iterator it(this->begin()); it != this->end(); it++) {
-                if (ident == it->ident()) { // If already exists - Just replace Object_ptr
-                    it->out() = CORBA::Object::_duplicate(p); return 0; // Replace Duplicate
+                ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, taf_mon, *this, break); // Protect List
+
+                for (iterator it(this->begin()); it != this->end(); ++it) {
+                    if (ident == it->ident()) { // If already exists - Just replace Object_ptr
+                        it->out() = CORBA::Object::_duplicate(p); return 0; // Replace Duplicate
+                    }
                 }
-            }
 
-            this->push_back(IORQueryServant(p,ident)); return 0;
+                this->push_back(IORQueryServant(p, ident)); return 0;
 
-        } while (false);
+            } while (false);
+        }
 
         return -1;
     }
@@ -76,17 +79,20 @@ namespace TAF
     {
         const std::string ident(DAF::trim_string(name));
 
-        if (ident.length()) do {
+        if (ident.length()) {
 
-            ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, taf_mon, *this, break); // Protect List
+            do {
 
-            for (iterator it(this->begin()); it != this->end(); it++) {
-                if (ident == it->ident()) {
-                    this->erase(it); return 0;
+                ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, taf_mon, *this, break); // Protect List
+
+                for (iterator it(this->begin()); it != this->end(); ++it) {
+                    if (ident == it->ident()) {
+                        this->erase(it); return 0;
+                    }
                 }
-            }
 
-        } while (false);
+            } while (false);
+        }
 
         return -1;
     }

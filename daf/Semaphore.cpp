@@ -55,7 +55,7 @@ namespace DAF
     int
     Semaphore::acquire(const ACE_Time_Value * abstime)
     {
-        while (!this->interrupted()) {
+        while (this->interrupted() ? false : true) {
 
             ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
 
