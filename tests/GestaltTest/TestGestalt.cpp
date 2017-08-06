@@ -96,7 +96,7 @@ struct ACEServiceAction : DAF::Runnable
 
   ACEServiceAction(DAF::ServiceGestalt &gestalt
                 , Actions directive
-                , std::string ident)
+                , const std::string &ident)
     : gestalt_(gestalt)
     , directive_(directive)
     , ident_(ident)
