@@ -593,7 +593,7 @@ namespace DAF
         int result = 0;
 
         if (task) {
-            for (ACE_Double_Linked_List_Iterator<ACE_Thread_Descriptor> iter(this->thr_list_); !iter.done(); iter.advance()) {
+            for (ACE_Double_Linked_List_Iterator<ACE_Thread_Descriptor> iter(this->thr_list_); iter.done() == 0; iter.advance()) {
                 Thread_Descriptor * td(static_cast<Thread_Descriptor *>(iter.next()));
                 if (td && td->taskBase() == task && this->terminate_thr(td, async_cancel)) {
                     result = -1;

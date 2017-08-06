@@ -359,7 +359,7 @@ namespace DAF
     Bitset::bitraits &
     Bitset::bitraits::operator &= (bool val)
     {
-        if (!val) {
+        if (val ? false : true) {
             this->bit_byte_ &= (~this->bit_mask_);
         }
         return *this;

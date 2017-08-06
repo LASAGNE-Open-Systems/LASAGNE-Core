@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -44,7 +44,7 @@ namespace TAF
     template < typename INTERFACE_TYPE, typename DEFAULTPOA_TYPE > int
     CORBAInterfaceHandler_T< INTERFACE_TYPE, DEFAULTPOA_TYPE >::init_bind(const std::string &name)
     {
-        if (!this->stub_activated_) {
+        if (this->stub_activated_ ? false : true) {
             try {
                 if (!CORBA::is_nil((this->stub_reference_ = _interface_activator_type::activate(this)).in())) {
                     return this->init_bind_i(name);
@@ -58,7 +58,7 @@ namespace TAF
     template < typename INTERFACE_TYPE, typename DEFAULTPOA_TYPE > int
     CORBAInterfaceHandler_T< INTERFACE_TYPE, DEFAULTPOA_TYPE >::init_bind(const std::string &name, const PortableServer::ObjectId &id)
     {
-        if (!this->stub_activated_) {
+        if (this->stub_activated_ ? false : true) {
             try {
                 if (!CORBA::is_nil((this->stub_reference_ = _interface_activator_type::activate_with_id(this, id)).in())) {
                     return this->init_bind_i(name);

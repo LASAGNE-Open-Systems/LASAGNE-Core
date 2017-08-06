@@ -90,32 +90,34 @@ namespace DAF
     {
         this->entryGate_.acquire();
 
-        ACE_Guard<ACE_SYNCH_MUTEX> ace_mon( *this );
+        ACE_Guard<ACE_SYNCH_MUTEX> ace_mon(*this);
 
         size_t index = this->count_;
 
         this->resets_ = ++this->count_;
 
-        while (!(this->broken_ || this->triggered_)) try {
-            if (this->shutdown_) {
+        while ((this->broken_ || this->triggered_) ? false : true) {
+            try {
+                if (this->shutdown_) {
+                    this->broken_ = true;
+                } else if (this->count_ != this->parties_) {
+                    this->wait();
+                } else if (DAF::is_nil(this->barrierCommand_)) {
+                    this->triggered_ = true;
+                } else {
+                    this->barrierCommand_->run(); this->triggered_ = true;
+                }
+            } catch (...) {
                 this->broken_ = true;
-            } else if (this->count_ != this->parties_) {
-                this->wait();
-            } else if (DAF::is_nil(this->barrierCommand_)) {
-                this->triggered_ = true;
-            } else {
-                this->barrierCommand_->run(); this->triggered_ = true;
+                --this->resets_;
+                this->broadcast();
+                throw;
             }
-        } catch(...) {
-            this->broken_ = true;
-            --this->resets_;
-            this->notifyAll();
-            throw;
         }
 
         bool broken = this->broken_, shutdown = this->shutdown_; // Get state onto the stack
 
-        this->notifyAll();
+        this->broadcast();
 
         if (--this->resets_ == 0) {
             this->entryGate_.release(int(this->count_));
@@ -147,26 +149,28 @@ namespace DAF
 
         this->resets_   = ++this->count_;
 
-        while (!(this->broken_ || this->triggered_)) try {
-            if (this->shutdown_) {
+        while ((this->broken_ || this->triggered_) ? false : true) {
+            try {
+                if (this->shutdown_) {
+                    this->broken_ = true;
+                } else if (this->count_ != this->parties_) {
+                    if (end_time > DAF_OS::gettimeofday()) {
+                        this->wait(end_time);
+                    } else timeout = this->broken_ = true;
+                } else if (DAF::is_nil(this->barrierCommand_)) {
+                    this->triggered_ = true;
+                } else {
+                    this->barrierCommand_->run(); this->triggered_ = true;
+                }
+            } catch (...) {
                 this->broken_ = true;
-            } else if (this->count_ != this->parties_) {
-                if (end_time > DAF_OS::gettimeofday()) {
-                    this->wait(end_time);
-                } else timeout = this->broken_ = true;
-            } else if (DAF::is_nil(this->barrierCommand_)) {
-                this->triggered_ = true;
-            } else  {
-                this->barrierCommand_->run(); this->triggered_ = true;
+                --this->resets_;
+                this->notifyAll();
+                throw;
             }
-        } catch(...) {
-            this->broken_ = true;
-            --this->resets_;
-            this->notifyAll();
-            throw;
         }
 
-        this->notifyAll();
+        this->broadcast();
 
         bool broken = this->broken_, shutdown = this->shutdown_; // Get state onto the stack
 
