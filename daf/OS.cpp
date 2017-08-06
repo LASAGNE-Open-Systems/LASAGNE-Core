@@ -39,24 +39,26 @@ namespace DAF_OS
 
 #if defined (ACE_WIN32)
 
-        if (error) do {
+        if (error) {
 
-            // Remap some windows error messages as appropriate
+            do { // Remap some windows error messages as appropriate
 
-            switch (error) {
-            case ERROR_NOT_ENOUGH_MEMORY:   error = ENOMEM; break;
-            case ERROR_FILE_EXISTS:         error = EEXIST; break;
-            case ERROR_SHARING_VIOLATION:   error = EACCES; break;
-            case ERROR_PATH_NOT_FOUND:      error = ENOENT; break;
-            case ERROR_ACCESS_DENIED:       error = EPERM;  break;
-            case ERROR_SEM_TIMEOUT:         error = ETIME;  break;
-            case ERROR_TIMEOUT:             error = ETIME;  break;
-            default: continue;
-            }
+                switch (error) {
+                case ERROR_NOT_ENOUGH_MEMORY:   error = ENOMEM; break;
+                case ERROR_FILE_EXISTS:         error = EEXIST; break;
+                case ERROR_SHARING_VIOLATION:   error = EACCES; break;
+                case ERROR_PATH_NOT_FOUND:      error = ENOENT; break;
+                case ERROR_ACCESS_DENIED:       error = EPERM;  break;
+                case ERROR_SEM_TIMEOUT:         error = ETIME;  break;
+                case ERROR_TIMEOUT:             error = ETIME;  break;
+                default: continue;
+                }
 
-            ACE_OS::last_error(error);
+                ACE_OS::last_error(error);
 
-        } while (false);
+            } while (false);
+        }
+
 #endif
 
         return error;

@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,8 +20,9 @@
 ***************************************************************/
 #define VECTORSEQUENCETEST_CPP
 
-#include "taf/TAF.h"
-#include "taf/VectorSequence_T.h"
+#include <taf/TAF.h>
+#include <taf/VectorSequence_T.h>
+
 #include "VectorSequenceTestC.h"
 
 #if defined(_MSC_VER) && defined(_DEBUG)
@@ -196,107 +197,110 @@ int main(int argc, ACE_TCHAR *argv[])
 {
     ACE_UNUSED_ARG(argc); ACE_UNUSED_ARG(argv);
 
-    do try {
+    do {
 
-        {
-            CRT_MEMORY_DIFF_MONITOR(fixed_mon);
+        try {
 
-            DAF::HighResTimer timer("VSTestFixedTypeVector    \t"); ACE_UNUSED_ARG(timer);
-
-            VSTestFixedTypeVector::_seq_type F_val;
             {
-                test::VSTestFixedTypeSeq_var     F_ref;
+                CRT_MEMORY_DIFF_MONITOR(fixed_mon);
+
+                DAF::HighResTimer timer("VSTestFixedTypeVector    \t"); ACE_UNUSED_ARG(timer);
+
+                VSTestFixedTypeVector::_seq_type F_val;
                 {
-                    VSTestFixedTypeVector                   F_empty;
-                    F_val = F_empty.in(); if (F_val.length()) break;
+                    test::VSTestFixedTypeSeq_var     F_ref;
+                    {
+                        VSTestFixedTypeVector                   F_empty;
+                        F_val = F_empty.in(); if (F_val.length()) { break; }
 
-                    F_val.length(1); F_val[0].v1 = CORBA::ULong(99); F_val[0].v2 = CORBA::ULong(99 * 100);
-                    VSTestFixedTypeVector                   F_one(F_val);
-                    if (F_one.size() == 0) break;
+                        F_val.length(1); F_val[0].v1 = CORBA::ULong(99); F_val[0].v2 = CORBA::ULong(99 * 100);
+                        VSTestFixedTypeVector                   F_one(F_val);
+                        if (F_one.size() == 0) { break; }
 
-                    VSTestFixedTypeVector       F_vector(generate_corba_fixed_type());
+                        VSTestFixedTypeVector       F_vector(generate_corba_fixed_type());
 
-                    if (validate_fixed_vector_type(F_vector) == 0)  break;
-                    if (validate_fixed_sequence_type(F_val = F_ref = F_vector) == 0)   break;
-                    VSTestFixedTypeVector           F_vector1(F_ref);
-                    if (validate_fixed_vector_type(F_vector1) == 0) break;
-                    VSTestFixedTypeVector           F_vector2(F_ref);
-                    if (validate_fixed_vector_type(F_vector2) == 0) break;
-                    test::VSTestFixedTypeSeq_var    F_ref1, F_ref2;
-                    if (validate_fixed_sequence_type(F_ref1 = F_vector1) == 0)  break;
-                    if (validate_fixed_sequence_type(F_ref2 = F_vector2) == 0)  break;
-                    if (validate_fixed_sequence_type(F_val = F_vector1.in()) == 0)  break;
-                    if (validate_fixed_sequence_type(F_vector2.in()) == 0)  break;
-                    if (validate_fixed_sequence_type(F_vector1._retn()) == 0)  break;
-                    if (validate_fixed_sequence_type(F_vector2._retn()) == 0)  break;
+                        if (validate_fixed_vector_type(F_vector) == 0) { break; }
+                        if (validate_fixed_sequence_type(F_val = F_ref = F_vector) == 0)  { break; }
+                        VSTestFixedTypeVector           F_vector1(F_ref);
+                        if (validate_fixed_vector_type(F_vector1) == 0) { break; }
+                        VSTestFixedTypeVector           F_vector2(F_ref);
+                        if (validate_fixed_vector_type(F_vector2) == 0) { break; }
+                        test::VSTestFixedTypeSeq_var    F_ref1, F_ref2;
+                        if (validate_fixed_sequence_type(F_ref1 = F_vector1) == 0) { break; }
+                        if (validate_fixed_sequence_type(F_ref2 = F_vector2) == 0) { break; }
+                        if (validate_fixed_sequence_type(F_val = F_vector1.in()) == 0) { break; }
+                        if (validate_fixed_sequence_type(F_vector2.in()) == 0) { break; }
+                        if (validate_fixed_sequence_type(F_vector1._retn()) == 0) { break; }
+                        if (validate_fixed_sequence_type(F_vector2._retn()) == 0) { break; }
 
-                    if (validate_fixed_sequence_type(F_ref = F_vector2) == 0)   break;
+                        if (validate_fixed_sequence_type(F_ref = F_vector2) == 0)  { break; }
 
-                    VSTestFixedTypeVector F(F_vector1 + F_vector2); ACE_UNUSED_ARG(F);
+                        VSTestFixedTypeVector F(F_vector1 + F_vector2); ACE_UNUSED_ARG(F);
 
-                    if (validate_fixed_vector_type(F_one = F_val) == 0) break;
+                        if (validate_fixed_vector_type(F_one = F_val) == 0) { break; }
 
-                    F_one += F_val;
+                        F_one += F_val;
+                    }
+                    if (validate_fixed_sequence_type(F_val = F_ref) == 0)  { break; }
+
+                    F_ref = 0;
                 }
-                if (validate_fixed_sequence_type(F_val = F_ref) == 0)   break;
-
-                F_ref = 0;
+                if (validate_fixed_sequence_type(F_val) == 0)  { break; }
             }
-            if (validate_fixed_sequence_type(F_val) == 0)   break;
-        }
 
-        {
-            CRT_MEMORY_DIFF_MONITOR(variable_mon);
-
-            DAF::HighResTimer timer("VSTestVariableTypeVector \t"); ACE_UNUSED_ARG(timer);
-
-            VSTestVariableTypeVector::_seq_type V_val;
             {
-                test::VSTestVariableTypeSeq_var     V_ref;
+                CRT_MEMORY_DIFF_MONITOR(variable_mon);
+
+                DAF::HighResTimer timer("VSTestVariableTypeVector \t"); ACE_UNUSED_ARG(timer);
+
+                VSTestVariableTypeVector::_seq_type V_val;
                 {
-                    VSTestVariableTypeVector                   V_empty;
-                    V_val = V_empty.in(); if (V_val.length()) break;
+                    test::VSTestVariableTypeSeq_var     V_ref;
+                    {
+                        VSTestVariableTypeVector                   V_empty;
+                        V_val = V_empty.in(); if (V_val.length()) { break; }
 
-                    V_val.length(1); V_val[0].s1 = "Hello"; V_val[0].s2 = "ByeBye";
-                    VSTestVariableTypeVector                   V_one(V_val);
-                    if (V_one.size() == 0) break;
+                        V_val.length(1); V_val[0].s1 = "Hello"; V_val[0].s2 = "ByeBye";
+                        VSTestVariableTypeVector                   V_one(V_val);
+                        if (V_one.size() == 0) { break; }
 
-                    VSTestVariableTypeVector    V_vector(generate_corba_variable_type());
+                        VSTestVariableTypeVector    V_vector(generate_corba_variable_type());
 
-                    if (validate_variable_vector_type(V_vector) == 0)   break;
-                    if (validate_variable_sequence_type(V_val = V_ref = V_vector) == 0)    break;
-                    VSTestVariableTypeVector    V_vector1(V_ref);
-                    if (validate_variable_vector_type(V_vector1) == 0)  break;
-                    VSTestVariableTypeVector    V_vector2(V_ref);
-                    if (validate_variable_vector_type(V_vector2) == 0)  break;
-                    test::VSTestVariableTypeSeq_var    V_ref1, V_ref2;
-                    if (validate_variable_sequence_type(V_ref1 = V_vector1) == 0)   break;
-                    if (validate_variable_sequence_type(V_ref2 = V_vector2) == 0)   break;
-                    if (validate_variable_sequence_type(V_val = V_vector1.in()) == 0)   break;
-                    if (validate_variable_sequence_type(V_vector2.in()) == 0)   break;
-                    if (validate_variable_sequence_type(V_vector1._retn()) == 0)   break;
-                    if (validate_variable_sequence_type(V_vector2._retn()) == 0)   break;
+                        if (validate_variable_vector_type(V_vector) == 0)  { break; }
+                        if (validate_variable_sequence_type(V_val = V_ref = V_vector) == 0)   { break; }
+                        VSTestVariableTypeVector    V_vector1(V_ref);
+                        if (validate_variable_vector_type(V_vector1) == 0) { break; }
+                        VSTestVariableTypeVector    V_vector2(V_ref);
+                        if (validate_variable_vector_type(V_vector2) == 0) { break; }
+                        test::VSTestVariableTypeSeq_var    V_ref1, V_ref2;
+                        if (validate_variable_sequence_type(V_ref1 = V_vector1) == 0)  { break; }
+                        if (validate_variable_sequence_type(V_ref2 = V_vector2) == 0)  { break; }
+                        if (validate_variable_sequence_type(V_val = V_vector1.in()) == 0)  { break; }
+                        if (validate_variable_sequence_type(V_vector2.in()) == 0)  { break; }
+                        if (validate_variable_sequence_type(V_vector1._retn()) == 0)  { break; }
+                        if (validate_variable_sequence_type(V_vector2._retn()) == 0)  { break; }
 
-                    if (validate_variable_sequence_type(V_ref = V_vector2) == 0)  break;
+                        if (validate_variable_sequence_type(V_ref = V_vector2) == 0) { break; }
 
-                    VSTestVariableTypeVector V(V_vector1 + V_vector2); ACE_UNUSED_ARG(V);
+                        VSTestVariableTypeVector V(V_vector1 + V_vector2); ACE_UNUSED_ARG(V);
 
-                    if (validate_variable_vector_type(V_one = V_val) == 0) break;
+                        if (validate_variable_vector_type(V_one = V_val) == 0) { break; }
+                    }
+                    if (validate_variable_sequence_type(V_val = V_ref) == 0) { break; }
+
+                    V_ref = 0;
                 }
-                if (validate_variable_sequence_type(V_val = V_ref) == 0) break;
-
-                V_ref = 0;
+                if (validate_variable_sequence_type(V_val) == 0) { break; }
             }
-            if (validate_variable_sequence_type(V_val) == 0) break;
-        }
 
-        ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("VectorSequenceTest - PASSED!!\n")), 0);
+            ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("VectorSequenceTest - PASSED!!\n")), 0);
 
-    } catch (const char *s) {
-        if (s) {
-            ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("VectorSequenceTest - FAILED with error '%s'!!\n"), s), -1);
+        } catch (const char *s) {
+            if (s) {
+                ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("VectorSequenceTest - FAILED with error '%s'!!\n"), s), -1);
+            }
+        } DAF_CATCH_ALL {
         }
-    } DAF_CATCH_ALL {
     } while (false);
 
     ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("VectorSequenceTest - FAILED!!\n")), -1);

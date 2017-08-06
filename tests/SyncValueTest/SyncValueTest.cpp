@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,11 +18,15 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#include "daf/SynchValue_T.h"
-#include "daf/TaskExecutor.h"
-#include "daf/Runnable.h"
-#include "ace/Thread.h"
-#include "ace/Get_Opt.h"
+
+#include <daf/SynchValue_T.h>
+#include <daf/TaskExecutor.h>
+#include <daf/Runnable.h>
+
+#include <ace/Thread.h>
+#include <ace/Get_Opt.h>
+#include <ace/Min_Max.h>
+
 #include <iostream>
 
 namespace test
@@ -73,7 +77,10 @@ struct TestSyncWaiter : DAF::Runnable
     }
 
     virtual int run(void) {
-        if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Waiting Sync for Value %d %d\n", this, value, this->sync.getValue()));
+
+        if (debug) {
+            ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Waiting Sync for Value %d %d\n", this, value, this->sync.getValue()));
+        }
 
         try {
             sema.release();
@@ -83,13 +90,19 @@ struct TestSyncWaiter : DAF::Runnable
                result = this->sync.waitValue(value);
             }
 
-            if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Exit  Sync for   Value %d \n", this, value));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Exit  Sync for   Value %d \n", this, value));
+            }
         } catch (const DAF::TimeoutException &) {
             this->timeout++;
-            if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X TimeoutException \n", this));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X TimeoutException \n", this));
+            }
         } catch (const DAF::IllegalThreadStateException &) {
             this->illegal++;
-            if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X IllegalThreadStateException \n", this));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X IllegalThreadStateException \n", this));
+            }
         }
 
         return 0;
@@ -106,19 +119,27 @@ struct TestSyncWriter : TestSyncWaiter
 
     virtual int run(void)
     {
-    if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Writer Sync for Value %d %d\n", this, value, this->sync.getValue()));
+        if (debug) {
+            ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Writer Sync for Value %d %d\n", this, value, this->sync.getValue()));
+        }
 
         try {
             sema.acquire();
             result = this->sync.setValue(value);
 
-            if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Exit  Sync for   Value %d \n", this, value));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Exit  Sync for   Value %d \n", this, value));
+            }
         } catch (const DAF::TimeoutException &) {
             this->timeout++;
-            if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X TimeoutException \n", this));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X TimeoutException \n", this));
+            }
         } catch (const DAF::IllegalThreadStateException &) {
             this->illegal++;
-            if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X IllegalThreadStateException \n", this));
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X IllegalThreadStateException \n", this));
+            }
         }
 
         return 0;
@@ -197,7 +218,9 @@ int test_SyncValueMultipleWaiters(int threadCount )
             value += sync.setValue(i);
         }
 
-        if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Value from Sync %d\n", value));
+        if (debug) {
+            ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Value from Sync %d\n", value));
+        }
     }
 
     result = (expected == value);
@@ -255,7 +278,9 @@ int test_SyncValueMultipleWaitersWithTimeout(int threadCount )
             value += sync.setValue(i);
         }
 
-        if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Value from Sync %d\n", value));
+        if (debug) {
+            ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Value from Sync %d\n", value));
+        }
     }
 
     value = waiter->timeout;
@@ -308,7 +333,9 @@ int test_SyncValueMultipleWaitersWithTimeoutEarly(int threadCount )
             value += sync.setValue(i);
         }
 
-        if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Value from Sync %d\n", value));
+        if (debug) {
+            ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Value from Sync %d\n", value));
+        }
     }
 
     result = (expected == value);
@@ -410,7 +437,9 @@ int test_SyncValueThreadKill(int threadCount )
 
         DAF_OS::sleep(ACE_Time_Value(1));
 
-        if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing Executor\n"));
+        if (debug) {
+            ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing Executor\n"));
+        }
 
         delete kill_executor;
 
@@ -502,6 +531,8 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char *argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
+
     int result = 1, threadCount = 10;
 
     ACE_Get_Opt cli_opt(argc, argv, "hzn:");
@@ -509,14 +540,15 @@ int main(int argc, char *argv[])
     cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
     cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
 
-    for( int i = 0; i < argc; ++i ) switch(cli_opt()) {
+    for (int i = 0; i < argc; ++i) {
+        switch (cli_opt()) {
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
-        case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
+        case 'z': DAF::debug(true); test::debug = true; break;
+        case 'n': threadCount = ace_max(10, DAF_OS::atoi(cli_opt.opt_arg())); break;
+        }
     }
 
-    std::cout << test::TEST_NAME << std::endl;
     result &= test::test_SyncValueBasicWorking(threadCount);
     result &= test::test_SyncValueMultipleWaiters(threadCount);
     result &= test::test_SyncValueMultipleWaitersWithTimeout(threadCount);

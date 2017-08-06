@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -82,7 +82,7 @@ namespace TAF
         try {
             CORBA::ULong max_len = ThePropertyRepository()->list_properties(property_list), len = 0, idx = 0;
             taf::PropertyValueSequence_var propertySeq(new taf::PropertyValueSequence(max_len)); propertySeq->length(len);
-            for (DAF::PropertyManager::property_list_type::const_iterator it = property_list.begin(); it != property_list.end(); it++) {
+            for (DAF::PropertyManager::property_list_type::const_iterator it = property_list.begin(); it != property_list.end(); ++it) {
                 if ((idx = len++) >= max_len) {
                     break;
                 } else propertySeq->length(len);

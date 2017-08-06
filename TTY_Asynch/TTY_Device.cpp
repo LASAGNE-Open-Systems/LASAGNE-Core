@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -231,7 +231,9 @@ namespace DEV
 
             int eq_pos = int(param.find_first_of('=')); pos += e_pos;
 
-            if (0 >= eq_pos) continue;
+            if (0 >= eq_pos) {
+                continue;
+            }
 
             param_arg = DAF::trim_string(param.substr(0, eq_pos++));
             param_val = DAF::trim_string(param.substr(eq_pos));
@@ -338,33 +340,35 @@ namespace DEV
         get_opts.long_option("debug", 'z', ACE_Get_Opt::ARG_OPTIONAL);
         get_opts.long_option("help", '?', ACE_Get_Opt::NO_ARG);  // Help
 
-        for (;;) switch (get_opts()) {
-        case -1 :
-            if (this->parse_config(this->tty_device_config) == 0) {
-                return 0;
+        for (;;) {
+            switch (get_opts()) {
+            case -1:
+                if (this->parse_config(this->tty_device_config) == 0) {
+                    return 0;
+                }
+                errno = EINVAL; return -1;
+
+                //"COMx[:][baud=b][,parity=p][,data=d][,stop=s]\n\t\t[,to={1|0}][,xon={1|0}][,odsr={1|0}][,octs={1|0}]\n\t\t[,dtr={1|0|hs}][,rts={1|0|hs|tg}][,idsr={1|0}]\n"
+
+            case 'a':   this->tty_device_config.assign(get_opts.opt_arg()); break;
+
+            case 'z':   this->device_debug_ = 1;
+                for (const ACE_TCHAR *debug_lvl = get_opts.opt_arg(); debug_lvl;) {
+                    if (::isdigit(int(*debug_lvl))) {
+                        this->device_debug_ = ace_range(1, 10, DAF_OS::atoi(debug_lvl));
+                    } break; // Turn on Debug optionally at a level
+                } break;
+
+            default:    if (DAF::debug()) {
+            case '?':
+                ACE_DEBUG((LM_INFO,
+                    "usage:  %s\n"
+                    "-a Address[:config]\n"
+                    "-z Debug ON[Level]\n"
+                    "\n", "TTY_Device"
+                    ));
+                } break;
             }
-            errno = EINVAL; return -1;
-
-//"COMx[:][baud=b][,parity=p][,data=d][,stop=s]\n\t\t[,to={1|0}][,xon={1|0}][,odsr={1|0}][,octs={1|0}]\n\t\t[,dtr={1|0|hs}][,rts={1|0|hs|tg}][,idsr={1|0}]\n"
-
-        case 'a':   this->tty_device_config.assign(get_opts.opt_arg()); break;
-
-        case 'z':   this->device_debug_ = 1;
-            for (const ACE_TCHAR *debug_lvl = get_opts.opt_arg(); debug_lvl;) {
-                if (::isdigit(int(*debug_lvl))) {
-                    this->device_debug_ = ace_range(1, 10, DAF_OS::atoi(debug_lvl));
-                } break; // Turn on Debug optionally at a level
-            } break;
-
-        default:    if (DAF::debug()) {
-        case '?':
-            ACE_DEBUG((LM_INFO,
-                "usage:  %s\n"
-                "-a Address[:config]\n"
-                "-z Debug ON[Level]\n"
-                "\n", "TTY_Device"
-                ));
-            } break;
         }
 
         return 0;

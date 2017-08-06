@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -80,7 +80,7 @@ namespace TAF
             for (PortableServer::POA_var poa(p->_default_POA()); poa;) {
                 poa->deactivate_object(PortableServer::ObjectId_var(poa->servant_to_id(p))); break;
             }
-        } DAF_CATCH_ALL{ /* Ignore any Error */ }
+        } DAF_CATCH_ALL { /* Ignore any Error */ }
         return 0;
     }
 
@@ -89,7 +89,7 @@ namespace TAF
         : auto_deactivate_  (auto_deactivate)
         , servant_ref_      (impl) // Won't duplicate
     {
-        if (!DAF::is_nil(this->servant_ref_)) {
+        if (DAF::is_nil(this->servant_ref_) ? false : true) {
             this->out() = _impl_traits::activate(this->servant_ref_.in())._retn();
         }
     }
@@ -99,7 +99,7 @@ namespace TAF
         : auto_deactivate_  (auto_deactivate)
         , servant_ref_      (_servant_ref_type::_duplicate(const_cast<T*>(&impl)))
     {
-        if (!DAF::is_nil(this->servant_ref_)) {
+        if (DAF::is_nil(this->servant_ref_) ? false : true) {
             this->out() = _impl_traits::activate(this->servant_ref_.in())._retn();
         }
     }

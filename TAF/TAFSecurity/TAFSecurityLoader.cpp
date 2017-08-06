@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -107,27 +107,29 @@ namespace TAFSecurity
 
 #if defined(TAF_HAS_SSLIOP)
 
-            if (argc) for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
+            if (argc) {
+                for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
 
-                if (arg_shifter.is_option_next()) {
-                    if (arg_shifter.cur_arg_strncasecmp(TAF_SECURITY_FLAG) == 0) {
-                        for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
-                            try {
-                                if (this->load_file_profile(arg_shifter.get_current()) == 0) {
-                                    continue;
+                    if (arg_shifter.is_option_next()) {
+                        if (arg_shifter.cur_arg_strncasecmp(TAF_SECURITY_FLAG) == 0) {
+                            for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
+                                try {
+                                    if (this->load_file_profile(arg_shifter.get_current()) == 0) {
+                                        continue;
+                                    }
+                                } DAF_CATCH_ALL{
+                                    /* Drop Through to WARNING */
                                 }
-                            } DAF_CATCH_ALL {
-                                /* Drop Through to WARNING */
-                            }
 
-                            ACE_DEBUG((LM_WARNING, ACE_TEXT("TAF (%P | %t) TAFSecurity::Loader WARNING: ")
-                                ACE_TEXT("Unable to load security properties from file argument '%s' - Removed.\n")
-                                , arg_shifter.get_current()));
+                                ACE_DEBUG((LM_WARNING, ACE_TEXT("TAF (%P | %t) TAFSecurity::Loader WARNING: ")
+                                    ACE_TEXT("Unable to load security properties from file argument '%s' - Removed.\n")
+                                    , arg_shifter.get_current()));
+                            }
+                            continue;
                         }
-                        continue;
                     }
+                    arg_shifter.ignore_arg();
                 }
-                arg_shifter.ignore_arg();
             }
 
             if (this->load_count() ? false : use_property) {
@@ -136,12 +138,14 @@ namespace TAFSecurity
                 }
             }
 
-            if (this->size() == 0) do { // We dont have any Security Properties
-                if (DAF::get_numeric_property<bool>(TAF_SSLPROTECTION, false, true)) {
-                    this->set_property(SSL_NOPROTECTION, "0"); break;
-                }
-                throw "Force-No-Protection";
-            } while (false);
+            if (this->size() == 0) {
+                do { // We dont have any Security Properties
+                    if (DAF::get_numeric_property<bool>(TAF_SSLPROTECTION, false, true)) {
+                        this->set_property(SSL_NOPROTECTION, "0"); break;
+                    }
+                    throw "Force-No-Protection";
+                } while (false);
+            }
 #else
             this->set_property(SSL_NOPROTECTION, "1");
 #endif
@@ -261,45 +265,49 @@ namespace TAFSecurity
                 throw CORBA::INTERNAL();
             }
 
-            do try {
+            do {
 
-                CORBA::Object_var sl2sm_obj = tao_info->resolve_initial_references(SECURITY_L2_MANAGER);
-                SecurityLevel2::SecurityManager_var sl2sm = SecurityLevel2::SecurityManager::_narrow(sl2sm_obj.in());
-                if (CORBA::is_nil(sl2sm.in())) {
-                    break;
-                }
+                try {
 
-                CORBA::Object_var sl2ad_obj = sl2sm->access_decision();
-                TAO_SL2_AccessDecision::_var_type sl2ad = TAO_SL2_AccessDecision::_narrow(sl2ad_obj.in());
-                if (CORBA::is_nil(sl2ad.in())) {
-                    break;
-                }
+                    CORBA::Object_var sl2sm_obj = tao_info->resolve_initial_references(SECURITY_L2_MANAGER);
+                    SecurityLevel2::SecurityManager_var sl2sm = SecurityLevel2::SecurityManager::_narrow(sl2sm_obj.in());
+                    if (CORBA::is_nil(sl2sm.in())) {
+                        break;
+                    }
 
-                bool default_decision = DAF::get_numeric_property<bool>(TAF_DEFAULTALLOWANCE, false, false);
+                    CORBA::Object_var sl2ad_obj = sl2sm->access_decision();
+                    TAO_SL2_AccessDecision::_var_type sl2ad = TAO_SL2_AccessDecision::_narrow(sl2ad_obj.in());
+                    if (CORBA::is_nil(sl2ad.in())) {
+                        break;
+                    }
 
-                sl2ad->default_decision(default_decision);
+                    bool default_decision = DAF::get_numeric_property<bool>(TAF_DEFAULTALLOWANCE, false, false);
 
-                if (DAF::debug() > 1) {
-                    ACE_DEBUG((LM_INFO, ACE_TEXT("TAFSecurity (%P | %t) INFO: Default allowance decision set to %s.\n")
-                        , (default_decision ? "true" : "false")));
-                }
+                    sl2ad->default_decision(default_decision);
+
+                    if (DAF::debug() > 1) {
+                        ACE_DEBUG((LM_INFO, ACE_TEXT("TAFSecurity (%P | %t) INFO: Default allowance decision set to %s.\n")
+                            , (default_decision ? "true" : "false")));
+                    }
 
 #if ACE_GTEQ_VERSION(6,3,3)
 
-                bool collocated_decision = DAF::get_numeric_property<bool>(TAF_COLLOCATEDALLOWANCE, default_decision, false);
+                    bool collocated_decision = DAF::get_numeric_property<bool>(TAF_COLLOCATEDALLOWANCE, default_decision, false);
 
-                sl2ad->default_collocated_decision(collocated_decision);
+                    sl2ad->default_collocated_decision(collocated_decision);
 
-                if (DAF::debug() > 1) {
-                    ACE_DEBUG((LM_INFO, ACE_TEXT("TAFSecurity (%P | %t) INFO: Collocated allowance decision set to %s.\n")
-                        , (collocated_decision ? "true" : "false")));
-                }
+                    if (DAF::debug() > 1) {
+                        ACE_DEBUG((LM_INFO, ACE_TEXT("TAFSecurity (%P | %t) INFO: Collocated allowance decision set to %s.\n")
+                            , (collocated_decision ? "true" : "false")));
+                    }
 
 #endif
 
-                std::remove(svc_conf_filename()); _security_active = true; return;
+                    std::remove(svc_conf_filename()); _security_active = true; return;
 
-            } DAF_CATCH_ALL{
+                } DAF_CATCH_ALL {
+                }
+
             } while (false);
 
             _security_active = false;

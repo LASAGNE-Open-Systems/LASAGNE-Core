@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,10 +18,14 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#include "daf/Rendezvous_T.h"
-#include "daf/TaskExecutor.h"
-#include "ace/Thread.h"
-#include "ace/Get_Opt.h"
+
+#include <daf/Rendezvous_T.h>
+#include <daf/TaskExecutor.h>
+
+#include <ace/Thread.h>
+#include <ace/Get_Opt.h>
+#include <ace/Min_Max.h>
+
 #include <iostream>
 #include <vector>
 #include <algorithm>
@@ -40,36 +44,37 @@ namespace test
     bool debug = false;
     const char *TEST_NAME = "RendezvousTest";
 
-    struct TestRendFunc
-    {
+    struct TestRendFunc {
         int value;
         bool ran;
         ACE_Time_Value delay;
         TestRendFunc(const ACE_Time_Value& delay_in = ACE_Time_Value()) : value(0), ran(false), delay(delay_in) {}
 
-        struct InnerFunctor
-        {
+        struct InnerFunctor {
             int &valueInner;
             InnerFunctor(int &va) : valueInner(va) {}
 
-            void operator()(int i )
+            void operator()(int i)
             {
                 valueInner += i;
             }
         };
 
-        void operator()( std::vector<int> &v)
+        void operator()(std::vector<int> &v)
         {
             ran = true;
-            if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Running Rendezvous Functor\n", this));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Running Rendezvous Functor\n", this));
+            }
             DAF_OS::sleep(this->delay);
-            if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Executing Rendezvous Functor\n", this));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Executing Rendezvous Functor\n", this));
+            }
 
-            for ( size_t i = 0 ; i < v.size(); i++ )
-            {
-               if ( debug) std::cout << i << ":" << v[i] << std::endl;
+            for (size_t i = 0; i < v.size(); i++) {
+                if (debug) std::cout << i << ":" << v[i] << std::endl;
 
-               value += v[i];
+                value += v[i];
             }
             if (debug) std::cout << "sum " << value << std::endl;
 
@@ -77,7 +82,7 @@ namespace test
             //std::for_each(v.begin(), v.end(), inner);
         }
 
-        void operator()( int i)
+        void operator()(int i)
         {
             value += i;
         }
@@ -85,92 +90,112 @@ namespace test
 
     typedef DAF::Rendezvous<int, TestRendFunc> RendezvousTest_t;
 
-    struct TestRendezvous : public DAF::Runnable
-    {
-       RendezvousTest_t &rend;
-       int id;
-       int broken;
-       int illegal;
-       int unknown;
-       int timeout;
-       time_t msec;
-       int result;
-       time_t delay_msec;
-       DAF::Semaphore &sema;
+    struct TestRendezvous : public DAF::Runnable {
+        RendezvousTest_t &rend;
+        int id;
+        int broken;
+        int illegal;
+        int unknown;
+        int timeout;
+        time_t msec;
+        int result;
+        time_t delay_msec;
+        DAF::Semaphore &sema;
 
-       TestRendezvous(DAF::Semaphore &sema_in, int idi, RendezvousTest_t &theRend, time_t mseci = 0, time_t delay_mseci = 0) : DAF::Runnable()
-       , rend(theRend)
-       , id(idi)
-       , broken(0)
-       , illegal(0)
-       , unknown(0)
-       , timeout(0)
-       , msec(mseci)
-       , result(0)
-       , delay_msec(delay_mseci)
-       , sema(sema_in)
-       { }
+        TestRendezvous(DAF::Semaphore &sema_in, int idi, RendezvousTest_t &theRend, time_t mseci = 0, time_t delay_mseci = 0) : DAF::Runnable()
+            , rend(theRend)
+            , id(idi)
+            , broken(0)
+            , illegal(0)
+            , unknown(0)
+            , timeout(0)
+            , msec(mseci)
+            , result(0)
+            , delay_msec(delay_mseci)
+            , sema(sema_in)
+        {
+        }
 
-       virtual int run(void)
-       {
-           if ( delay_msec ) DAF_OS::sleep(ACE_Time_Value(0, suseconds_t(delay_msec)));
+        virtual int run(void)
+        {
+            if (delay_msec) DAF_OS::sleep(ACE_Time_Value(0, suseconds_t(delay_msec)));
 
-           if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Entering Rendezvous %d\n", this, this->id));
-
-           try {
-               sema.release();
-               if (this->msec == 0 )
-                  result = this->rend.rendezvous(this->id);
-               else
-                  result = this->rend.rendezvous(this->id, this->msec);
-           } catch ( const DAF::BrokenBarrierException &e) {
-                this->broken++;
-                if (debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Broken on Rend %s\n"), this,  e.what()));
-            } catch (const DAF::TimeoutException &te ) {
-                this->timeout++;
-                if (debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Timeout on Rend %s\n"), this, te.what()));
-            } catch ( const DAF::IllegalThreadStateException &te ) {
-                this->illegal++;
-                if(debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X IllegalThreadState on Rend %s\n"), this, te.what()));
-            } DAF_CATCH_ALL {
-                this->unknown++;
-                if(debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - Unknown Exception on Rend\n")));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Entering Rendezvous %d\n", this, this->id));
             }
 
-           return 0;
-       }
+            try {
+                sema.release();
+                if (this->msec == 0)
+                    result = this->rend.rendezvous(this->id);
+                else
+                    result = this->rend.rendezvous(this->id, this->msec);
+            } catch (const DAF::BrokenBarrierException &e) {
+                this->broken++;
+                if (debug) {
+                    ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Broken on Rend %s\n"), this, e.what()));
+                }
+            } catch (const DAF::TimeoutException &te) {
+                this->timeout++;
+                if (debug) {
+                    ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Timeout on Rend %s\n"), this, te.what()));
+                }
+            } catch (const DAF::IllegalThreadStateException &te) {
+                this->illegal++;
+                if (debug) {
+                    ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X IllegalThreadState on Rend %s\n"), this, te.what()));
+                }
+            } DAF_CATCH_ALL{
+                this->unknown++;
+                if (debug) {
+                    ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - Unknown Exception on Rend\n")));
+                }
+            }
+
+            return 0;
+        }
     };
 
-    struct TestRotator : DAF::Runnable
-    {
-      DAF::Rendezvous<int> &rend;
-      int id;
-      int result;
+    struct TestRotator : DAF::Runnable {
+        DAF::Rendezvous<int> &rend;
+        int id;
+        int result;
 
-      TestRotator(DAF::Rendezvous<int>& ren, int idin)
-      : rend(ren)
-      , id(idin)
-      , result(0)
-      { }
+        TestRotator(DAF::Rendezvous<int>& ren, int idin)
+            : rend(ren)
+            , id(idin)
+            , result(0)
+        {
+        }
 
-      virtual int run(void)
-       {
-           if ( debug ) ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Entering Rendezvous %d\n", this, this->id));
-
-           try {
-                  result = this->rend.rendezvous(this->id);
-           } catch ( const DAF::BrokenBarrierException &e) {
-                if (debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Broken on Rend %s\n"), this,  e.what()));
-            } catch ( const DAF::TimeoutException &te ) {
-                if (debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Timeout on Rend %s\n"), this, te.what()));
-            } catch ( const DAF::IllegalThreadStateException &te ) {
-                if(debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X IllegalThreadState on Rend %s\n"), this, te.what()));
-            } DAF_CATCH_ALL {
-                if(debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - Unknown Exception on Rend\n")));
+        virtual int run(void)
+        {
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T 0x%08X Entering Rendezvous %d\n", this, this->id));
             }
 
-           return 0;
-       }
+            try {
+                result = this->rend.rendezvous(this->id);
+            } catch (const DAF::BrokenBarrierException &e) {
+                if (debug) {
+                    ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Broken on Rend %s\n"), this, e.what()));
+                }
+            } catch (const DAF::TimeoutException &te) {
+                if (debug) {
+                    ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Timeout on Rend %s\n"), this, te.what()));
+                }
+            } catch (const DAF::IllegalThreadStateException &te) {
+                if (debug) {
+                    ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X IllegalThreadState on Rend %s\n"), this, te.what()));
+                }
+            } DAF_CATCH_ALL{
+                if (debug) {
+                    ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - Unknown Exception on Rend\n")));
+                }
+            }
+
+            return 0;
+        }
     };
 
 
@@ -191,7 +216,7 @@ namespace test
         int result = 1;
         int expected = 0;
         int value = 0;
-        bool clean  = false;
+        bool clean = false;
 
         DAF::Semaphore counter(0);
         TestRendFunc functor;
@@ -218,9 +243,13 @@ namespace test
 
                 result &= !rend.broken() && clean;
 
-                if(debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s %d\n", (clean ? "YES" : "NO"), result));
-            } catch( const DAF::IllegalThreadStateException &te) {
-                if(debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Got Illegal State? %s\n", te.what()));
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s %d\n", (clean ? "YES" : "NO"), result));
+                }
+            } catch (const DAF::IllegalThreadStateException &te) {
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Got Illegal State? %s\n", te.what()));
+                }
                 result = 0;
             }
             DAF_OS::thr_yield();
@@ -230,7 +259,7 @@ namespace test
 
         result &= (value == expected) && functor.ran;
 
-        std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
+        std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
 
         return result;
     }
@@ -251,7 +280,7 @@ namespace test
         int result = 1;
         int expected = 1;
         int value = 0;
-        bool clean  = false;
+        bool clean = false;
 
         TestRendFunc functor;
         DAF::Semaphore counter(0);
@@ -276,9 +305,13 @@ namespace test
 
                 result &= rend.broken() && !clean;
 
-                if(debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s %d\n", (clean ? "YES" : "NO"), result));
-            } catch( const DAF::IllegalThreadStateException &te) {
-                if(debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Got Illegal State? %s\n", te.what()));
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s %d\n", (clean ? "YES" : "NO"), result));
+                }
+            } catch (const DAF::IllegalThreadStateException &te) {
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Got Illegal State? %s\n", te.what()));
+                }
                 result = 0;
             }
             DAF_OS::thr_yield();
@@ -288,7 +321,7 @@ namespace test
 
         result &= (value == expected) && !functor.ran;
 
-        std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
+        std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
 
         return result;
     }
@@ -309,12 +342,12 @@ namespace test
         int result = 1;
         int expected = 1;
         int value = 0;
-        bool clean  = false;
+        bool clean = false;
 
         DAF::Semaphore counter(0);
         TestRendFunc functor;
 
-        RendezvousTest_t rend(expected*2, functor);
+        RendezvousTest_t rend(expected * 2, functor);
         TestRendezvous *tester = new TestRendezvous(counter, 1, rend);
 
         DAF::Runnable_ref runner(tester);
@@ -332,9 +365,13 @@ namespace test
 
                 result &= rend.broken() && !clean;
 
-                if(debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s\n", (clean ? "YES" : "NO")));
-            } catch( const DAF::IllegalThreadStateException &te) {
-                if(debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Got Illegal State? %s\n", te.what()));
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s\n", (clean ? "YES" : "NO")));
+                }
+            } catch (const DAF::IllegalThreadStateException &te) {
+                if (debug) {
+                    ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Got Illegal State? %s\n", te.what()));
+                }
                 result = 0;
             }
             DAF_OS::thr_yield();
@@ -344,7 +381,7 @@ namespace test
 
         result &= (value == expected) && !functor.ran;
 
-        std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
+        std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
 
         return result;
     }
@@ -747,9 +784,11 @@ namespace test
             kill_executor->execute(new TestRendezvous(counter, threadCount+1, rend));
             counter.acquire();
 
-            if (debug) ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing Executor\n"));
+            if (debug) {
+                ACE_DEBUG((LM_INFO, "(%P|%t) %T - Killing Executor\n"));
+            }
 
-            delete kill_executor;
+            delete kill_executor; kill_executor = 0;
 
             DAF_OS::thr_yield();
             //result &= rend.broken();
@@ -766,7 +805,8 @@ namespace test
         return result;
     }
 
-}//namespace test
+
+} //namespace test
 
 void print_usage(const ACE_Get_Opt &cli_opt)
 {
@@ -780,6 +820,8 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char *argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
+
     int result = 1, threadCount = 3;
 
     ACE_Get_Opt cli_opt(argc, argv, "hzn:");
@@ -787,14 +829,14 @@ int main(int argc, char *argv[])
     cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
     cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
 
-    for( int i = 0; i < argc; ++i ) switch(cli_opt()) {
+    for (int i = 0; i < argc; ++i) {
+        switch (cli_opt()) {
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
-        case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
+        case 'z': DAF::debug(true); test::debug = true; break;
+        case 'n': threadCount = ace_max(3, DAF_OS::atoi(cli_opt.opt_arg())); break;
+        }
     }
-
-    std::cout << test::TEST_NAME << std::endl;
 
     result &= test::test_RendezvousBasicWorking(threadCount);
     result &= test::test_RendezvousTimeout(threadCount);

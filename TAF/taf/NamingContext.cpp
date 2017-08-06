@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -44,18 +44,20 @@ namespace {
 
                 const CORBA::ULong bl_len = (bl ? bl->length() : 0U);
 
-                if (bl_len) for (CORBA::ULong i = 0; i < bl_len; i++) {
+                if (bl_len) {
 
-                    const CosNaming::Name &binding_name = bl[i].binding_name;
+                    for (CORBA::ULong i = 0; i < bl_len; i++) {
 
-                    for (size_t pad = 0; pad++ < depth; ss << '|' << ' ')
-                        ;
+                        const CosNaming::Name &binding_name = bl[i].binding_name;
 
-                    ss << '+' << ' ' << binding_name[0].id.in() << ' ';
+                        for (size_t pad = 0; pad++ < depth; ss << '|' << ' ') {
+                        }
 
-                    switch (bl[i].binding_type) {
-                    case CosNaming::nobject:    ss << "[ref]" << std::endl; break;
-                    case CosNaming::ncontext:   ss << "[cxt]" << std::endl;
+                        ss << '+' << ' ' << binding_name[0].id.in() << ' ';
+
+                        switch (bl[i].binding_type) {
+                        case CosNaming::nobject:    ss << "[ref]" << std::endl; break;
+                        case CosNaming::ncontext:   ss << "[cxt]" << std::endl;
                         {
                             TAF::NamingContext nxt_cxt(CosNaming::NamingContext::_narrow(cxt->resolve(binding_name)));
                             if (CORBA::is_nil(nxt_cxt.in())) {
@@ -64,7 +66,8 @@ namespace {
                             ss << make_naming_graph(nxt_cxt, depth + 1);
                         } break;
 
-                    default: ss << "[-?-]" << std::endl; break;
+                        default: ss << "[-?-]" << std::endl; break;
+                        }
                     }
 
                 } else break;
@@ -72,8 +75,8 @@ namespace {
             } while (CORBA::is_nil(it.in()) ? false : it->next_n(MAX_CHUNK, bl));
 
         } catch (const CORBA::Exception &ex) {
-            for (size_t pad = 0; pad++ < depth; ss << '|' << ' ')
-                ;
+            for (size_t pad = 0; pad++ < depth; ss << '|' << ' ') {
+            }
             ss << "|->\"" << ex._rep_id() << '\"' << std::endl;
         } DAF_CATCH_ALL{
         }

@@ -154,61 +154,60 @@ namespace LTM  // Open the LTM Namespace
 
         int parse_error = this->parse_args(argc, argv);
 
-        if (parse_error == 0) do { // Do We have any parsing errors?
+        if (parse_error == 0) {
 
-            if (this->use_naming_) try {  // Add a binder - before we init_bind()
-                this->addIORBinding(new TAF::NamingServiceBinder(TheTAFBaseContext()));
-            } catch (const CORBA::Exception &ex) {
-                ex._tao_print_exception("CORBActiveService: Failed to locate NamingService (option -n)");
-            }
+            do { // Do We have any parsing errors?
 
-            // Initialize these DDS-Entities in order of dependance
-
-            if (this->dcpsParticipant_.init(this->dcpsDomain_) != DDS::RETCODE_OK) {
-                ACE_ERROR_BREAK((LM_ERROR,
-                    ACE_TEXT("ERROR: %s - Unable to create participant for DDS domain '%d'; Exiting.\n")
-                    , LTM_CORBActiveService::svc_ident(), int(this->dcpsDomain_)));
-            }
-            else if (this->topic_.init(this->dcpsParticipant_, ltm::LTMTopicDetailsName) != DDS::RETCODE_OK) {
-                ACE_ERROR_BREAK((LM_ERROR,
-                    ACE_TEXT("ERROR: %s - Unable to initialize DDS Topic \"%s\".\n")
-                    , LTM_CORBActiveService::svc_ident(), ltm::LTMTopicDetailsName));
-            }
-            else if (this->dcpsSubscriber_.init(this->dcpsParticipant_) != DDS::RETCODE_OK) {
-                ACE_ERROR_BREAK((LM_ERROR,
-                    ACE_TEXT("ERROR: %s - Unable to create subscriber for DDS topic \"%s\"; Exiting.\n")
-                    , LTM_CORBActiveService::svc_ident(), ltm::LTMTopicDetailsName));
-            }
-            else if (LTMTopicDetailsReader::init(this->dcpsSubscriber_, this->topic_) != DDS::RETCODE_OK) {
-                ACE_ERROR_BREAK((LM_ERROR,
-                    ACE_TEXT("ERROR: %s - Unable to initialize DDS Reader of topic \"%s\".\n")
-                    , LTM_CORBActiveService::svc_ident(), ltm::LTMTopicDetailsName));
-            }
-            else if (this->init_bind(this->svc_ident())) { // Bind our CORBA interface with defaults.
-                ACE_ERROR_BREAK((LM_ERROR,
-                    ACE_TEXT("ERROR: %s - Unable to initialize CORBA Interface bindings.\n")
-                    , LTM_CORBActiveService::svc_ident()));
-            }
-
-            // NOTE: an ACE_Service_Object inherits from ACE_Event_Handler so we are already potentially reactive
-            long timer_id = ACE_Reactor::instance()->schedule_timer(
-                this,           // We are the event Handler
-                0,              // Asynchronous completion token to be carried with the timer
-                this->period_,  // Initial delay before first timer
-                this->period_); // Periodic interval
-
-            if (timer_id != -1) { // We Created the timer ok
-
-                if (this->execute(this->threads_) == 0) { // We Created the threads ok
-                    return 0;
+                if (this->use_naming_) try {  // Add a binder - before we init_bind()
+                    this->addIORBinding(new TAF::NamingServiceBinder(TheTAFBaseContext()));
+                } catch (const CORBA::Exception &ex) {
+                    ex._tao_print_exception("CORBActiveService: Failed to locate NamingService (option -n)");
                 }
 
-                this->module_closed(); // Close out the thread engine
-            }
+                // Initialize these DDS-Entities in order of dependance
 
-            ACE_Reactor::instance()->cancel_timer(this);  // clean up any timers
+                if (this->dcpsParticipant_.init(this->dcpsDomain_) != DDS::RETCODE_OK) {
+                    ACE_ERROR_BREAK((LM_ERROR,
+                        ACE_TEXT("ERROR: %s - Unable to create participant for DDS domain '%d'; Exiting.\n")
+                        , LTM_CORBActiveService::svc_ident(), int(this->dcpsDomain_)));
+                } else if (this->topic_.init(this->dcpsParticipant_, ltm::LTMTopicDetailsName) != DDS::RETCODE_OK) {
+                    ACE_ERROR_BREAK((LM_ERROR,
+                        ACE_TEXT("ERROR: %s - Unable to initialize DDS Topic \"%s\".\n")
+                        , LTM_CORBActiveService::svc_ident(), ltm::LTMTopicDetailsName));
+                } else if (this->dcpsSubscriber_.init(this->dcpsParticipant_) != DDS::RETCODE_OK) {
+                    ACE_ERROR_BREAK((LM_ERROR,
+                        ACE_TEXT("ERROR: %s - Unable to create subscriber for DDS topic \"%s\"; Exiting.\n")
+                        , LTM_CORBActiveService::svc_ident(), ltm::LTMTopicDetailsName));
+                } else if (LTMTopicDetailsReader::init(this->dcpsSubscriber_, this->topic_) != DDS::RETCODE_OK) {
+                    ACE_ERROR_BREAK((LM_ERROR,
+                        ACE_TEXT("ERROR: %s - Unable to initialize DDS Reader of topic \"%s\".\n")
+                        , LTM_CORBActiveService::svc_ident(), ltm::LTMTopicDetailsName));
+                } else if (this->init_bind(this->svc_ident())) { // Bind our CORBA interface with defaults.
+                    ACE_ERROR_BREAK((LM_ERROR,
+                        ACE_TEXT("ERROR: %s - Unable to initialize CORBA Interface bindings.\n")
+                        , LTM_CORBActiveService::svc_ident()));
+                }
 
-        } while (false); // Structured goto
+                // NOTE: an ACE_Service_Object inherits from ACE_Event_Handler so we are already potentially reactive
+                long timer_id = ACE_Reactor::instance()->schedule_timer(
+                    this,           // We are the event Handler
+                    0,              // Asynchronous completion token to be carried with the timer
+                    this->period_,  // Initial delay before first timer
+                    this->period_); // Periodic interval
+
+                if (timer_id != -1) { // We Created the timer ok
+
+                    if (this->execute(this->threads_) == 0) { // We Created the threads ok
+                        return 0;
+                    }
+
+                    this->module_closed(); // Close out the thread engine
+                }
+
+                ACE_Reactor::instance()->cancel_timer(this);  // clean up any timers
+
+            } while (false); // Structured goto
+        }
 
         // NOTE: We could just call this->fini() here in this case as all resources are dynamic
 

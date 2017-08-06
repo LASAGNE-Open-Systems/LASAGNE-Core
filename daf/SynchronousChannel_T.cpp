@@ -70,7 +70,7 @@ namespace DAF
 
                 if (waitConsumer) { // Wait for a consumer to arrive and take the item.
 
-                    while (!node->isCANCELLED()) {
+                    while (node->isCANCELLED() ? false : true) {
 
                         if (this->interrupted()) {
                             DAF_THROW_EXCEPTION(InterruptedException);
@@ -146,7 +146,7 @@ namespace DAF
 
                 if (waitProducer) { // Wait for a producer to arrive and fill in the item.
 
-                    while (!node->isCANCELLED()) {
+                    while (node->isCANCELLED() ? false : true) {
 
                         if (this->interrupted()) {
                             DAF_THROW_EXCEPTION(InterruptedException);
@@ -263,7 +263,7 @@ namespace DAF
     template <typename T> int // Called with lock held
     SynchronousChannel<T>::WaiterQueue::deque(typename SYNCHNode::_out_type node)
     {
-        while (!this->empty()) {
+        while (this->empty() ? false : true) {
             typename _waiter_list_type::value_type item(this->front()._retn()); this->pop_front();
             if (item && !item->isCANCELLED()) {
                 node = item._retn(); return 0;

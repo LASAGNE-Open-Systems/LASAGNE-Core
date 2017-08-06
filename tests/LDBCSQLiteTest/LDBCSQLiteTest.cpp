@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -29,10 +29,10 @@
 #include <iostream>
 #include <string>
 
-#define __DROP_STMT__    \
+#define DROP_STMT \
     ACE_TEXT("DROP TABLE IF EXISTS lasagne_sheet")
 
-#define __CREATE_STMT__  \
+#define CREATE_STMT \
     ACE_TEXT("CREATE TABLE IF NOT EXISTS lasagne_sheet(")   \
     ACE_TEXT("uid INTEGER PRIMARY KEY AUTOINCREMENT,")      \
     ACE_TEXT("timeofday DATETIME,")                         \
@@ -41,11 +41,11 @@
     ACE_TEXT("surname TEXT)")
 
 /* Wildcard Insert */
-# define __INSERT_STMT__  \
+# define INSERT_STMT \
     ACE_TEXT("INSERT INTO lasagne_sheet (timeofday, firstname, middlename, surname) ") \
     ACE_TEXT("VALUES (?, 'Derek', 'W', 'Dominish')")
 
-#define __SELECT_STMT__  \
+#define SELECT_STMT \
     ACE_TEXT("SELECT * FROM lasagne_sheet")
 
 namespace {
@@ -56,7 +56,9 @@ namespace {
         if (max_column > 0) {
             std::cout << "Column-Names:\t'";
             for (int index = 0; max_column > index; index++) {
-                if (index) std::cout << ' ';
+                if (index) {
+                    std::cout << ' ';
+                }
                 std::cout << query->column_name(index);
             }
             std::cout << '\'' << std::endl;
@@ -78,23 +80,26 @@ int main(int argc, char * argv[])
 
         LDBC::SQLiteConnection connection("simple.db", long(SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE));
 
-        connection->execute_query(__DROP_STMT__);
-        connection->execute_query(__CREATE_STMT__);
+        connection->execute_query(DROP_STMT);
+        connection->execute_query(CREATE_STMT);
 
         for (int i = 0; i < 10; i++) {
 
-            LDBC::SQLiteQuery query(connection->execute_query(__INSERT_STMT__));
+            LDBC::SQLiteQuery query(connection->execute_query(INSERT_STMT));
 
             int bind_count = query->bind_count();
-            if (bind_count > 0) for (int j = 1; j <= bind_count; j++) { // NOTE: Bind indexes start at 1.
-                switch (j) {
-                case 1:     query[j]->bind(DAF::Date_Time::LOCALTime()); break;
-                default:    DAF_THROW_EXCEPTION(LDBC::InternalException); /* ERROR in this example */
+
+            if (bind_count > 0) {
+                for (int j = 1; j <= bind_count; j++) { // NOTE: Bind indexes start at 1.
+                    switch (j) {
+                    case 1:     query[j]->bind(DAF::Date_Time::LOCALTime()); break;
+                    default:    DAF_THROW_EXCEPTION(LDBC::InternalException); /* ERROR in this example */
+                    }
                 }
             }
         }
 
-        LDBC::SQLiteQuery query(connection->execute_query(__SELECT_STMT__));
+        LDBC::SQLiteQuery query(connection->execute_query(SELECT_STMT));
 
         ACE_TEST_ASSERT(print_column_names(query));
 

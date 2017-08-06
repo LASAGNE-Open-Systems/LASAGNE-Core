@@ -214,7 +214,7 @@ namespace {
         if (fn) {
             TAFSERVER_INIT_FUNCTION taf_server_init = reinterpret_cast<TAFSERVER_INIT_FUNCTION>(fn);
             if (taf_server_init) {
-                if (taf_server_init(argc, argv) ? false : this->libInit_ = true) {
+                if (taf_server_init(argc, argv) ? false : (this->libInit_ = true)) {
                     return 0;
                 }
             }

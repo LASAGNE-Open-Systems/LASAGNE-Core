@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -19,32 +19,6 @@
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
 #define DAF_DATETIME_CPP
-
-/******************  DateValue  *******************************
-*
-*(c)Copyright 2011,
-*   Defence Science and Technology Organisation,
-*   Department of Defence,
-*   Australia.
-*
-* All rights reserved.
-*
-* This is unpublished proprietary source code of DSTO.
-* The copyright notice above does not evidence any actual or
-* intended publication of such source code.
-*
-* The contents of this file must not be disclosed to third
-* parties, copied or duplicated in any form, in whole or in
-* part, without the express prior written permission of DSTO.
-*
-*
-* @file     DateValue.cpp
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-*************************************************************/
 
 #include "DateTime.h"
 
@@ -115,12 +89,17 @@ namespace {
 
     bool assertDateRange(const ACE_Date_Time &dt)
     {
-        if (DAF::Date_Time::isDayWithinMonth(dt.day(), dt.month(), dt.year()))
-            if (assertHourRange(dt.hour()))
-                if (assertMinuteRange(dt.minute()))
-                    if (assertSecondRange(dt.second()))
-                        if (assertMicrosecRange(dt.microsec()))
+        if (DAF::Date_Time::isDayWithinMonth(dt.day(), dt.month(), dt.year()))  {
+            if (assertHourRange(dt.hour()))                                     {
+                if (assertMinuteRange(dt.minute()))                             {
+                    if (assertSecondRange(dt.second()))                         {
+                        if (assertMicrosecRange(dt.microsec()))                 {
                             return true;
+                        }
+                    }
+                }
+            }
+        }
 
         return false;
     }
@@ -245,7 +224,7 @@ namespace DAF
         if (assertDateRange(*this)) {
             this->weekday(WEEKDay(this->day(), this->month(), this->year())); return;
         }
-        DAF_THROW_EXCEPTION(DAF::DateTimeException);
+        DAF_THROW_EXCEPTION(DateTimeException);
     }
 
     Date_Time::Date_Time(const ACE_Time_Value &tv)
@@ -268,7 +247,7 @@ namespace DAF
                 this->weekday(WEEKDay(this->day(), this->month(), this->year())); return;
             }
         }
-        DAF_THROW_EXCEPTION(DAF::DateTimeException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(DateTimeException);     // "DAF::Date invalid_time_value");
     }
 
     Date_Time::Date_Time(long d, long m, long y, long hh, long mm, long sec, long usec)
@@ -277,7 +256,7 @@ namespace DAF
         if (assertDateRange(*this)) {
             this->weekday(WEEKDay(this->day(), this->month(), this->year())); return;
         }
-        DAF_THROW_EXCEPTION(DAF::DateTimeException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(DateTimeException);     // "DAF::Date invalid_time_value");
     }
 
     Date_Time::Date_Time(const struct tm &s, long microsec)
@@ -292,7 +271,7 @@ namespace DAF
         if (assertDateRange(*this)) {
             this->weekday(WEEKDay(this->day(), this->month(), this->year())); return;
         }
-        DAF_THROW_EXCEPTION(DAF::DateTimeException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(DateTimeException);     // "DAF::Date invalid_time_value");
     }
 
     Date_Time::Date_Time(const std::string &s)
@@ -307,7 +286,7 @@ namespace DAF
             }
             break;
         }
-        DAF_THROW_EXCEPTION(DAF::DateTimeException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(DateTimeException);     // "DAF::Date invalid_time_value");
     }
 
     //
@@ -357,7 +336,7 @@ namespace DAF
                 return dy;
             }
         }
-        DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(IllegalArgumentException);     // "DAF::Date invalid_time_value");
     }
 
     //
@@ -390,7 +369,7 @@ namespace DAF
 
             return *this;
         }
-        DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(IllegalArgumentException);     // "DAF::Date invalid_time_value");
     }
 
     Date_Time&
@@ -418,15 +397,17 @@ namespace DAF
     {
         int rtn, idx = 0;
 
-        do switch (idx++) {
-            case 0: rtn = (this->year()     < dt.year()     ? -1 : int(this->year()     > dt.year()))     ; break;
-            case 1: rtn = (this->month()    < dt.month()    ? -1 : int(this->month()    > dt.month()))    ; break;
-            case 2: rtn = (this->day()      < dt.day()      ? -1 : int(this->day()      > dt.day()))      ; break;
-            case 3: rtn = (this->hour()     < dt.hour()     ? -1 : int(this->hour()     > dt.hour()))     ; break;
-            case 4: rtn = (this->minute()   < dt.minute()   ? -1 : int(this->minute()   > dt.minute()))   ; break;
-            case 5: rtn = (this->second()   < dt.second()   ? -1 : int(this->second()   > dt.second()))   ; break;
-            case 6: rtn = (this->microsec() < dt.microsec() ? -1 : int(this->microsec() > dt.microsec())) ; break;
+        do {
+            switch (idx++) {
+            case 0: rtn = (this->year() < dt.year()         ? -1 : int(this->year() > dt.year()));          break;
+            case 1: rtn = (this->month() < dt.month()       ? -1 : int(this->month() > dt.month()));        break;
+            case 2: rtn = (this->day() < dt.day()           ? -1 : int(this->day() > dt.day()));            break;
+            case 3: rtn = (this->hour() < dt.hour()         ? -1 : int(this->hour() > dt.hour()));          break;
+            case 4: rtn = (this->minute() < dt.minute()     ? -1 : int(this->minute() > dt.minute()));      break;
+            case 5: rtn = (this->second() < dt.second()     ? -1 : int(this->second() > dt.second()));      break;
+            case 6: rtn = (this->microsec() < dt.microsec() ? -1 : int(this->microsec() > dt.microsec()));  break;
             case 7: return 0;
+            }
         } while (rtn == 0);
 
         return rtn;
@@ -442,7 +423,7 @@ namespace DAF
                 this->second(),
                 this->microsec());
         }
-        DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(IllegalArgumentException);     // "DAF::Date invalid_time_value");
     }
 
     Date_Time
@@ -455,7 +436,7 @@ namespace DAF
                 this->second(),
                 this->microsec());
         }
-        DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);
+        DAF_THROW_EXCEPTION(IllegalArgumentException);
     }
 
     //
@@ -472,7 +453,7 @@ namespace DAF
             }
             return dy;
         }
-        DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(IllegalArgumentException);     // "DAF::Date invalid_time_value");
     }
 
     time_t
@@ -485,55 +466,66 @@ namespace DAF
     {
         char s[64];  // Build String
 
-        if (assertDateRange(dt)) do {
+        if (assertDateRange(dt)) {
 
-            if (verbose) {
-                if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_VERBOSE_FORMAT,
-                    weekdayNAME(dt.weekday()),
-                    int(dt.day()),
-                    dayACRONIUM(dt.day()),
-                    monthNAME(dt.month()),
+            do {
+
+                if (verbose) {
+                    if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_VERBOSE_FORMAT,
+                        weekdayNAME(dt.weekday()),
+                        int(dt.day()),
+                        dayACRONIUM(dt.day()),
+                        monthNAME(dt.month()),
+                        int(dt.year()),
+                        int((dt.hour() % 12) ? (dt.hour() % 12) : 12),
+                        int(dt.minute()),
+                        int(dt.second()),
+                        ((dt.hour() >= 12) ? "PM" : "AM"))) {
+                        break;
+                    }
+
+                } // SAME AS SQLite DATETIME string
+                else if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_DEFAULT_FORMAT,
                     int(dt.year()),
-                    int((dt.hour() % 12) ? (dt.hour() % 12) : 12),
+                    int(dt.month()),
+                    int(dt.day()),
+                    int(dt.hour()),
                     int(dt.minute()),
-                    int(dt.second()),
-                    ((dt.hour() >= 12) ? "PM" : "AM"))) break;
+                    int(dt.second()))) {
+                    break;
+                }
 
-            } // SAME AS SQLite DATETIME string
-            else if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_DEFAULT_FORMAT,
-                int(dt.year()),
-                int(dt.month()),
-                int(dt.day()),
-                int(dt.hour()),
-                int(dt.minute()),
-                int(dt.second()))) break;
+                return std::string(s);  // Return string
 
-            return std::string(s);  // Return string
+            } while (false);
+        }
 
-        } while (false);
-
-        DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(IllegalArgumentException);     // "DAF::Date invalid_time_value");
     }
 
     std::string toDTGString(const ACE_Date_Time &dt)
     {
         char s[64];  // Build String
 
-        if (assertDateRange(dt)) do {
+        if (assertDateRange(dt)) {
 
-            // The DTG is often used in message traffic. EXAMPLE: 091630Z JUL 11 represents 1630 GMT on 9 July 2011
+            do {
+                // The DTG is often used in message traffic. EXAMPLE: 091630Z JUL 11 represents 1630 GMT on 9 July 2011
 
-            if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_DTGTIME_FORMAT,
-                int(dt.day()),
-                int(dt.hour()),
-                int(dt.minute()),
-                monthDTGNAME(dt.month()),
-                int(dt.year() % 100))) break;
+                if (0 >= DAF_OS::sprintf(s, DAF_DATE_TIME_DTGTIME_FORMAT,
+                    int(dt.day()),
+                    int(dt.hour()),
+                    int(dt.minute()),
+                    monthDTGNAME(dt.month()),
+                    int(dt.year() % 100))) {
+                    break;
+                }
 
-            return std::string(s);  // Return string
+                return std::string(s);  // Return string
 
-        } while (false);
+            } while (false);
+        }
 
-        DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);     // "DAF::Date invalid_time_value");
+        DAF_THROW_EXCEPTION(IllegalArgumentException);     // "DAF::Date invalid_time_value");
     }
 } // namespace DAF
