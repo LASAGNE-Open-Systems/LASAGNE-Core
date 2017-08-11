@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -19,42 +19,6 @@
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
 #define DAF_CONSTRAINEDEXECUTOR_CPP
-
-/*****************************************************************************
- *
- *(c)Copyright 2011,
- *   Defence Science and Technology Organisation,
- *   Department of Defence,
- *   Australia.
- *
- * All rights reserved.
- *
- * This is unpublished proprietary source code of DSTO.
- * The copyright notice above does not evidence any actual or
- * intended publication of such source code.
- *
- * The contents of this file must not be disclosed to third
- * parties, copied or duplicated in any form, in whole or in
- * part, without the express prior written permission of DSTO.
- *
- *
- * @file     ConstrainedExecutor.cpp
- * @author   Derek Dominish
- * @author   $LastChangedBy$
- * @date     1st September 2011
- * @version  $Revision$
- * @ingroup
- *
- * ConstrainedExecutor encapsulates an Executor-derived class instance and constrains
- * that executor instance to only allowing a maximum number of threads to be run at any
- * one time.
- *
- * The ConstrainedExecutor is configured with this number on creation. Attempts
- * to run more than the maximum number of threads will block until currently running
- * threads exit from the encapsulated executor. Note that the ConstrainedExecutor does not
- * start its own threads, but uses the threads (and threading model) provided by the
- * encapsulated executor.
- */
 
 #include "ConstrainedExecutor.h"
 #include "DirectExecutor.h"

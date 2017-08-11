@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -21,27 +21,7 @@
 #ifndef TAF_OBJECTSTUBREF_T_H
 #define TAF_OBJECTSTUBREF_T_H
 
-/************************ ObjectStubRef *************************
-*
-* AUTHOR:   Derek Dominish <derek.dominish@dsto.defence.gov.au>
-* DATE:     21st December 2011
-*
-* TAF::ObjectStubRef provides a safe way of handling the conversion
-* of servant instances to CORBA object references while maintaining
-* responsibility for the lifecycle of the servant (based on scope).
-*
-* ImplVar represents ownership of servant lifecycle in the current process
-* (ie. is client/server-side neutral) and is intended solely for cases when
-* dealing with instances of a CORBA object and it's associated servant.
-*
-* For example, an application creating function objects for query
-* purposes needs control of the servant implementation but also
-* requires conversion to CORBA objects for integration with remote interfaces.
-*
-* This class presents an interface similar to that of the _var classes
-* provided by CORBA for managing proxies including reference counting.
-*
-*****************************************************************/
+
 
 #include "TAF.h"
 
@@ -66,6 +46,22 @@ namespace TAF
         static int  deactivate(PortableServer::Servant);
     };
 
+    /**
+     * TAF::ObjectStubRef provides a safe way of handling the conversion
+     * of servant instances to CORBA object references while maintaining
+     * responsibility for the lifecycle of the servant (based on scope).
+     *
+     * ImplVar represents ownership of servant lifecycle in the current process
+     * (ie. is client/server-side neutral) and is intended solely for cases when
+     * dealing with instances of a CORBA object and it's associated servant.
+     *
+     * For example, an application creating function objects for query
+     * purposes needs control of the servant implementation but also
+     * requires conversion to CORBA objects for integration with remote interfaces.
+     *
+     * This class presents an interface similar to that of the _var classes
+     * provided by CORBA for managing proxies including reference counting.
+     */
     template <typename T>
     class ObjectStubRef : public T::_stub_var_type
     {

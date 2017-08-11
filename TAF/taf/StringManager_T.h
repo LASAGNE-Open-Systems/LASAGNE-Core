@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,13 +20,6 @@
 ***************************************************************/
 #ifndef TAF_STRINGMANAGER_T_H
 #define TAF_STRINGMANAGER_T_H
-
-/************************ StringSequence_T *************************
-*
-* AUTHOR:   Derek Dominish <derek.dominish@dsto.defence.gov.au>
-* DATE:     30th March 2016
-*
-*****************************************************************/
 
 #include "VectorSequence_T.h"
 
