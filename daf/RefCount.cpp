@@ -20,31 +20,6 @@
 ***************************************************************/
 #define DAF_REFCOUNT_CPP
 
-/**********************  RefCount *****************************
- *
- *(c)Copyright 2011,
- *   Defence Science and Technology Organisation,
- *   Department of Defence,
- *   Australia.
- *
- * All rights reserved.
- *
- * This is unpublished proprietary source code of DSTO.
- * The copyright notice above does not evidence any actual or
- * intended publication of such source code.
- *
- * The contents of this file must not be disclosed to third
- * parties, copied or duplicated in any form, in whole or in
- * part, without the express prior written permission of DSTO.
- *
- *
- * @file     RefCount.cpp
- * @author   Derek Dominish
- * @author   $LastChangedBy$
- * @date     1st September 2011
- * @version  $Revision$
- * @ingroup
- */
 
 #include "RefCount.h"
 

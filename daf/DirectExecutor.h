@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,18 +20,6 @@
 ***************************************************************/
 #ifndef DAF_DIRECTEXECUTOR_H
 #define DAF_DIRECTEXECUTOR_H
-
-/**
-
-*
-* @file     DirectExecutor.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
-*/
 
 #include "Executor.h"
 
