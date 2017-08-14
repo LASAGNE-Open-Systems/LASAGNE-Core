@@ -276,7 +276,7 @@ namespace LTM  // Open the LTM Namespace
     {
         ACE_UNUSED_ARG(act);
 
-        ACE_DEBUG((LM_INFO, ACE_TEXT("(%P | %t)\t%s[%@]::handle_timeout(%#T )\n")
+        ACE_DEBUG((LM_INFO, ACE_TEXT("(%P | %t)\t%s[%@]::handle_timeout(%#T)\n")
             , LTM_CORBActiveService::svc_ident()
             , this
             , &expected_time));

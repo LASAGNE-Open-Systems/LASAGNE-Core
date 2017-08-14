@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,18 +20,6 @@
 ***************************************************************/
 #ifndef DAF_DATETIME_H
 #define DAF_DATETIME_H
-
-/**
- * ATTRIBUTION: Based On OpenSource 'Date' - Runtime Borland C++ Builder 4
- *
- * @file     DateTime.h
- * @author   Derek Dominish
- * @author   $LastChangedBy$
- * @date     1st September 2011
- * @version  $Revision$
- * @ingroup
- * @namespace DAF
- */
 
 #include "DAF.h"
 
@@ -70,7 +58,7 @@ namespace DAF
     /** @class Date_Time
      * @brief Brief \todo { fill this in }
      *
-     * Detailed description \todo { fill this in }
+     * Based On OpenSource 'Date' - Runtime Borland C++ Builder 4
      */
     class DAF_Export Date_Time : public ACE_Date_Time
     {

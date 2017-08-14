@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -22,28 +22,22 @@
 #ifndef DAF_RLECOMPRESSOR_H
 #define DAF_RLECOMPRESSOR_H
 
-/**
-* ATTRIBUTION: Based on IBM/Wang 'comp' machine instruction logics
-*
-* @file     RLECompressor.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
-*/
-
 #include <ace/Compression/rle/RLECompressor.h>
 
 namespace DAF {
-    /** \todo{Fill this in} */
+    /**
+     * ATTRIBUTION: Based on IBM/Wang 'comp' machine instruction logics
+     * \todo{Fill this in}
+     */
     inline int RLE_Compress(const void *in_ptr, size_t in_len, void *out_ptr, size_t out_len)
     {
         return int(ACE_RLECompressor().compress(in_ptr, in_len, out_ptr, out_len));
     }
 
-    /** \todo{Fill this in} */
+    /**
+    * ATTRIBUTION: Based on IBM/Wang 'comp' machine instruction logics
+    * \todo{Fill this in}
+    */
     inline int RLE_Expand(const void *in_ptr, size_t in_len, void *out_ptr, size_t out_len)
     {
         return int(ACE_RLECompressor().decompress(in_ptr, in_len, out_ptr, out_len));

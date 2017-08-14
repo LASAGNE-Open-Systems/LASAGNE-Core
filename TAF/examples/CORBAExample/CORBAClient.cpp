@@ -47,15 +47,6 @@
 # include "SIOP/SIOP.h"
 #endif
 
-// Derek's Desktop
-// -ORBObjRefStyle URL -ORBInitRef MySimpleServer=corbaloc::dsto-aar11972:8765/MySimpleServer
-// -ORBObjRefStyle URL -ORBInitRef MySimpleServer=corbaloc::131.185.25.12:8765/MySimpleServer
-// -ORBObjRefStyle URL -ORBInitRef MySimpleServer=corbaloc:iiop:1.2@dsto-aar11972:8765/MySimpleServer
-
-// Derek's Laptop
-// -ORBObjRefStyle URL -ORBInitRef MySimpleServer=corbaloc::131.185.25.23:8765/MySimpleServer
-// -ORBObjRefStyle URL -ORBInitRef MySimpleServer=corbaloc::aod-dsto100358:8765/MySimpleServer
-// -ORBObjRefStyle URL -ORBInitRef MySimpleServer=corbaloc:iiop:1.2@aod-dsto100358:8765/MySimpleServer
 
 struct HRTimer : ACE_High_Res_Timer {
     std::string msg_;
