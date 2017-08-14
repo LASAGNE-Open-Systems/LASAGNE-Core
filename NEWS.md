@@ -1,3 +1,29 @@
+### LASAGNE-Core 1.5.0
+
+##### Changes:
+- Discovery replies are now decoupled from main reactor threads
+- Added a DAF-layer implementation of the service gestalt
+- Added support for unregistering types when using DDS (addresses some DDS close-out issues)
+- Added an IORResolver concept as a companion to IORBinder
+- Improved stability of forced thread termination via TaskExecutor
+- Refactored Semaphore implementation to improve liveliness
+- Refactored SynchronousChannel implementation to use Doug Lee's latest transactional model
+- Removed deprecated WaiterPreferenceSemaphore.h
+- Various improvements based on Codacy issue reports
+
+##### Fixes:
+- Fixed TSS cleanup when performing forced thread termination via TaskExecutor
+- Fixed positive thread hand-off in the case of thread creation within TaskExecutor
+- Fixed lingering SVN-style authorship comment blocks
+- Fixed unintended use of C++11 exception constructors
+- Fixed security properties to use positive logic
+- Fixed ORB initialiser hooks for TAF Extensions so they are not still in place for non-primary ORBs
+- Now using ACE_UNIMPLEMENTED_FUNC instead of ACE_Copy_Disabled
+
+##### Notes:
+- Higher-order concurrency elements (Barrier, FutureResult, Rendezvous) will be refactored in a subsequent release.
+_______________________________________________________________________________
+
 ### LASAGNE-Core 1.4.4
 
 ##### Changes:
