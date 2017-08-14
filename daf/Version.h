@@ -22,8 +22,8 @@
 #define DAF_VERSION_H
 
 #define DAF_MAJOR_VERSION 1
-#define DAF_MINOR_VERSION 4
-#define DAF_BETA_VERSION 4
-#define DAF_VERSION "1.4.4"
+#define DAF_MINOR_VERSION 5
+#define DAF_BETA_VERSION 0
+#define DAF_VERSION "1.5.0"
 
 #endif // DAF_VERSION_H
