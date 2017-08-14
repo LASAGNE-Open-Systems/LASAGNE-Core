@@ -5,6 +5,7 @@
 - Added a DAF-layer implementation of the service gestalt
 - Added support for unregistering types when using DDS (addresses some DDS close-out issues)
 - Added an IORResolver concept as a companion to IORBinder
+- Added support for format specifiers within configuration section names
 - Improved stability of forced thread termination via TaskExecutor
 - Refactored Semaphore implementation to improve liveliness
 - Refactored SynchronousChannel implementation to use Doug Lee's latest transactional model
