@@ -61,7 +61,7 @@ project(DAF) : dafbasedefaults, acelib {
   // NOTE: Forces Linux(GCC) to link in this order and bootstrap is consistant.
 
   Source_Files {
-    _DAFInit.cpp
+    0_DAFInit.cpp
     ARGV.cpp
     Barrier.cpp
     Bitset.cpp
