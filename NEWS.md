@@ -8,9 +8,10 @@
 - Added support for format specifiers within configuration section names
 - Improved stability of forced thread termination via TaskExecutor
 - Refactored Semaphore implementation to improve liveliness
-- Refactored SynchronousChannel implementation to use Doug Lee's latest transactional model
+- Refactored SynchronousChannel implementation to use Doug Lea's transactional model
 - Removed deprecated WaiterPreferenceSemaphore.h
 - Various improvements based on Codacy issue reports
+- Now supported by ACE-TAO 6.4.4
 
 ##### Fixes:
 - Fixed TSS cleanup when performing forced thread termination via TaskExecutor
@@ -19,6 +20,7 @@
 - Fixed unintended use of C++11 exception constructors
 - Fixed security properties to use positive logic
 - Fixed ORB initialiser hooks for TAF Extensions so they are not still in place for non-primary ORBs
+- Fixed initialisation order for process-wide reactor and object manager
 - Now using ACE_UNIMPLEMENTED_FUNC instead of ACE_Copy_Disabled
 
 ##### Notes:
