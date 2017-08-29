@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,17 +18,21 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#include "daf/Monitor.h"
-#include "daf/TaskExecutor.h"
-#include "daf/CountDownSemaphore.h"
-#include "daf/SemaphoreControlledQueue_T.h"
-#include "ace/Get_Opt.h"
+
+#include <daf/Monitor.h>
+#include <daf/TaskExecutor.h>
+#include <daf/CountDownSemaphore.h>
+#include <daf/SemaphoreControlledQueue_T.h>
+
+#include <ace/Get_Opt.h>
+#include <ace/Min_Max.h>
+
 #include <iostream>
 
 namespace test
 {
   bool debug = false;
-  const char *TEST_NAME = "MonitorTest";
+  const char *TEST_NAME = "MonitorChannelTest";
 
 
   struct TestMonitorWait : DAF::Runnable
@@ -189,18 +193,15 @@ namespace test
       counter.release();
       counter.acquire();
 
-
-
+      // Let the thread exit runnable
+      DAF_OS::sleep(1);  // Stops intermittent race condition with thread touching channel after delete
 
       // Kill the TaskExecutor - This should lead to a hard thread kill
       // Can the Barrier recover?
       if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Killing the Channel\n"));
       delete channel;
 
-      DAF_OS::sleep(ACE_Time_Value(1,0));
-
-
-
+      DAF_OS::sleep(1);
     }
     catch ( const DAF::IllegalThreadStateException& )
     {
@@ -234,26 +235,26 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char *argv[])
 {
-  int result = 1, threadCount = 2;
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
 
-  ACE_Get_Opt cli_opt(argc, argv, "hzn:");
-  cli_opt.long_option("help",'h', ACE_Get_Opt::NO_ARG);
-  cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
-  cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
+    int result = 1, threadCount = 2;
 
-  for( int i = 0; i < argc; ++i ) switch(cli_opt()) {
-    case -1: break;
-    case 'h': print_usage(cli_opt); return 0;
-    case 'z': DAF::debug(true); test::debug=true; break;
-    case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
-  }
+    ACE_Get_Opt cli_opt(argc, argv, "hzn:");
+    cli_opt.long_option("help",'h', ACE_Get_Opt::NO_ARG);
+    cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
+    cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
 
-  std::cout << test::TEST_NAME << std::endl;
+    for (int i = 0; i < argc; ++i) {
+        switch (cli_opt()) {
+        case -1: break;
+        case 'h': print_usage(cli_opt); return 0;
+        case 'z': DAF::debug(true); test::debug = true; break;
+        case 'n': threadCount = ace_max(2, DAF_OS::atoi(cli_opt.opt_arg())); break;
+        }
+    }
 
-  result &= test::test_MonitorThrowDestruction(threadCount);
-  result &= test::test_ChannelTake(threadCount);
+    result &= test::test_MonitorThrowDestruction(threadCount);
+    result &= test::test_ChannelTake(threadCount);
 
-
-
-  return !result;
+    return !result;
 }

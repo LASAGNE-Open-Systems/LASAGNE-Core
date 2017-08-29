@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,10 +18,14 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#include "daf/Barrier.h"
-#include "daf/TaskExecutor.h"
-#include "ace/Thread.h"
-#include "ace/Get_Opt.h"
+
+#include <daf/Barrier.h>
+#include <daf/TaskExecutor.h>
+
+#include <ace/Thread.h>
+#include <ace/Get_Opt.h>
+#include <ace/Min_Max.h>
+
 #include <iostream>
 
 namespace test
@@ -504,6 +508,8 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char *argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
+
     int result = 1, threadCount = 2;
 
     ACE_Get_Opt cli_opt(argc, argv, "hzn:");
@@ -511,14 +517,14 @@ int main(int argc, char *argv[])
     cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
     cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
 
-    for( int i = 0; i < argc; ++i ) switch(cli_opt()) {
+    for (int i = 0; i < argc; ++i) {
+        switch (cli_opt()) {
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
-        case 'z': DAF::debug(true); test::debug=true; break;
-        case 'n': threadCount = DAF_OS::atoi(cli_opt.opt_arg());
+        case 'z': DAF::debug(true); test::debug = true; break;
+        case 'n': threadCount = ace_max(2, DAF_OS::atoi(cli_opt.opt_arg())); break;
+        }
     }
-
-    std::cout << test::TEST_NAME << std::endl;
 
     result &= test::test_BarrierCommand(threadCount);
     result &= test::test_NoBarrierCommand(threadCount);
@@ -528,7 +534,7 @@ int main(int argc, char *argv[])
     result &= test::test_BarrierTimeoutException(threadCount);
     result &= test::test_BarrierIllegalStateException(threadCount);
     result &= test::test_BarrierCtorZero(threadCount);
-#ifndef ACE_WIN32
+#if 1 //ndef ACE_WIN32
     result &= test::test_BarrierThreadKill(threadCount);
 #endif
 

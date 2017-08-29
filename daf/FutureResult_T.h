@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -21,27 +21,12 @@
 #ifndef DAF_FUTURERESULT_T_H
 #define DAF_FUTURERESULT_T_H
 
-/**
-* ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
-*
-* @file     FutureResult_T.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
-*/
 
 #include "Monitor.h"
 #include "Runnable.h"
 
 namespace DAF
 {
-  /**
-   * A class maintaining a single reference variable serving as the result
-   * of an operation. The result cannot be accessed until it has been set.
-   **/
 
    /** @struct FutureFunctor
    * @brief A class maintaining a single reference variable serving as the result
@@ -70,7 +55,9 @@ namespace DAF
     /** @class FutureResult
     * @brief Brief \todo { fill this in }
     *
-    * Details \todo { fill this in }
+    * A class maintaining a single reference variable serving as the result
+    * of an operation. The result cannot be accessed until it has been set.
+    * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
     *
     * \todo{Double check that the description in the struct shouldn't go here?}
     */

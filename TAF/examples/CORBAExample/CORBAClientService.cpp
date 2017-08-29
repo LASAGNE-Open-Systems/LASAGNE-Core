@@ -162,10 +162,12 @@ namespace //anonymous
         cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
 
         int option = -1;
-        while ( (option = cli_opt()) != -1 ) switch(option) {
+        while ((option = cli_opt()) != -1) {
+            switch (option) {
             case 'h': ACE_DEBUG((LM_INFO, "Print the Help\n")); return -1;
             case 'n': this->threads_ = DAF_OS::atoi(cli_opt.opt_arg()); break;
             case 'z': break;
+            }
         }
 
         return 0;

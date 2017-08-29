@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -240,8 +240,10 @@ namespace DAF
     {
         char s[64] = { 0 };
 
-        if (error) for (const char * errno_text = DAF::get_errno_text(error); errno_text;) {
-            DAF_OS::sprintf(s, ACE_TEXT("[Error=%d (%s)]"), error, errno_text); break;
+        if (error) {
+            for (const char * errno_text = DAF::get_errno_text(error); errno_text;) {
+                DAF_OS::sprintf(s, ACE_TEXT("[Error=%d (%s)]"), error, errno_text); break;
+            }
         }
 
         return s;
@@ -280,8 +282,8 @@ namespace DAF
     parse_esc(const std::string &arg, size_t offset)
     {
         std::string param(arg);
-        for (int pos = int(offset); (pos = int(param.find_first_of('\\',pos))) >= 0; param.erase(pos++,1))
-            ;
+        for (int pos = int(offset); (pos = int(param.find_first_of('\\', pos))) >= 0; param.erase(pos++, 1)) {
+        }
         return param;
     }
 
@@ -396,20 +398,22 @@ namespace DAF
 
                             formattingWarnMsg.assign("%D");
 
-                            if (int(arg.length()) > pos) switch (arg[pos]) {
-                                /* print GMT timestamp 2015-10-08 13:15:35 format */
-                            case 'g': mod_arg << DAF_Date_Time::GMTime().toString(false);       arg.erase(pos, 1); continue;
+                            if (int(arg.length()) > pos) {
+                                switch (arg[pos]) {
+                                    /* print GMT timestamp 2015-10-08 13:15:35 format */
+                                case 'g': mod_arg << DAF_Date_Time::GMTime().toString(false);       arg.erase(pos, 1); continue;
 
-                                /* print GMT timestamp Thursday, 8th October 2015 1:15:35PM format */
-                            case 'G': mod_arg << DAF_Date_Time::GMTime().toString(true);        arg.erase(pos, 1); continue;
+                                    /* print GMT timestamp Thursday, 8th October 2015 1:15:35PM format */
+                                case 'G': mod_arg << DAF_Date_Time::GMTime().toString(true);        arg.erase(pos, 1); continue;
 
-                                /* print LOCAL timestamp 2015-10-08 13:15:35 format */
-                            case 'l': mod_arg << DAF_Date_Time::LOCALTime().toString(false);    arg.erase(pos, 1); continue;
+                                    /* print LOCAL timestamp 2015-10-08 13:15:35 format */
+                                case 'l': mod_arg << DAF_Date_Time::LOCALTime().toString(false);    arg.erase(pos, 1); continue;
 
-                                /* print LOCAL timestamp Thursday, 8th October 2015 1:15:35PM format */
-                            case 'L': mod_arg << DAF_Date_Time::LOCALTime().toString(true);     arg.erase(pos, 1); continue;
+                                    /* print LOCAL timestamp Thursday, 8th October 2015 1:15:35PM format */
+                                case 'L': mod_arg << DAF_Date_Time::LOCALTime().toString(true);     arg.erase(pos, 1); continue;
 
-                            default: formattingWarnMsg.append(1, arg[pos]); break;
+                                default: formattingWarnMsg.append(1, arg[pos]); break;
+                                }
                             }
 
                             ACE_DEBUG((LM_WARNING, FORMATTING_SYNTAX_WARNING_TEXT, formattingWarnMsg.c_str()));
@@ -421,11 +425,13 @@ namespace DAF
 
                             formattingWarnMsg.assign("%T");
 
-                            if (int(arg.length()) > pos) switch (arg[pos]) {
-                                /* print UTC timestamp */
-                            case 'u': mod_arg << DAF_Date_Time::UTCTime(); arg.erase(pos, 1); continue;
+                            if (int(arg.length()) > pos) {
+                                switch (arg[pos]) {
+                                    /* print UTC timestamp */
+                                case 'u': mod_arg << DAF_Date_Time::UTCTime(); arg.erase(pos, 1); continue;
 
-                            default: formattingWarnMsg.append(1, arg[pos]); break;
+                                default: formattingWarnMsg.append(1, arg[pos]); break;
+                                }
                             }
 
                             ACE_DEBUG((LM_WARNING, FORMATTING_SYNTAX_WARNING_TEXT, formattingWarnMsg.c_str()));

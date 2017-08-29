@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -42,7 +42,7 @@ namespace DAF
         while(this->waiters_ > 0 ) {
             this->notifyAll();
 
-            if ( this->wait(100) && errno == ETIME) {
+            if (this->wait(100) && DAF_OS::last_error() == ETIME) {
                 // do nothing? break?
             }
         }
@@ -61,16 +61,18 @@ namespace DAF
         {
             ACE_Guard<ACE_SYNCH_MUTEX> ace_mon(*this);
             ++this->waiters_;
-            while(!this->error_) try {
-                if (this->ready_) {
+            while (this->error_ ? false : true) {
+                try {
+                    if (this->ready_) {
+                        --this->waiters_;
+                        return this->value_;
+                    }
+                    this->wait();
+                } catch (...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
                     --this->waiters_;
-                    return this->value_;
+                    this->error_ = true;
+                    throw;
                 }
-                this->wait();
-            } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-                --this->waiters_;
-                this->error_ = true;
-                throw;
             }
 
             --this->waiters_;
@@ -90,19 +92,21 @@ namespace DAF
 
             const ACE_Time_Value end_time(DAF_OS::gettimeofday(msecs));
 
-            while (!this->error_ && !timeout) try {
-                if (this->ready_) {
+            while ((this->error_ || timeout) ? false : true) {
+                try {
+                    if (this->ready_) {
+                        --this->waiters_;
+                        return this->value_;
+                    } else if (end_time > DAF_OS::gettimeofday()) {
+                        this->wait(end_time);
+                    } else {
+                        timeout = true;
+                    }
+                } catch (...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
                     --this->waiters_;
-                    return this->value_;
-                } else if (end_time > DAF_OS::gettimeofday()) {
-                    this->wait(end_time);
-                } else {
-                    timeout = true;
+                    this->error_ = true;
+                    throw;
                 }
-            } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-                --this->waiters_;
-                this->error_ = true;
-                throw;
             }
 
             --this->waiters_;

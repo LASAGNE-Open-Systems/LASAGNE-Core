@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,18 +20,6 @@
 ***************************************************************/
 #ifndef DAF_OBJECTREF_T_H
 #define DAF_OBJECTREF_T_H
-
-/**
-* ATTRIBUTION: Based on the CORBA var specification and TAO implementation of proxy's
-*
-* @file     ObjectRef_T.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     21st December 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
-*/
 
 #include "DAF.h"
 
@@ -79,7 +67,8 @@ namespace DAF
     /** @class ObjectRef
     *@brief Brief \todo{Fill this in}
     *
-    * Details \todo{Detailed description}
+    * ATTRIBUTION: Based on the CORBA var specification and TAO implementation of proxies
+    * \todo{Detailed description}
     */
     template <typename T> class ObjectRef
     {

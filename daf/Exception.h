@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -21,7 +21,7 @@
 #ifndef DAF_EXCEPTION_H
 #define DAF_EXCEPTION_H
 
-#include <ace/OS.h>
+#include "OS.h"
 
 #include <stdexcept>
 #include <typeinfo>
@@ -50,8 +50,8 @@ namespace DAF
   * \ingroup exception
   */
   struct InternalException : std::runtime_error {
-      InternalException(const char *_msg = typeid(InternalException).name())
-          : std::runtime_error(_msg) {
+      InternalException(const std::string& msg = typeid(InternalException).name())
+          : std::runtime_error(msg) {
       }
   };
 
@@ -63,8 +63,8 @@ namespace DAF
   * \ingroup exception
   */
   struct InitializationException : std::runtime_error {
-      InitializationException(const char *_msg =typeid(InitializationException).name())
-          : std::runtime_error(_msg) {
+      InitializationException(const std::string& msg = typeid(InitializationException).name())
+          : std::runtime_error(msg) {
       }
   };
 
@@ -76,8 +76,10 @@ namespace DAF
   * \ingroup exception
   */
   struct TimeoutException : std::runtime_error {
-    TimeoutException(const char *_msg = typeid(TimeoutException).name())
-    : std::runtime_error(_msg) {
+    TimeoutException(const std::string& msg = typeid(TimeoutException).name())
+    : std::runtime_error(msg)
+    {
+        DAF_OS::last_error(ETIME);
     }
   };
 
@@ -88,8 +90,8 @@ namespace DAF
   * \ingroup exception
   */
   struct ClassCastException : std::logic_error {
-      ClassCastException(const char *_msg = typeid(ClassCastException).name())
-          : std::logic_error(_msg) {
+      ClassCastException(const std::string& msg = typeid(ClassCastException).name())
+          : std::logic_error(msg) {
       }
   };
 
@@ -100,8 +102,8 @@ namespace DAF
   * \ingroup exception
   */
   struct IndexOutOfRange : std::out_of_range {
-      IndexOutOfRange(const char *_msg = typeid(IndexOutOfRange).name())
-          : std::out_of_range(_msg) {
+      IndexOutOfRange(const std::string& msg = typeid(IndexOutOfRange).name())
+          : std::out_of_range(msg) {
       }
   };
 
@@ -115,8 +117,8 @@ namespace DAF
   * \ingroup exception
   */
   struct ObjectNotExistException : std::invalid_argument {
-      ObjectNotExistException(const char *_msg = typeid(ObjectNotExistException).name())
-          : std::invalid_argument(_msg) {
+      ObjectNotExistException(const std::string& msg = typeid(ObjectNotExistException).name())
+          : std::invalid_argument(msg) {
       }
   };
 
@@ -127,21 +129,21 @@ namespace DAF
   * \ingroup exception
   */
   struct DateTimeException : std::runtime_error {
-      DateTimeException(const char *_msg = typeid(DateTimeException).name())
-          : std::runtime_error(_msg) {
+      DateTimeException(const std::string& msg = typeid(DateTimeException).name())
+          : std::runtime_error(msg) {
       }
   };
 
  /** \struct IllegalStateException
-  * \brief An inconsistent state is detected
+  * \brief An inconsistent or non-usable state is detected
   *
   * Used internally by the framework to identify when a resource is in an
-  * inconsistent state.
+  * inconsistent or non-usable state.
   * \ingroup exception
   */
   struct IllegalStateException : std::runtime_error {
-      IllegalStateException(const char *_msg = typeid(IllegalStateException).name())
-          : std::runtime_error(_msg) {
+      IllegalStateException(const std::string& msg = typeid(IllegalStateException).name())
+          : std::runtime_error(msg) {
       }
   };
 
@@ -153,8 +155,8 @@ namespace DAF
   * \ingroup exception
   */
   struct InvocationTargetException : std::runtime_error {
-      InvocationTargetException(const char *_msg = typeid(InvocationTargetException).name())
-          : std::runtime_error(_msg) {
+      InvocationTargetException(const std::string& msg = typeid(InvocationTargetException).name())
+          : std::runtime_error(msg) {
       }
   };
 
@@ -167,8 +169,8 @@ namespace DAF
   * \ingroup exception
   */
   struct IllegalArgumentException : std::invalid_argument {
-      IllegalArgumentException(const char *_msg = typeid(IllegalArgumentException).name())
-          : std::invalid_argument(_msg) {
+      IllegalArgumentException(const std::string& msg = typeid(IllegalArgumentException).name())
+          : std::invalid_argument(msg) {
       }
   };
 
@@ -180,8 +182,8 @@ namespace DAF
   * \ingroup exception
   */
   struct IllegalLengthException : std::length_error {
-      IllegalLengthException(const char *_msg = typeid(IllegalLengthException).name())
-          : std::length_error(_msg) {
+      IllegalLengthException(const std::string& msg = typeid(IllegalLengthException).name())
+          : std::length_error(msg) {
       }
   };
 
@@ -196,9 +198,27 @@ namespace DAF
   * \ingroup exception
   */
   struct InterruptedException : InternalException {
-    InterruptedException(const char *_msg = typeid(InterruptedException).name())
-    : InternalException(_msg) {
+    InterruptedException(const std::string& msg = typeid(InterruptedException).name())
+    : InternalException(msg)
+    {
+        DAF_OS::last_error(EINTR);
     }
+  };
+
+  /** \struct LockFailureException
+  * \brief Identifies an instance where a lock manipulation has failed
+  *
+  * This exception is used to identify when an Operating System based lock has failed
+  * to be manipulated (locked) A lot of the use cases are around concurrency resources
+  * at the OS level.
+  * \ingroup exception
+  */
+  struct LockFailureException : InternalException {
+      LockFailureException(const std::string& msg = typeid(LockFailureException).name())
+          : InternalException(msg)
+      {
+          DAF_OS::last_error(ENOLCK);
+      }
   };
 
  /** \struct BrokenBarrierException
@@ -209,8 +229,8 @@ namespace DAF
   * \ingroup exception
   */
   struct BrokenBarrierException : InterruptedException {
-      BrokenBarrierException(const char *_msg = typeid(BrokenBarrierException).name())
-          : InterruptedException(_msg) {
+      BrokenBarrierException(const std::string& msg = typeid(BrokenBarrierException).name())
+          : InterruptedException(msg) {
       }
   };
 
@@ -223,8 +243,8 @@ namespace DAF
   * \ingroup exception
   */
   struct IllegalThreadStateException : InternalException {
-      IllegalThreadStateException(const char *_msg = typeid(IllegalThreadStateException).name())
-          : InternalException(_msg) {
+      IllegalThreadStateException(const std::string& msg = typeid(IllegalThreadStateException).name())
+          : InternalException(msg) {
       }
   };
 
@@ -237,8 +257,8 @@ namespace DAF
   * \ingroup exception
   */
   struct ResourceExhaustionException : InternalException {
-      ResourceExhaustionException(const char *_msg = typeid(ResourceExhaustionException).name() )
-          : InternalException(_msg) {
+      ResourceExhaustionException(const std::string& msg = typeid(ResourceExhaustionException).name() )
+          : InternalException(msg) {
       }
   };
 
@@ -251,8 +271,8 @@ namespace DAF
   * \ingroup exception
   */
   struct NotFoundException : IllegalArgumentException {
-      NotFoundException(const char *_msg = typeid(NotFoundException).name())
-          : IllegalArgumentException(_msg) {
+      NotFoundException(const std::string& msg = typeid(NotFoundException).name())
+          : IllegalArgumentException(msg) {
       }
   };
 
@@ -263,8 +283,8 @@ namespace DAF
   * \ingroup exception
   */
   struct IllegalPropertyException : IllegalArgumentException {
-      IllegalPropertyException(const char *_msg = typeid(IllegalPropertyException).name())
-          : IllegalArgumentException(_msg) {
+      IllegalPropertyException(const std::string& msg = typeid(IllegalPropertyException).name())
+          : IllegalArgumentException(msg) {
       }
   };
 

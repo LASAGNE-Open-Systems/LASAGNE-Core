@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -20,16 +20,6 @@
 ***************************************************************/
 #ifndef DAF_SIGNALHANDLER_H
 #define DAF_SIGNALHANDLER_H
-
-/**
-* @file     SignalHandler.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
-*/
 
 #include "DAF.h"
 
@@ -67,7 +57,6 @@ namespace DAF
      */
     class DAF_Export SignalHandler : protected DAF::Event_Handler
         , ACE_Auto_Event
-        , ACE_Copy_Disabled
     {
         /// Windows ACE_Auto_Event handler
         virtual int handle_signal(int sig, siginfo_t *siginfo, ucontext_t *sigcxt = 0);
@@ -239,6 +228,12 @@ namespace DAF
         * was passed in when <schedule_timer> was invoked.
         */
         virtual int handle_timeout(const ACE_Time_Value &current_time, const void *act);
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const SignalHandler &))
+        ACE_UNIMPLEMENTED_FUNC(SignalHandler(const SignalHandler &))
     };
 
     template <> inline void

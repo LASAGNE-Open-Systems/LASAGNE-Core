@@ -44,7 +44,7 @@ project(DAF) : dafbasedefaults, acelib {
     SemaphoreControlledQueue_T.h
     ServiceAdapter.h
     ServiceGestalt.h
-    ServiceLoader.h
+    ServiceGestaltLoader.h
     ShutdownHandler.h
     SignalHandler.h
     SOCKEndpoint_T.h
@@ -52,8 +52,8 @@ project(DAF) : dafbasedefaults, acelib {
     SynchronousChannel_T.h
     SynchValue_T.h
     TaskExecutor.h
+    TerminateRepository.h
     Version.h
-    WaiterPreferenceSemaphore.h
     WFMOSignalReactor.h
   }
 
@@ -61,7 +61,7 @@ project(DAF) : dafbasedefaults, acelib {
   // NOTE: Forces Linux(GCC) to link in this order and bootstrap is consistant.
 
   Source_Files {
-    _DAFInit.cpp
+    0_DAFInit.cpp
     ARGV.cpp
     Barrier.cpp
     Bitset.cpp
@@ -77,10 +77,11 @@ project(DAF) : dafbasedefaults, acelib {
     RefCount.cpp
     Semaphore.cpp
     ServiceGestalt.cpp
-    ServiceLoader.cpp
+    ServiceGestaltLoader.cpp
     ShutdownHandler.cpp
     SignalHandler.cpp
     TaskExecutor.cpp
+    TerminateRepository.cpp
     WFMOSignalReactor.cpp
   }
 }

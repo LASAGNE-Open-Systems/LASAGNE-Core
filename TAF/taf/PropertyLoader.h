@@ -31,7 +31,7 @@
 
 namespace TAF
 {
-    class TAF_Export PropertyLoader : public DAF::Configurator, DAF_ARGV
+    class TAF_Export PropertyLoader : protected DAF::Configurator, DAF_ARGV
     {
     public:
 

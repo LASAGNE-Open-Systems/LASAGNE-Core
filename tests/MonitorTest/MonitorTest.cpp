@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -26,6 +26,8 @@
 
 namespace
 {
+    const char * TEST_NAME = "MonitorTest";
+
     ACE_Semaphore   test_lock(1); // Unlocked.
 
     DAF::Monitor    monitor_;
@@ -56,7 +58,7 @@ namespace
 
     MonitorTest::~MonitorTest(void)
     {
-        this->module_closed(); this->wait();
+        this->module_closed();
     }
 
     int
@@ -78,7 +80,7 @@ namespace
         ACE_DEBUG((LM_INFO, ACE_TEXT("%P | %t) - MonitorTest svc() Start\n")));
 
         try {
-            ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, monitor_, -1);
+//            ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, mon, monitor_, -1);
             ACE_DEBUG((LM_INFO, ACE_TEXT("%P | %t) - MonitorTest svc() remove\n")));
 
             monitor_.interrupt();
@@ -115,6 +117,8 @@ namespace
 
 int main(int argc, char* argv[])
 {
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), TEST_NAME));
+
     try {
         MonitorTest mon_test; mon_test.init(argc, argv); test_lock.acquire();
     }

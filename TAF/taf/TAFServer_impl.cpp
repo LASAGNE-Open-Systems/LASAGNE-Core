@@ -41,6 +41,7 @@
 #include <tao/PI/ORBInitInfo.h>
 #include <tao/ORBInitializer_Registry.h>
 
+#include <daf/ARGV.h>
 #include <daf/RefCount.h>
 #include <daf/PropertyManager.h>
 #include <daf/ShutdownHandler.h>
@@ -77,6 +78,9 @@ namespace { // Anonymous namespace
         return taf_server_name_.c_str();
     }
 
+    const char CLI_HELP_SHORT_SPECIFIER[]   = "-?";
+    const char CLI_HELP_LONG_SPECIFIER[]    = "--help";
+
 } // End Anonymous namespace
 
 namespace TAF
@@ -88,6 +92,7 @@ namespace TAF
 
     TAFServer_impl::~TAFServer_impl(void)
     {
+        this->module_closed();
     }
 
     char *
@@ -99,22 +104,97 @@ namespace TAF
     int
     TAFServer_impl::parse_args(int argc, ACE_TCHAR *argv[])
     {
-        ACE_UNUSED_ARG(argc); ACE_UNUSED_ARG(argv); return 0;
+        // Keep track of whether we will display help information or not
+        bool displayHelp = false;
+
+        // Using an ARG shifter because we are likely to have multi-character switches all over the place
+        for (ACE_Arg_Shifter argShifter(argc, argv); argShifter.is_anything_left();)
+        {
+            if (argShifter.is_option_next())
+            {
+                if (0 == argShifter.cur_arg_strncasecmp(CLI_HELP_SHORT_SPECIFIER))
+                {
+                    displayHelp = true;
+                }
+                else if (0 == argShifter.cur_arg_strncasecmp(CLI_HELP_LONG_SPECIFIER))
+                {
+                    displayHelp = true;
+                }
+                argShifter.ignore_arg();
+            }
+            else
+            {
+                argShifter.ignore_arg();
+            }
+        }
+
+        if (displayHelp)
+        {
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\n\nTAFServer help (-?/--help)\n")));
+            
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\n------ ACE Properties ------\n\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-ACEDebug [level]                 ACE debug level [0-10]\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-ACEBaseThreads <num>             Primary ACE reactor threads\n")));
+            
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\n------ TAO Properties ------\n\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAODebug [level]                 TAO debug level [0-10]\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAOrbDebug [level]               ORB debug level [0-10]\n")));
+            
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\n------ DAF Properties ------\n\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-DAFDebug [level]                 DAF debug level [0-10]\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-DAFHexDumpWidth <num>            Display width (bytes)\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-DAFSvcActionTimeout <num>        Service loader maximum blocking timeout (seconds)\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-DAFTaskDecayTimeout <num>        TaskExecutor thread decay timeout (seconds)\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-DAFTaskEvictTimeout <num>        TaskExecutor thread eviction timeout (seconds)\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-DAFTaskHandoffTimeout <num>      TaskExecutor thread handoff timeout (milliseconds)\n")));
+
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\n------ TAF Properties ------\n\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFDebug [level]                 TAF debug level [0-10]\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFBaseContext <path>            Default Naming Service context for binding names\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFOrbThreads <num>              CORBA ORB reactor threads\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFResolveTimeout <num>          ORB resolver timeout (seconds)\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFServerLoadTimeout <num>       3rd party TAFServer hosting load timeout (seconds)\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFDiscoveryDisable <num>        TAF multicast discovery feature (0 = enabled, 1 = disabled)\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFDiscoveryEndpoint <ip>:<port> Multicast discovery endpoint\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFOrbName <string>              TAF CORBA ORB name\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFHostName <string>             Host name\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFServerName <string>           TAF Server name\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFProperties <path>:<sections>  Property configuration file\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFServices <path>:<sections>    Services configuration file\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-TAFExtensionArgs <command line>  Extension command line arguments\n")));
+
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\n------ CORBA Args ------\n\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-ORBListenEndpoints <url/ior>     ORB listening endpoints (can include addresses, ports and protocols)\n")));
+
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\n------ Extension Args ------\n\n")));
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\t-DCPSConfigFile <path>            OpenDDS discovery and transport configuration file\n")));
+
+            ACE_DEBUG((LM_INFO, ACE_TEXT("\n\n")));
+
+            // Assume that we are going to exit after help is displayed
+            return -1;
+            
+        }
+        
+        return 0;
     }
 
     taf::EntityDescriptor *
     TAFServer_impl::entity_descriptor(void)
     {
-        const CORBA::UShort ed_flags(CORBA::UShort((1U << taf::SVC_OBJECT) | (1U << taf::SVC_STATIC) | (1U << taf::SVC_ACTIVE) | (1U << taf::SVC_EXECUTE)));
-
         taf::EntityDescriptor_var ed(new taf::EntityDescriptor);
 
-        ed->loadTime_.sec   = CORBA::ULongLong(this->loadTime_.sec());
-        ed->loadTime_.usec  = CORBA::ULong(this->loadTime_.usec());
+        ed->loadTime_.sec   = CORBA::ULongLong(this->loadTime().sec());
+        ed->loadTime_.usec  = CORBA::ULong(this->loadTime().usec());
+        ed->ident_          = tafServerName();
+        ed->flags_          = CORBA::UShort((1U << taf::SVC_OBJECT) | (1U << taf::SVC_STATIC) | (1U << taf::SVC_ACTIVE) | (1U << taf::SVC_EXECUTE));
+        ed->obj_            = CORBA::Object::_nil();
 
-        const std::string server_args(DAF::get_property(TAF_SERVER_ARGS));
+        if (this->info(&ed->info_.out(), BUFSIZ)) {
+            ed->info_ = "";
+        }
 
-        ACE_ARGV  args(server_args.c_str());
+        DAF_ARGV args(DAF::get_property(TAF_SERVER_ARGS).c_str());
 
         for (int arg_c = args.argc(); arg_c--;) {
             ACE_TCHAR **arg_v = args.argv();
@@ -132,14 +212,14 @@ namespace TAF
             break;
         }
 
-        ed->obj_    = TAFServerImpl::_interface_activator_type::stub_reference(this)._retn();
-        ed->ident_ = tafServerName();
-
-        if (this->info(&ed->info_.out(), BUFSIZ)) {
-            ed->info_ = "";
-        }
-
-        ed->flags_ = ed_flags;
+        try {
+            PortableServer::Servant sb = dynamic_cast<PortableServer::Servant>(this);
+            if (sb) {
+                for (PortableServer::POA_var poa(sb->_default_POA()); poa;) {
+                    ed->obj_ = poa->servant_to_reference(sb); break;
+                }
+            }
+        } DAF_CATCH_ALL {}
 
         return ed._retn();
     }
@@ -181,56 +261,59 @@ namespace TAF
     int
     TAFServer_impl::init(int argc, ACE_TCHAR *argv[])
     {
-        if (this->parse_args(argc, argv) == 0) do try {
-
-            {
-                const PortableServer::ObjectId_var tafServerOID(PortableServer::string_to_ObjectId(taf::TAFSERVER_OID));
-                if (this->init_bind(TAFServerImpl::svc_ident(), tafServerOID.in())) {
-                    break;
-                }
-            }
-
-#if defined(TAF_HAS_SECURITY)
-            if (TAF::isSecurityActive() && TAFSecurityAccessDecision().set_servant_access(this, true)) {
-                ACE_DEBUG((LM_WARNING, ACE_TEXT("TAFServer_impl (%P | %t) TAFSecurityAccessDecision:")
-                    ACE_TEXT(" Unable to allow insecure access for %s.\n")
-                    , tafServerName()));
-            }
-#endif
-            GestaltServiceLoader svcLoader(*this);
-
-            int svc_loads = svcLoader.load_config_args(argc, argv);
+        if (this->parse_args(argc, argv) == 0) {
 
             do {
 
-                if (svc_loads > 0) {
-
-                    int svc_failures = svcLoader.process_directives();
-
-                    if (0 > svc_failures) { // Big failure in process_directives()
-                        DAF_THROW_EXCEPTION(DAF::InvocationTargetException);
-                    } else if (svc_failures) { // Some Load failures
-                        ACE_ERROR_BREAK((LM_INFO, ACE_TEXT("TAFServerImpl (%P | %t) WARNING: ")
-                            ACE_TEXT("%s failed to load %d service entries - Ignored.\n")
-                            , tafServerName(), svc_failures));
+                try {
+                    {
+                        const PortableServer::ObjectId_var tafServerOID(PortableServer::string_to_ObjectId(taf::TAFSERVER_OID));
+                        if (this->init_bind(TAFServerImpl::svc_ident(), tafServerOID.in())) {
+                            break;
+                        }
                     }
 
-                    break; // No Loading Problems
-                }
+#if defined(TAF_HAS_SECURITY)
+                    if (TAF::isSecurityActive() && TAFSecurityAccessDecision().set_servant_access(this, true)) {
+                        ACE_DEBUG((LM_WARNING, ACE_TEXT("TAFServer_impl (%P | %t) TAFSecurityAccessDecision:")
+                            ACE_TEXT(" Unable to allow insecure access for %s.\n")
+                            , tafServerName()));
+                    }
+#endif
+                    GestaltServiceLoader svcLoader(this->gestalt_);
 
-                if (TAF::debug() > 1) {
-                    ACE_DEBUG((LM_WARNING, ACE_TEXT("TAFServerImpl (%P | %t) WARNING: ")
-                        ACE_TEXT("%s configured without any loadable service entities. - Ignored.\n")
-                        , tafServerName()));
-                }
+                    int svc_loads = svcLoader.load_config_args(argc, argv);
 
+                    do {
+                        if (svc_loads > 0) {
+
+                            int svc_failures = svcLoader.process_directives();
+
+                            if (0 > svc_failures) { // Big failure in process_directives()
+                                DAF_THROW_EXCEPTION(DAF::InvocationTargetException);
+                            } else if (svc_failures) { // Some Load failures
+                                ACE_ERROR_BREAK((LM_INFO, ACE_TEXT("TAFServerImpl (%P | %t) WARNING: ")
+                                    ACE_TEXT("%s failed to load %d service entries - Ignored.\n")
+                                    , tafServerName(), svc_failures));
+                            }
+
+                            break; // No Loading Problems
+                        }
+
+                        if (TAF::debug() > 1) {
+                            ACE_DEBUG((LM_WARNING, ACE_TEXT("TAFServerImpl (%P | %t) WARNING: ")
+                                ACE_TEXT("%s configured without any loadable service entities. - Ignored.\n")
+                                , tafServerName()));
+                        }
+                    } while (false);
+
+                    return 0;
+
+                } DAF_CATCH_ALL{
+                    /* FAll Through to Error */
+                }
             } while (false);
-
-            return 0;
-
-        } DAF_CATCH_ALL {
-            /* FAll Through to Error */
-        } while (false);
+        }
 
         ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("TAFServer (%P | %t) ERROR:")
             ACE_TEXT(" Failed to initialize %s.\n")
@@ -238,21 +321,9 @@ namespace TAF
     }
 
     int
-    TAFServer_impl::suspend(void)
-    {
-        DAF_OS::last_error(ENOTSUP); return -1;
-    }
-
-    int
-    TAFServer_impl::resume(void)
-    {
-        DAF_OS::last_error(ENOTSUP); return -1;
-    }
-
-    int
     TAFServer_impl::fini(void)
     {
-        this->fini_bind(); return 0;
+        this->fini_bind(); return this->module_closed();
     }
 
     int
@@ -264,6 +335,7 @@ namespace TAF
         };
         return (info_string ? (*info_string = ACE::strnnew(info_desc, length), 0) : -1);
     }
+
 } // namespace TAF
 
 /*********************************************************************************************************/
@@ -355,7 +427,7 @@ namespace {
         true // Service active
     };
 
-    class TAFServerInitializer : public ACE_Task_Base, public DAF::RefCount
+    class TAFServerInitializer : public ACE_Task_Base, DAF::RefCount
     {
         virtual int svc(void);
 
@@ -518,7 +590,8 @@ extern "C" {
                 tafServerInitRepo_ = ref._retn(); return 0;
             }
 
-        } DAF_CATCH_ALL {
+        } catch (...) {
+            /* Trap and ignore any exception - Cannot pass back to 3rd party invoker (extern "C" interface) */
         }
 
         ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("(%P | %t) ERROR: Unable to Initialize %s [return=%d]\n")

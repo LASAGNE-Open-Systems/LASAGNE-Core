@@ -38,9 +38,21 @@
 # define DDS_IMPLEMENTATION_CORBA ACE_TEXT("without CORBA support")
 #endif
 
+
+// Version checking
+#if defined(TAF_USES_OPENDDS) && !DDS_GTEQ_VERSION(3,10,0)
+# pragma message("WARNING: Recommend using at least OpenDDS 3.10 with LASAGNE")
+#elif defined(TAF_USES_NDDS) && !DDS_GTEQ_VERSION(5,2,0)
+# pragma message("WARNING: Recommend using at least RTI DDS 5.2.0 with LASAGNE")
+#elif defined(TAF_USES_COREDX) && !DDS_GTEQ_VERSION(3,6,47)
+# pragma message("WARNING: Recommend using at least CoreDX 3.6.47 with LASAGNE")
+#elif defined(TAF_USES_OPENSPLICE)
+# pragma message("WARNING: OpenSplice is not fully supported with LASAGNE")
+#endif
+
 TAF_BEGIN_DDS_NAMESPACE_DECL
 
-namespace // Annomous Namespace
+namespace // Anonymous Namespace
 {
     typedef class DomainFactory : public ACE_Service_Object
     {
@@ -129,7 +141,7 @@ namespace // Annomous Namespace
         return u_long(ACE::hash_pjw(s.data(), s.length()));
     }
 
-} // End of Annomous namespace
+} // End of Anonymous namespace
 
 namespace TAFDDS
 {
@@ -159,7 +171,7 @@ namespace TAFDDS
     DDS_DomainParticipant_handle
     DDS_DomainParticipant_factory::create_participant(const DDS::DomainId_t &domain_id)
     {
-        if (!is_valid_dcps_domain(domain_id)) {
+        if (is_valid_dcps_domain(domain_id) ? false : true) {
             DAF_THROW_EXCEPTION(DAF::IllegalArgumentException);
         }
 

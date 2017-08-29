@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -57,7 +57,7 @@ namespace DAF
         while( this->waiters_ > 0 ) {
             this->notifyAll();
 
-            if (this->wait(100) && errno == ETIME ) {
+            if (this->wait(100) && DAF_OS::last_error() == ETIME ) {
                 // CRUDE: using wait with timeout allow others to clear
                 // out before destroying. We don't expect a
                 // corresponding notify.
@@ -75,18 +75,23 @@ namespace DAF
     template <typename T> int
     SynchValue<T>::setValue(const T &value)
     {
-        if ( this->shutdown_ ) return -1;
+        if (this->shutdown_) {
+            return -1;
+        }
 
         this->setterGate_.acquire();
 
         if (this->value_ == value) { // DCL
             return 0;
-        } else if ( !this->shutdown_ )   {
+        } else if ( this->shutdown_ ? false : true)   {
             int waiters = 0;
 
             { // scope guard.
                 ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
-                if ( this->shutdown_ ) return -1;
+
+                if (this->shutdown_) {
+                    return -1;
+                }
 
                 // store the number of waiters we need to wait for.
                 waiters = int(this->waiters_ - 1 + this->itemTaken_.permits());
@@ -94,7 +99,7 @@ namespace DAF
                 while (this->value_ == value ? false : true) {
                     this->value_ = value;
                 }
-                this->notifyAll();
+                this->broadcast();
             } // scope guard exit
 
             this->itemTaken_.acquire(waiters);
@@ -110,7 +115,8 @@ namespace DAF
     {
         if (this->value_ == value) { // DCL
             return 0;
-        } else if(!this->shutdown_) {
+        } else if(this->shutdown_ ? false : true) {
+
             ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
             ++this->waiters_;
 
@@ -124,8 +130,7 @@ namespace DAF
             } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
                 --this->waiters_;
                 // Are we in the middle of a setter cycle.
-                if ( this->setterGate_.permits() == 0 )
-                {
+                if (this->setterGate_.permits() == 0)  {
                     this->itemTaken_.release();
                 }
                 throw;
@@ -149,7 +154,7 @@ namespace DAF
 
         if (this->value_ == value) { // DCL
             return 0;
-        } else if(!shutdown_) {
+        } else if (this->shutdown_ ? false : true) {
             ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
             ++this->waiters_;
             bool timeout = false;

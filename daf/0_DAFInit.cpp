@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -18,7 +18,7 @@
     You should have received a copy of the GNU Lesser General Public
     License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
-#define DAF__DAFINIT_CPP
+#define DAF_0_DAFINIT_CPP
 
 #include <ace/OS.h>
 #include <ace/Init_ACE.h>
@@ -27,7 +27,7 @@
 #include <ace/High_Res_Timer.h>
 
 /*
-    BEWARE:  Changed filename to _DAFInit.cpp to ensure first in linkage order under VC
+    BEWARE:  Changed filename to 0_DAFInit.cpp to ensure first in linkage order under VC
     The anonymous namespace below defines a number of Global Variable "Loaders".
     Some items to be aware of are:
     - Runtime Global Variable creation and initialisation is dependent on the dynamic Loader's

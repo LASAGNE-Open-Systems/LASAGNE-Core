@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -83,28 +83,31 @@ namespace LDBC
         int
         Connection::close(void)
         {
-            if (this->size()) do {
+            if (this->size()) {
 
-                int i = 0; // Remove Count
-                {
-                    ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, mon, *this, break);
+                do {
 
-                    while (this->size()) { // DCL
-                        value_type &p = this->back();
-                        if (p && *p) {
-                            p->_finalize(p->handle_inout()); i++;
+                    int i = 0; // Remove Count
+                    {
+                        ACE_GUARD_REACTION(ACE_SYNCH_MUTEX, mon, *this, break);
+
+                        while (this->size()) { // DCL
+                            value_type &p = this->back();
+                            if (p && *p) {
+                                p->_finalize(p->handle_inout()); i++;
+                            }
+                            this->pop_back();
                         }
-                        this->pop_back();
+
                     }
 
-                }
+                    if (i) {
+                        ACE_DEBUG((LM_WARNING,
+                            ACE_TEXT("WARNING: SQLite Connection closed with %d outstanding query statements.\n"), i));
+                    }
 
-                if (i) {
-                    ACE_DEBUG((LM_WARNING,
-                        ACE_TEXT("WARNING: SQLite Connection closed with %d outstanding query statements.\n"), i));
-                }
-
-            } while (false);
+                } while (false);
+            }
 
             this->_finalize(this->handle_inout()); return 0;
         }

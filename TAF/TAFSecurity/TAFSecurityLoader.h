@@ -37,6 +37,8 @@ namespace TAFSecurity
         , virtual public CORBA::LocalObject
         , DAF::PropertyManager
     {
+        bool pre_init_, post_init_;
+
     public:
 
         Loader(int &argc, ACE_TCHAR *argv[], bool use_property = true);

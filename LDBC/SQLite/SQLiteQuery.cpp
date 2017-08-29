@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -288,24 +288,36 @@ namespace LDBC
         Query::const_reference
         Query::operator [] (int index) const
         {
-            if (index > 0 && index <= int(this->size())) do {
-                try {
-                    for (const_reference ref(PARAMETERList_type::operator [] (size_type(index - 1))); ref;) return ref;
-                } DAF_CATCH_ALL { break; }
-                DAF_THROW_EXCEPTION(LDBC::InternalException); // We Have a null Parameter reference ???
-            } while (false);
+            if (index > 0 && index <= int(this->size())) {
+                do {
+                    try {
+                        for (const_reference ref(PARAMETERList_type::operator [] (size_type(index - 1))); ref;) {
+                            return ref;
+                        }
+                    } DAF_CATCH_ALL {
+                        break;
+                    }
+                    DAF_THROW_EXCEPTION(LDBC::InternalException); // We Have a null Parameter reference ???
+                } while (false);
+            }
             DAF_THROW_EXCEPTION(LDBC::IndexOutOfRange);
         }
 
         Query::reference
         Query::operator [] (int index)
         {
-            if (index > 0 && index <= int(this->size())) do {
-                try {
-                    for (reference ref(PARAMETERList_type::operator [] (size_type(index - 1))); ref;) return ref;
-                } DAF_CATCH_ALL { break; }
-                DAF_THROW_EXCEPTION(LDBC::InternalException); // We Have a null Parameter reference ???
-            } while (false);
+            if (index > 0 && index <= int(this->size())) {
+                do {
+                    try {
+                        for (reference ref(PARAMETERList_type::operator [] (size_type(index - 1))); ref;) {
+                            return ref;
+                        }
+                    } DAF_CATCH_ALL {
+                        break;
+                    }
+                    DAF_THROW_EXCEPTION(LDBC::InternalException); // We Have a null Parameter reference ???
+                } while (false);
+            }
             DAF_THROW_EXCEPTION(LDBC::IndexOutOfRange);
         }
 

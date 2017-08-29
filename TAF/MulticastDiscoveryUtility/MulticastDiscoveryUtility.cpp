@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -71,53 +71,55 @@ namespace {
         get_opts.long_option("debug", 'z', ACE_Get_Opt::ARG_OPTIONAL);
         get_opts.long_option("help", '?', ACE_Get_Opt::NO_ARG);  // Help
 
-        for (;;) switch (get_opts()) {
-        case EOF: return 0; // Indicates sucessful parsing of the command line
+        for (;;) {
+            switch (get_opts()) {
+            case EOF: return 0; // Indicates sucessful parsing of the command line
 
-            // SHOW IORTags
-        case 't':   ior_tags_ = true; break;
-            // SHOW Properties
-        case 'p':   properties_ = true; break;
-            // SHOW IOR Profiles
-        case 'i':   ior_profiles_ = true; break;
+                // SHOW IORTags
+            case 't':   ior_tags_ = true; break;
+                // SHOW Properties
+            case 'p':   properties_ = true; break;
+                // SHOW IOR Profiles
+            case 'i':   ior_profiles_ = true; break;
 
-            // LOOPTIME
-        case 'l':
-            for (const ACE_TCHAR *looptime_val = get_opts.opt_arg(); looptime_val;) {
-                if (::isdigit(int(*looptime_val))) {
-                    DISCOVER_TIMOUT.set(ace_range(2, 120, DAF_OS::atoi(looptime_val)), 0);
-                }
-                break;
-            } break;
+                // LOOPTIME
+            case 'l':
+                for (const ACE_TCHAR *looptime_val = get_opts.opt_arg(); looptime_val;) {
+                    if (::isdigit(int(*looptime_val))) {
+                        DISCOVER_TIMOUT.set(ace_range(2, 120, DAF_OS::atoi(looptime_val)), 0);
+                    }
+                    break;
+                } break;
 
-            // VERBOSE level
-        case 'v':   verbose_ = 1;
-            for (const ACE_TCHAR *verbose_val = get_opts.opt_arg(); verbose_val;) {
-                if (::isdigit(int(*verbose_val))) {
-                    verbose_ = ace_range(1, 10, DAF_OS::atoi(verbose_val));
-                }
-                break;
-            } break;
+                // VERBOSE level
+            case 'v':   verbose_ = 1;
+                for (const ACE_TCHAR *verbose_val = get_opts.opt_arg(); verbose_val;) {
+                    if (::isdigit(int(*verbose_val))) {
+                        verbose_ = ace_range(1, 10, DAF_OS::atoi(verbose_val));
+                    }
+                    break;
+                } break;
 
-        case 'z':   debug_ = 1;
-            for (const ACE_TCHAR *debug_val = get_opts.opt_arg(); debug_val;) {
-                if (::isdigit(int(*debug_val))) {
-                    debug_ = ace_range(1, 10, DAF_OS::atoi(debug_val));
-                }
-                break;
-            } break;
+            case 'z':   debug_ = 1;
+                for (const ACE_TCHAR *debug_val = get_opts.opt_arg(); debug_val;) {
+                    if (::isdigit(int(*debug_val))) {
+                        debug_ = ace_range(1, 10, DAF_OS::atoi(debug_val));
+                    }
+                    break;
+                } break;
 
-        case '?':
-            ACE_DEBUG((LM_INFO,
-                "usage:  %s\n"
-                "-l LoopTime [sec]\n"
-                "-p Show Properties\n"
-                "-t Show IOR Tags\n"
-                "-i Show IOR Profiles\n"
-                "-v Verbose ON[level]\n"
-                "-z Debug ON[level]\n"
-                "\n", argv[0]
-                )); break;
+            case '?':
+                ACE_DEBUG((LM_INFO,
+                    "usage:  %s\n"
+                    "-l LoopTime [sec]\n"
+                    "-p Show Properties\n"
+                    "-t Show IOR Tags\n"
+                    "-i Show IOR Profiles\n"
+                    "-v Verbose ON[level]\n"
+                    "-z Debug ON[level]\n"
+                    "\n", argv[0]
+                    )); break;
+            }
         }
 
         return 0;
@@ -199,14 +201,17 @@ namespace {
 
                         const IOP::MultipleComponentProfile &mcp(profile->tagged_components().components());
 
-                        if (ior_tags_ || verbose() > 2) for (CORBA::ULong j = 0; j < mcp.length(); j++) {
-                            const IOP::TaggedComponent &tc(mcp[j]);
-                            char tags[16]; DAF_OS::sprintf(tags, "-Tag[%03x]:", int(tc.tag));
-                            *this << '\t' << std::setw(10) << tags;
-                            const size_t tc_data_len = size_t(tc.component_data.length()); if (tc_data_len) {
-                                *this << DAF::hex_dump_data(tc.component_data.get_buffer(), tc_data_len, (tc_data_len % 32));
+                        if (ior_tags_ || verbose() > 2) {
+                            for (CORBA::ULong j = 0; j < mcp.length(); j++) {
+                                const IOP::TaggedComponent &tc(mcp[j]);
+                                char tags[16]; DAF_OS::sprintf(tags, "-Tag[%03x]:", int(tc.tag));
+                                *this << '\t' << std::setw(10) << tags;
+                                const size_t tc_data_len = size_t(tc.component_data.length()); 
+                                if (tc_data_len) {
+                                    *this << DAF::hex_dump_data(tc.component_data.get_buffer(), tc_data_len, (tc_data_len % 32));
+                                }
+                                *this << std::endl;
                             }
-                            *this << std::endl;
                         }
                     }
                 }
@@ -296,9 +301,13 @@ namespace {
         {
             EntityDescriptorVector ed(taf_server->listServices());
 
-            if (ed.size()) for (size_t i = 0; i < ed.size(); i++) try {
-                this->insert_descriptor(ed[i], i + 1);
-            } DAF_CATCH_ALL{}
+            if (ed.size()) {
+                for (size_t i = 0; i < ed.size(); i++) {
+                    try {
+                        this->insert_descriptor(ed[i], i + 1);
+                    } DAF_CATCH_ALL {}
+                }
+            }
         }
 
         std::ends(*this);
@@ -334,48 +343,47 @@ int main(int argc, char *argv[])
 
                 if (ior_seq.size()) {
 
-                    if (!shutdown_) for (size_t i = 0; i < ior_seq.size(); i++) {
+                    if (shutdown_) {
+                        break;
+                    }
+
+                    for (size_t i = 0; i < ior_seq.size(); i++) {
 
                         CORBA::Object_var   tafServerObj(ior_seq[i].svc_obj);
                         const std::string   ident(ior_seq[i].svc_ident.in());
 
                         try {
                             std::cout << TAFServerFormatter(taf::TAFServer::_narrow(tafServerObj), i) << std::endl;
-                        }
-                        catch (const CORBA::NO_PERMISSION &) {
+                        } catch (const CORBA::NO_PERMISSION &) {
                             if (debug()) {
                                 ACE_DEBUG((LM_WARNING,
                                     ACE_TEXT("WARNING: NO_PERMISSION; Attempted security permission violation [ident=%s].\n")
                                     , ident.c_str()));
                             }
-                        }
-                        catch (const CORBA::INV_POLICY &) {
+                        } catch (const CORBA::INV_POLICY &) {
                             if (debug()) {
                                 ACE_DEBUG((LM_WARNING,
                                     ACE_TEXT("WARNING: CORBA::INV_POLICY; Attempted security policy violation [ident=%s].\n")
                                     , ident.c_str()));
                             }
-                        }
-                        catch (const CORBA::OBJECT_NOT_EXIST &) {
+                        } catch (const CORBA::OBJECT_NOT_EXIST &) {
                             if (debug()) {
                                 ACE_DEBUG((LM_WARNING,
                                     ACE_TEXT("WARNING: CORBA::OBJECT_NOT_EXIST; Unable to locate instance [ident=%s].\n")
                                     , ident.c_str()));
                             }
-                        }
-                        catch (const CORBA::TRANSIENT &) {
+                        } catch (const CORBA::TRANSIENT &) {
                             if (debug()) {
                                 ACE_DEBUG((LM_WARNING,
                                     ACE_TEXT("WARNING: CORBA::TRANSIENT; Unable to locate instance [ident=%s].\n")
                                     , ident.c_str()));
                             }
-                        }
-                        catch (const CORBA::Exception &ex) {
+                        } catch (const CORBA::Exception &ex) {
                             if (debug_) { // Ignore and keep going - TAFServer probably shutdown
                                 ex._tao_print_exception("WE BROKE - Inner Loop.");
                             }
                         }
-                        DAF_CATCH_ALL {
+                        DAF_CATCH_ALL{
                             break;
                         }
                     }

@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -33,29 +33,29 @@
 
 namespace DAF
 {
-    namespace { // annanomous
+    // NOTE: We can only use ACE::debug here as DAF::debug() may not have been set up yet and caused infinite recursion.
+
+    namespace { // Anonymous
 
         typedef std::map< Configurator::section_type, Configurator::property_list_type >  fileloader_map_type;
 
         struct ConfiguratorFileLoader : fileloader_map_type {
-            ConfiguratorFileLoader(const std::string &filename);
+            ConfiguratorFileLoader(const std::string & filename);
         };
 
-        ConfiguratorFileLoader::ConfiguratorFileLoader(const std::string &filename)
+        ConfiguratorFileLoader::ConfiguratorFileLoader(const std::string & filename)
         {
-            // NOTE: We can only use ACE::debug here as DAF::debug() may not have been set up yet.
-
             struct ConfigFile : std::ifstream {
-                ConfigFile(const std::string &file_name) : std::ifstream(file_name.c_str()) {
+                ConfigFile(const std::string & file_name) : std::ifstream(file_name.c_str()) {
                     if (this->is_open() ? this->fail() : true) {
-                        DAF_THROW_EXCEPTION(DAF::NotFoundException);  // Could Not Open config File
-                    }
-                    else if (ACE::debug()) {
-                        ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF::Configurator (%P | %t) OpenFile=%s\n"),
-                            file_name.c_str()));
+                        DAF_THROW_EXCEPTION(NotFoundException);  // Could Not Open config File
                     }
                 }
-                ~ConfigFile(void) { if (this->is_open()) this->close(); }
+                ~ConfigFile(void) {
+                    if (this->is_open()) {
+                        this->close();
+                    }
+                }
             } configFile(filename);
 
             iterator it(this->end());   // Set up the Section Map iterator to current end.
@@ -64,9 +64,14 @@ namespace DAF
 
             for (size_t line_no = 1; std::getline(configFile, readLine); line_no++) try {
 
+                // Check for '#' to comment out the remainder of the line
                 const std::string cfgLine(DAF::trim_string(readLine.substr(0, readLine.find_first_of('#'))));
 
                 if (cfgLine.length() == 0) {
+                    if (ACE::debug()) {
+                        ACE_DEBUG((LM_INFO, ACE_TEXT("DAF (%P | %t) Configurator: Line[%03d] - Comment (%s)\n")
+                            , line_no, filename.c_str()));
+                    }
                     continue;
                 }
 
@@ -75,29 +80,31 @@ namespace DAF
                 if (cfgLine[0] == '[') {
                     int pos = int(cfgLine.find_first_of(']', 1));
                     if (pos-- > 0 && pos) { // Text for Section Name ?
-                        const std::string section(DAF::trim_string(cfgLine.substr(1, pos)));
+                        const std::string section(DAF::format_args(cfgLine.substr(1, pos), true, false));
                         if (section.length()) { // Must have a valid section name
                             if ((it = this->find(section)) == this->end()) { // Do we already know about this section?
                                 std::pair<iterator, bool> ib(this->insert(value_type(section, mapped_type()))); // Add Entry to DB.
                                 if (ib.second) { // Added OK?
                                     it = ib.first; if (ACE::debug()) {
-                                        ACE_DEBUG((LM_DEBUG, ACE_TEXT("Line[%03d]\tSection [%s] Added\n"), line_no, section.c_str()));
+                                        ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF (%P | %t) Configurator: Line[%03d] Section[%s] Added (%s)\n")
+                                            , line_no, section.c_str(), filename.c_str()));
                                     }
                                 }
                             } else if (ACE::debug()) {
-                                ACE_DEBUG((LM_DEBUG, ACE_TEXT("Line[%03d]\tSection [%s]\n"), line_no, section.c_str()));
+                                ACE_DEBUG((LM_DEBUG, ACE_TEXT("DAF (%P | %t) Configurator: Line[%03d] Section[%s] (%s)\n")
+                                    , line_no, section.c_str(), filename.c_str()));
                             }
                             continue;
                         }
                     }
 
-                    throw "Invalid-Section-Syntax"; // Section Entry is Invalid
+                    throw InitializationException("Invalid-Section-Syntax"); // Section Entry is Invalid
                 }
 
                 // Look At Entry (Must Be contained within a Section);
 
                 if (it == this->end()) {  // We Are Currently in a Section?
-                    throw "Entry-Outside-Section"; // Entry outside a Section - Illegal
+                    throw InitializationException("Entry-Outside-Section"); // Entry outside a Section - Illegal
                 }
 
                 std::string cfgKey, cfgArg; // The resultant property fields
@@ -114,27 +121,27 @@ namespace DAF
                     cfgKey.assign(cfgLine); // No '=' so use full line as entry key with no arg.
                 }
                 else {  // '=' at column 0 - Invalid
-                    throw "Invalid-Property-Syntax";
+                    throw InitializationException("Invalid-Property-Syntax");
                 }
 
                 if (cfgKey.length() ? int(cfgKey.find_first_of(' ')) > 0 : true) { // Check that we have a valid key
-                    throw "Invalid-Key-Syntax";
+                    throw InitializationException("Invalid-Key-Syntax");
                 }
 
                 if (ACE::debug()) { // Allow for debug output from parser
-                    ACE_DEBUG((LM_DEBUG, ACE_TEXT("Line[%03d]\t%s=%s\n"), line_no, cfgKey.c_str(), cfgArg.c_str()));
+                    ACE_DEBUG((LM_DEBUG, ACE_TEXT("Line[%03d] %s=%s\n"), line_no, cfgKey.c_str(), cfgArg.c_str()));
                 }
 
                 it->second.push_back(mapped_type::value_type(cfgKey, cfgArg));
             }
-            catch (const char *what_error) {
+            catch (const InitializationException & ie) {
                 ACE_DEBUG((LM_DEBUG,
                     ACE_TEXT("DAF::Configurator (%P | %t) ERROR:[file=%s,line=%d]\n\terror=\"%s\"\n")
-                    , filename.c_str(), line_no, what_error)); throw DAF::InitializationException(what_error);
+                    , filename.c_str(), line_no, ie.what())); throw ie;
             }
         }
 
-    } // ananomous
+    } // Anonymous
 
     /*********************************************************************************************************/
 
@@ -148,7 +155,7 @@ namespace DAF
     }
 
     int
-    Configurator::load(int &argc, ACE_TCHAR *argv[], bool use_env)
+    Configurator::load(int & argc, ACE_TCHAR * argv[], bool use_env)
     {
         if (this->config_switch() && DAF_OS::strlen(this->config_switch())) {
 
@@ -157,18 +164,20 @@ namespace DAF
 
             bool load_property = true;
 
-            if (argc) for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
-                if (arg_shifter.is_option_next()) {
-                    if (0 == arg_shifter.cur_arg_strncasecmp(arg_switch.c_str())) {
-                        for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
-                            if (this->load_file_profile(DAF::trim_string(arg_shifter.get_current())) == 0) {
-                                load_property = false; // Dont use properties if we found from arguments with switch
+            if (argc) {
+                for (ACE_Arg_Shifter arg_shifter(argc, argv); arg_shifter.is_anything_left();) {
+                    if (arg_shifter.is_option_next()) {
+                        if (0 == arg_shifter.cur_arg_strncasecmp(arg_switch.c_str())) {
+                            for (arg_shifter.consume_arg(); arg_shifter.is_parameter_next(); arg_shifter.consume_arg()) {
+                                if (this->load_file_profile(DAF::trim_string(arg_shifter.get_current())) == 0) {
+                                    load_property = false; // Dont use properties if we found from arguments with switch
+                                }
                             }
+                            continue;
                         }
-                        continue;
                     }
+                    arg_shifter.ignore_arg();
                 }
-                arg_shifter.ignore_arg();
             }
 
             if (load_property) try {
@@ -184,7 +193,7 @@ namespace DAF
     }
 
     int
-    Configurator::load_file_profile(const std::string &profile_arg)
+    Configurator::load_file_profile(const std::string & profile_arg)
     {
         profile_list_type profiles;
 
@@ -198,8 +207,13 @@ namespace DAF
                 for (int pos = 0; (pos = int(it->find_first_of(':', pos))) > 0; pos++) {
 #if defined(ACE_WIN32)
                     if (int(it->length()) > ++pos) {
-                        if (::isalpha(int((*it)[0]))) switch ((*it)[pos]) {   // look for windows 'D:\' or 'D:/' type string
-                        case '/': case '\\': if (pos == 2) continue;    // Not section seperator
+                        if (::isalpha(int((*it)[0]))) {
+                            switch ((*it)[pos]) {   // look for windows 'D:\' or 'D:/' type string
+                            case '/': case '\\': 
+                                if (pos == 2) { // Not section seperator
+                                    continue;
+                                }
+                            }
                         }
                     } pos -= 1; // Point back to ':'
 #endif
@@ -222,7 +236,7 @@ namespace DAF
                     if (this->load_file_sections(filename, sections) == 0) { // Can throw (file) NotFoundException
                         this->load_count_++; continue;
                     }
-                } catch (const DAF::NotFoundException &) {
+                } catch (const NotFoundException &) {
                     ACE_DEBUG((LM_ERROR, ACE_TEXT("DAF (%P | %t) ERROR: Configurator; Unable to open file %s\n")
                         , filename.c_str())); continue; // Try Next profile
                 } DAF_CATCH_ALL {
@@ -242,7 +256,7 @@ namespace DAF
     }
 
     int
-    Configurator::load_file_sections(const std::string &filename, const section_list_type &sections)
+    Configurator::load_file_sections(const std::string & filename, const section_list_type & sections)
     {
         ConfiguratorFileLoader conf_loader(filename); // Load up the file entries -> can throw DAF::NotFoundException
 
@@ -277,13 +291,15 @@ namespace DAF
 
         for (int i = 0; i < args.argc(); i++) {
             int pos = 0; const std::string arg(args[i]);
-            if (arg.length()) do {
-                int e_pos = int(arg.find_first_of(';', pos));
-                const std::string profile(DAF::trim_string(arg.substr(pos, e_pos - pos))); pos = e_pos;
-                if (profile.length()) {
-                    profiles.push_back(profile);
-                }
-            } while (pos++ > 0);
+            if (arg.length()) {
+                do {
+                    int e_pos = int(arg.find_first_of(';', pos));
+                    const std::string profile(DAF::trim_string(arg.substr(pos, e_pos - pos))); pos = e_pos;
+                    if (profile.length()) {
+                        profiles.push_back(profile);
+                    }
+                } while (pos++ > 0);
+            }
         }
 
         return profiles.size();
@@ -296,13 +312,15 @@ namespace DAF
 
         for (int i = 0; i < args.argc(); i++) {
             int pos = 0; const std::string arg(args[i]);
-            if (arg.length()) do {
-                int e_pos = int(arg.find_first_of(',', pos));
-                const std::string section(DAF::trim_string(arg.substr(pos, e_pos - pos))); pos = e_pos;
-                if (section.length()) {
-                    sections.push_back(section);
-                }
-            } while (pos++ > 0);
+            if (arg.length()) {
+                do {
+                    int e_pos = int(arg.find_first_of(',', pos));
+                    const std::string section(DAF::trim_string(arg.substr(pos, e_pos - pos))); pos = e_pos;
+                    if (section.length()) {
+                        sections.push_back(section);
+                    }
+                } while (pos++ > 0);
+            }
         }
 
         return sections.size();

@@ -41,9 +41,11 @@ namespace DAF
     *           Executor interfacing strategies
     * \ingroup executor
     */
-    class DAF_Export Executor : ACE_Copy_Disabled
+    class DAF_Export Executor
     {
     public:
+
+        Executor(void) {}
 
         virtual ~Executor(void) {}
 
@@ -59,7 +61,7 @@ namespace DAF
         * or error handler objects.
         * @param cmd Executes the provided runnable.
         */
-        virtual int     execute(const DAF::Runnable_ref&) = 0;
+        virtual int     execute(const DAF::Runnable_ref &) = 0;
 
         /**
         * The number of Runnables under the control of the Executor.
@@ -70,7 +72,14 @@ namespace DAF
         {
             return size_t(0);
         }
+
+    private:
+
+        // = Prevent assignment and initialization.
+        ACE_UNIMPLEMENTED_FUNC(void operator = (const Executor &))
+        ACE_UNIMPLEMENTED_FUNC(Executor(const Executor &))
     };
+
 } // namespace DAF
 
 #endif

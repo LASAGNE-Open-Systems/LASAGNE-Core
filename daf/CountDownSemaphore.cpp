@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -21,30 +21,6 @@
 #define DAF_COUNTDOWNSEMAPHORE_CPP
 
 /******************  CountDownSemaphore ************************
-*
-*(c)Copyright 2011,
-*   Defence Science and Technology Organisation,
-*   Department of Defence,
-*   Australia.
-*
-* All rights reserved.
-*
-* This is unpublished proprietary source code of DSTO.
-* The copyright notice above does not evidence any actual or
-* intended publication of such source code.
-*
-* The contents of this file must not be disclosed to third
-* parties, copied or duplicated in any form, in whole or in
-* part, without the express prior written permission of DSTO.
-*
-*
-* @file     CountDownSemaphore.cpp
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st September 2011
-* @version  $Revision$
-* @ingroup
-*
 * A CountDownSemaphore can serve as a simple one-shot
 * barrier that is initialized with a given count value.
 *
@@ -59,61 +35,54 @@
 
 #include "CountDownSemaphore.h"
 
+#include "Exception.h"
+
 namespace DAF
 {
-    CountDownSemaphore::CountDownSemaphore(int count)
-        : count_(count)
+    int
+    CountDownSemaphore::count(void) const
     {
+        return this->count_;
     }
 
-    int CountDownSemaphore::acquire(void)
+    int
+    CountDownSemaphore::acquire(const ACE_Time_Value * abstime)
     {
-        ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
-        while (this->count_ > 0) {
-            this->wait();
+        ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
+
+        while (this->interrupted() || this->count() > 0) {
+            if (this->interrupted() ? DAF_OS::last_error(EINTR) : this->wait(abstime)) {
+                switch (DAF_OS::last_error()) {
+                case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
+                case ETIME:
+                    if (0 >= this->count()) {
+                        continue; // Ensure we check interrupted before exit
+                    }
+
+                    // Fall through to report errno
+
+                default: return -1; // Return with errno.
+                }
+            }
         }
+
         return 0;
     }
 
-    int CountDownSemaphore::release(void)
+    int
+    CountDownSemaphore::release(int count)
     {
-        ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
-        if (this->count_) {
-            if (--this->count_ == 0) {
-                return this->notifyAll(); return 0;
-            }
-        }
-        return -1;
-    }
+        ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
 
-    int CountDownSemaphore::release(int n)
-    {
-        ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
-        if (this->count_) while (n-- > 0) {
-            if (--this->count_ == 0) {
-                this->notifyAll(); return (n ? -1 : 0);
-            }
-        }
-        return -1;
-    }
-
-    int CountDownSemaphore::attempt(time_t msecs)
-    {
-        ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
-
-        if (this->count_ == 0) {
-            return 0;
-        } else if (msecs > 0) {
-
-            const ACE_Time_Value end_time(DAF_OS::gettimeofday(msecs));
-
-            do {
-                this->wait(end_time);
-                if (this->count_ == 0) {
-                    return 0;
+        if (this->count() > 0) {
+            while (count-- > 0) {
+                if (--this->count_ == 0) {
+                    return this->broadcast();
                 }
-            } while (end_time >= DAF_OS::gettimeofday());
+            }
         }
-        return -1;
+
+        return 0;
     }
+
 }  // namespace DAF

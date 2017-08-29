@@ -26,17 +26,23 @@
 
 #if defined(TAF_USES_NDDS)
 # define DEFINE_DDS_QOSSUPPORT(CLS,TYP)                                     \
-class _##CLS##_##TYP##QosSupport : public CLS::TYP, ACE_Copy_Disabled {     \
+class _##CLS##_##TYP##QosSupport : public CLS::TYP {                        \
 public:                                                                     \
     _##CLS##_##TYP##QosSupport(void)  { CLS##_##TYP##_initialize(this); }   \
     ~_##CLS##_##TYP##QosSupport(void) { CLS##_##TYP##_finalize(this); }     \
+private: /* = Prevent assignment and initialization. */                     \
+   ACE_UNIMPLEMENTED_FUNC(void operator = (const _##CLS##_##TYP##QosSupport &)) \
+   ACE_UNIMPLEMENTED_FUNC(_##CLS##_##TYP##QosSupport(const _##CLS##_##TYP##QosSupport &)) \
 } /* Note!!! No closing ';' to force user to close macro usage */
 #else
 # define DEFINE_DDS_QOSSUPPORT(CLS,TYP)                                     \
-class _##CLS##_##TYP##QosSupport : public CLS::TYP, ACE_Copy_Disabled {     \
+class _##CLS##_##TYP##QosSupport : public CLS::TYP {                        \
 public:                                                                     \
     _##CLS##_##TYP##QosSupport(void)  {}                                    \
     ~_##CLS##_##TYP##QosSupport(void) {}                                    \
+private: /* = Prevent assignment and initialization. */                     \
+   ACE_UNIMPLEMENTED_FUNC(void operator = (const _##CLS##_##TYP##QosSupport &)) \
+   ACE_UNIMPLEMENTED_FUNC(_##CLS##_##TYP##QosSupport(const _##CLS##_##TYP##QosSupport &)) \
 } /* Note!!! No closing ';' to force user to close macro usage */
 #endif
 

@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -23,9 +23,10 @@
 
 #include "TAF.h"
 
-#include <daf/ServiceGestalt.h>
-#include <daf/ServiceLoader.h>
 #include <daf/TaskExecutor.h>
+
+#include <daf/ServiceGestalt.h>
+#include <daf/ServiceGestaltLoader.h>
 
 #include <ace/Service_Object.h>
 #include <ace/Semaphore.h>
@@ -36,79 +37,111 @@
 
 namespace TAF
 {
+    /**
+    * @class GestaltService_impl
+    * @brief Provides a CORBA accessable facade to an underlying Gestalt
+    *
+    * Details This Facade is mixed-in to the TAFServer interface as a concrete implementation
+    */
     typedef class TAF_Export GestaltService_impl : virtual public POA_taf::GestaltService
-        , public DAF::ServiceGestalt
     {
     public:
 
-        typedef std::string             ident_type;
-        typedef std::list<ident_type>   ident_list_type;
+        typedef DAF::ServiceGestalt::ident_type                 ident_type;
+        typedef DAF::ServiceGestalt::ident_list_type            ident_list_type;
 
-        typedef class std::map<ident_type, taf::EntityDescriptor>   descriptor_map_type;
+        typedef DAF::ServiceGestalt::service_descriptor_type    service_descriptor_type;
+        typedef DAF::ServiceGestalt::service_list_type          service_list_type;
+        typedef DAF::ServiceGestalt::service_map_type           service_map_type;
 
+        /** Constructor */
         GestaltService_impl(const ACE_TCHAR *program_name = 0);
+        /** Destructor */
         virtual ~GestaltService_impl(void);
 
+        /** Find a service descriptor by ident */
         virtual taf::EntityDescriptor *     findService(const char *ident);
+        /** List all the services with a sequence of descriptors */
         virtual taf::EntityDescriptorSeq *  listServices(void);
 
+        /** load a set of services as described through a file set "filename:<section>,<section>" */
         virtual CORBA::Long loadConfigFile(const char *file_arg, CORBA::Long_out count); // "filename:<section>,<section>"
 
+        /** load a static service (located through static descriptor */
         virtual void    loadStatic(const char *ident, const char *parameters);
+        /** load a dynamic service through its @a libpathname (dll name), @a objectclass (factory pattern) and @a parameters */
         virtual void    loadDynamic(const char *ident, const char *libpathname, const char *objectclass, const char *parameters);
+        /** signal an active service to suspend itself */
         virtual void    suspend(const char *ident);
+        /** signal a suspended (non-active) service to resume its normal operation */
         virtual void    resume(const char *ident);
+        /** remove (and shutdown) a service */
         virtual void    remove(const char *ident);
-
+        /** signal all active services within the gestalt to suspend */
         virtual CORBA::Long suspend_all(void);
+        /** signal all non-active services within the gestalt to resume normal operation */
         virtual CORBA::Long resume_all(void);
+        /** remove (and shutdown) all services within the gestalt */
         virtual CORBA::Long remove_all(void);
 
     protected:
 
-        virtual int suspend(void);
-        virtual int resume(void);
-
-        virtual int info(ACE_TCHAR **info_string, size_t length) const;
+        /** Abstract method to provide the configuration property switch for locating the file set to load */ 
+        virtual const char * config_switch(void) const = 0; // Must provide a config switch to support CORBA interface
 
     protected:
 
-        const ACE_Time_Value    loadTime_;
+        /** Execute a service action - Overloaded if super class has an executor base */
+        virtual int execute_svc_action(const DAF::Runnable_ref & command)
+        {
+            return DAF::SingletonExecute(command);
+        }
 
-    private:
-
-        descriptor_map_type svc_params_;
-
+        /** Make a descriptor for a service entity (by ident) within this gestalt */
         taf::EntityDescriptor_var   makeEntityDescriptor(const ident_type &ident) const;
+        /** Make a descriptor for a service entity (by descriptor type) within this gestalt */
+        taf::EntityDescriptor_var   makeEntityDescriptor(const service_descriptor_type &svc_desc) const;
 
-        int listServiceRepository(ident_list_type&, bool reverse = false) const;
+        /** The actual underlying Gestalt instance - composition stops interface collisions */
+        class GestaltService : public DAF::ServiceGestalt
+        {
+            GestaltService_impl &gestalt_impl_;
 
-        mutable ACE_SYNCH_RW_MUTEX lock_;  // Lock for Configuration (re)Processing / Access
+        public:
+
+            /** Constructor for underlying Gestalt instance */
+            GestaltService(GestaltService_impl &gestalt_impl, const ACE_TCHAR *program_name = 0) : DAF::ServiceGestalt(program_name)
+                , gestalt_impl_(gestalt_impl)
+            {}
+
+            /** Fill in the abstract File set switch from composer interface */
+            virtual const char * config_switch(void) const
+            {
+                return this->gestalt_impl_.config_switch();
+            }
+
+        private:
+
+            /** Execute a service action - redirect to overloadable implementation */
+            virtual int execute_svc_action(const DAF::Runnable_ref & command)
+            {
+                return this->gestalt_impl_.execute_svc_action(command);
+            }
+
+        } gestalt_;
+
+    public:
+
+        /** Accessor to the gestalts initial load time */
+        const ACE_Time_Value &  loadTime(void) const
+        {
+            return this->gestalt_.loadTime();
+        }
 
     } GestaltServiceImpl;
 
-    /****************************************************************************************/
-
-    class TAF_Export GestaltServiceLoader : public DAF::ServiceLoader
-    {
-    public:
-
-        GestaltServiceLoader(GestaltServiceImpl &gestalt) : gestalt_(gestalt)
-        {}
-
-    protected:
-
-        virtual int load_service(const std::string &ident, const std::string &libpathname, const std::string &objectclass, const std::string &params);
-
-    private:
-
-        GestaltServiceImpl &gestalt_;
-
-        const char * config_switch(void) const
-        {
-            return TAF_SERVICES;
-        }
-    };
+    /// Compatability with older revisions requires a TAF::GestaltServiceLoader
+    typedef class DAF::ServiceGestaltLoader GestaltServiceLoader;
 
 } // namespace TAF
 

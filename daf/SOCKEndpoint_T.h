@@ -21,15 +21,6 @@
 #ifndef DAF_SOCKENDPOINT_T_H
 #define DAF_SOCKENDPOINT_T_H
 
-/**
-* @file     SOCKEndpoint_T.h
-* @author   Derek Dominish
-* @author   $LastChangedBy$
-* @date     1st June 2013
-* @version  $Revision$
-* @ingroup
-* @namespace DAF
-*/
 
 #include <ace/Synch.h>
 #include <ace/Synch_Traits.h>

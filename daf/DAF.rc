@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -43,7 +43,7 @@ BEGIN
             VALUE "FileDescription", "DAF\0"
             VALUE "FileVersion", DAF_VERSION "\0"
             VALUE "InternalName", "DAFDLL\0"
-            VALUE "LegalCopyright", "Copyright 2011, Defence Science and Technology Organisation, Department of Defence. Australia.\0"
+            VALUE "LegalCopyright", "Copyright 2017, Defence Science and Technology Group, Department of Defence. Australia.\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "DAF.DLL\0"
             VALUE "ProductName", "DAF\0"
