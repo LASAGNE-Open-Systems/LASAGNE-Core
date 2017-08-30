@@ -1,4 +1,4 @@
-LASAGNE-Core version 1.4.4
+LASAGNE-Core version 1.5.0
 ==========================
 
 Compilers:
@@ -10,7 +10,7 @@ g++ 6.2.0
 
 Dependencies:
 ------------
-ACE-TAO version 6.4.3
+ACE-TAO version 6.4.4
 
 Optional:
 ---------
