@@ -113,12 +113,12 @@ before_script:
   - cp bin/build/ace/config.h $ACE_ROOT/ace/config.h
   - cp bin/build/ace/default.features $ACE_ROOT/bin/MakeProjectCreator/config/default.features
   # Platform macros to use depend on the OS and compiler combination
-  - if ["$TRAVIS_OS_NAME" == "osx"]; then
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
       echo "OSX detected";
       cp -f bin/build/ace/platform_macros.GNU.osxTarget $ACE_ROOT/include/makeinclude/platform_macros.GNU;
     fi
-  - if ["$TRAVIS_OS_NAME" == "linux"]; then
-      if ["$CXX" == "g++"]; then
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      if [ "$CXX" == "g++" ]; then
          echo "Linux and g++ detected";
          cp -f bin/build/ace/platform_macros.GNU $ACE_ROOT/include/makeinclude/platform_macros.GNU;
       else
