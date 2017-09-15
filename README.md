@@ -38,10 +38,10 @@ AppVeyor is building using:
 ### Prerequisites
 * Required
   * Perl
-  * ACE-TAO 6.4.4  [Vanderbilt](http://download.dre.vanderbilt.edu) | [GitHub](https://github.com/DOCGroup/ACE_TAO)
+  * ACE-TAO 6.4.5  [Vanderbilt](http://download.dre.vanderbilt.edu) | [GitHub](https://github.com/DOCGroup/ACE_TAO)
   * MPC [GitHub](https://github.com/DOCGroup/MPC) (if ACE-TAO is retrieved from GitHub)
 * Optional
-  * OpenDDS 3.11      [OpenDDS](http://opendds.org/downloads.html) | [GitHub](https://github.com/objectcomputing/OpenDDS)
+  * OpenDDS 3.12      [OpenDDS](http://opendds.org/downloads.html) | [GitHub](https://github.com/objectcomputing/OpenDDS)
   * RTI DDS 5.2 (plus optional CORBA Compatibility Kit)
   * CoreDX 3.6.47
 
