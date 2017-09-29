@@ -63,7 +63,7 @@ configuration:
   - Release
 
 build:
-  project: "%TAF_ROOT%\TAF_CI.sln"
+  project: "%TAF_ROOT%\\TAF_CI.sln"
   parallel: true
   verbosity: quiet
 
