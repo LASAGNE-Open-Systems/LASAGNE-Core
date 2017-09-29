@@ -53,14 +53,14 @@ protected:
 
 
 
-class TEST_SERVICE_Export TestGestaltModule : public ACE_Module<ACE_SYNCH>
+class TEST_SERVICE_Export TestGestaltModule : public ACE_Module<ACE_SYNCH, ACE_System_Time_Policy>
 {
 public:
   TestGestaltModule(void);
   virtual ~TestGestaltModule(void);
 };
 
-class TEST_SERVICE_Export TestGestaltStream : public ACE_Stream<ACE_SYNCH>
+class TEST_SERVICE_Export TestGestaltStream : public ACE_Stream<ACE_SYNCH, ACE_System_Time_Policy>
 {
 public:
   TestGestaltStream(void);
