@@ -137,7 +137,7 @@ namespace DAF
         class FutureSetter : public DAF::Runnable
         {
             typedef DAF::FutureResult<T,F>  FResult;
-            typedef typename FResult::VFunc FResult_VFunc;
+            typedef typename FResult::_functor_type FResult_VFunc;
 
             FResult         &r_;
             FResult_VFunc   fn_;
