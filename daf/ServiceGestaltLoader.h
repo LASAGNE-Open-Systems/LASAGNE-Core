@@ -56,9 +56,9 @@ namespace DAF
     {
     public:
 
-        typedef typename Configurator::property_key_type    property_key_type;
-        typedef typename Configurator::property_val_type    property_val_type;
-        typedef typename Configurator::value_type           value_type;
+        typedef Configurator::property_key_type     property_key_type;
+        typedef Configurator::property_val_type     property_val_type;
+        typedef Configurator::value_type            value_type;
 
     private:
 
