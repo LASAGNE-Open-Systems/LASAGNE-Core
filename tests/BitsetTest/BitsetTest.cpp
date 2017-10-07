@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -183,7 +183,9 @@ int main(int argc, char *argv[])
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed in Differing Length ")), -1);
         }
         else {
-            DAF::Bitset test(MAX_BITS, true); if (test[1] = false) {
+            DAF::Bitset test(MAX_BITS, true);
+            test[1] = false;
+            if (test[1]) {
                 ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed in set Value ")), -1);
             }
             else if (test == bitset) {
@@ -199,7 +201,9 @@ int main(int argc, char *argv[])
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed with Same Bits ")), -1);
         }
         else {
-            DAF::Bitset test(MAX_BITS, true); if (test[1] = false) {
+            DAF::Bitset test(MAX_BITS, true);
+            test[1] = false;
+            if (test[1]) {
                 ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed in set Value ")), -1);
             }
             else if (test != bitset ? false : true) {
@@ -290,7 +294,8 @@ int main(int argc, char *argv[])
 
     std::cout << "Testing |= operator ";
     {
-        if (bitset[1] |= false) {
+        bitset[1] |= false;
+        if (bitset[1]) {
             ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("Failed (false | false) != false")), -1);
         }
         else if ((bitset[1] |= true) ? DAF_OS::memcmp(bitset, BUF_MAX_BITS_TRUE, bitset.size()) : true) {
