@@ -20,6 +20,14 @@ matrix:
           packages: ['g++-6']
       env: COMPILER=g++-6
 
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-7']
+      env: COMPILER=g++-7
+
 env:
   global:
     # MPC settings
@@ -70,4 +78,4 @@ before_script:
 script:
   - cd $TAF_ROOT
   - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAF_CI.mwc
-  - make CXX=$COMPILER --jobs 2
+  - make CXX=$COMPILER --jobs 6
