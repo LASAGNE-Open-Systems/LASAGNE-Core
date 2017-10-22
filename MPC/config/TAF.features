@@ -43,3 +43,5 @@ amqp_qpid        = 0
 boost            = 0
 
 rabbitmq         = 0
+
+no_deprecated    = 1
