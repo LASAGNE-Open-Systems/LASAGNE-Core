@@ -27,7 +27,8 @@ develop:
 
 Travis CI is building using:
 * g++ 4.8.1
-* g++ 6.2
+* g++ 6.3
+* g++ 7.2
 
 AppVeyor is building using:
 * Visual Studio 2015

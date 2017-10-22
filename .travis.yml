@@ -20,6 +20,14 @@ matrix:
           packages: ['g++-6']
       env: COMPILER=g++-6
 
+    - os: linux
+      compiler: gcc
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-7']
+      env: COMPILER=g++-7
+
 env:
   global:
     # MPC settings
@@ -41,7 +49,7 @@ before_install:
   - cd ext
   - git clone --depth 1 git://github.com/DOCGroup/MPC.git
   - git clone -b Latest_Micro --depth 1 git://github.com/DOCGroup/ACE_TAO.git
-  - git clone --depth 1 git://github.com/objectcomputing/OpenDDS.git
+  - git clone -b latest-release --depth 1 git://github.com/objectcomputing/OpenDDS.git
   - cd ..
 
 branches:
@@ -69,5 +77,5 @@ before_script:
 
 script:
   - cd $TAF_ROOT
-  - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAF_CI.mwc
-  - make CXX=$COMPILER --jobs 2
+  - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 6 TAF_CI.mwc
+  - make CXX=$COMPILER --jobs 6
