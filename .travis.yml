@@ -11,16 +11,20 @@ matrix:
       compiler: gcc
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.8']
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
       env: COMPILER=g++-4.8
 
     - os: linux
       compiler: gcc
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-6']
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-6
       env: COMPILER=g++-6
 
     - os: linux
@@ -43,6 +47,17 @@ matrix:
           packages:
             - clang++-3.9
       env: COMPILER=clang++
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang++-5.0
+      env: COMPILER=clang++-5.0
 
     - os: osx
       env: COMPILER=clang++
