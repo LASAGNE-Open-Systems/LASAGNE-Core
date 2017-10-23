@@ -24,29 +24,8 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
           packages:
-            - g++-6
-      env: COMPILER=g++-6
-
-    - os: linux
-      compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
             - g++-7
       env: COMPILER=g++-7
-
-    - os: linux
-      compiler: clang
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-            - llvm-toolchain-precise-3.9
-          packages:
-            - clang++-3.9
-      env: COMPILER=clang++
 
     - os: linux
       compiler: clang
@@ -58,15 +37,6 @@ matrix:
           packages:
             - clang++-5.0
       env: COMPILER=clang++-5.0
-
-    - os: osx
-      env: COMPILER=clang++
-
-  allow_failures:
-    - os: osx
-      env: COMPILER=clang++
-
-
 
 env:
   global:
