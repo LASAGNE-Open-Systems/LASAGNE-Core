@@ -84,7 +84,7 @@ before_script:
   - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
       if [ "$CXX" == "g++" ]; then
          echo "Linux and g++ detected";
-         cp -f bin/build/ace/platform_macros.GNU $ACE_ROOT/include/makeinclude/platform_macros.GNU;
+         cp -f bin/build/ace/platform_macros.GNU.ci $ACE_ROOT/include/makeinclude/platform_macros.GNU;
       else
          echo "Linux and clang detected";
          cp -f bin/build/ace/platform_macros.GNU.clangTarget $ACE_ROOT/include/makeinclude/platform_macros.GNU;

@@ -33,5 +33,5 @@ boost            = 0
 
 rabbitmq         = 0
 
-no_deprecated_declarations  = 1 
-no_implicit_fallthrough     = 1 
+no_deprecated_declarations  = 0 
+no_implicit_fallthrough     = 0 
