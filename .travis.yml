@@ -124,4 +124,4 @@ before_script:
 script:
   - cd $TAF_ROOT
   - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAF_CI.mwc
-  - make CXX=$COMPILER --jobs 6
+  - make CXX=$COMPILER --jobs 6 --quiet
