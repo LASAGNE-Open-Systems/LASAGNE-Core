@@ -3,43 +3,35 @@ java             = 0
 opendds          = 1
 
 ndds             = 0
-
 nddscorba        = 0
 
 coredx           = 0
-
 coredxcorba      = 0
 
 gsoap            = 0
-
 gsoap_openssl    = 0
 
 opensplice       = 0
-
 osplcorba        = 0
 
 mqtt             = 0
 
 taostrategies    = 1
-
 tafextensions    = 1
-
 tafdiscovery     = 1
-
 tafsecurity      = 0
-
 tafssliop        = 0
-
 ssl              = 0
 
 ldbc_sqlite      = 1
-
 ldbc_odbc        = 0
 
 amqp             = 0
-
 amqp_qpid        = 0
 
 boost            = 0
 
 rabbitmq         = 0
+
+no_deprecated_declarations  = 0 
+no_implicit_fallthrough     = 0 
