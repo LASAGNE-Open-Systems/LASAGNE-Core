@@ -1,3 +1,16 @@
+### LASAGNE-Core 1.5.1
+
+##### Changes:
+- Now supported by ACE-TAO 6.4.5
+- Verified support for OpenDDS 3.12
+- Verified support for RTI Connext DDS 5.3.0
+- Added support for CoreDX 4.0.12
+- Expanded CI tooling to support g++7 and clang
+
+##### Fixes:
+- Removed throw specifications on DDS listener methods in training samples
+_______________________________________________________________________________
+
 ### LASAGNE-Core 1.5.0
 
 ##### Changes:
