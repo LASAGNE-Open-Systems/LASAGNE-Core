@@ -80,7 +80,7 @@ namespace TAF
     class FileResolver_T : public IORResolver_T<T>
     {
     public:
-        const std::string IOR_FILENAME_EXTENSION = ".ior";
+        const std::string IOR_FILENAME_EXTENSION;
 
         DAF_DEFINE_REFCOUNTABLE(FileResolver_T<T>);
 

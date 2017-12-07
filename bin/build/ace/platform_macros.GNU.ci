@@ -11,4 +11,7 @@ ifeq ($(findstring $(CXX_MAJOR_VERSION),7 8),$(CXX_MAJOR_VERSION))
     ifneq ($(no_implicit_fallthrough),0) 
         FLAGS_C_CC += -Wno-implicit-fallthrough 
     endif 
-endif 
+endif
+
+inline = 0
+optimize = 0

@@ -8,7 +8,7 @@ project : taflib {
 
   dynamicflags  += CORBACTIVESERVICE_BUILD_DLL
 
-  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl CORBActiveService > CORBActiveService_export.h
+  after         += CORBActiveService_Export
 
   Idl_Files {
     LTMTopicDetails.idl

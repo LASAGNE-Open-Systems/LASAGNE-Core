@@ -28,6 +28,13 @@
 
 #include <ace/CDR_Base.h>
 
+#if !defined(DDS_GTEQ_VERSION)
+# define DDS_GTEQ_VERSION(MAJOR,MINOR,MICRO)                            \
+    ((DDS_MAJOR_VERSION > MAJOR) ||                                     \
+    ((DDS_MAJOR_VERSION == MAJOR) && (DDS_MINOR_VERSION > MINOR)) ||    \
+    ((DDS_MAJOR_VERSION == MAJOR) && (DDS_MINOR_VERSION == MINOR) && (DDS_MICRO_VERSION >= MICRO)))
+#endif
+
 #if !defined(ACE_WIN32)
 #  if !defined(TAF_USES_DDS_NAMESPACE)
 // DISABLED until further notice - JAB
@@ -257,8 +264,12 @@ namespace DDS {
     typedef DataWriter_ptr                  DataWriter_ref;
     typedef Topic_ptr                       Topic_ref;
 
+#if DDS_GTEQ_VERSION(4,0,0)
+    const DDS::StatusMask                   STATUS_MASK_ALL(-1);
+#else 
     const DDS::StatusMask                   STATUS_MASK_ALL(-1);
     const DDS::StatusMask                   STATUS_MASK_NONE(0);
+#endif
 } // namespace DDS
 
 # if !defined(TheParticipantFactory)
@@ -348,15 +359,6 @@ namespace DDS {
 # error "Unknown DDS Version?"
 
 #endif
-
-
-#if !defined(DDS_GTEQ_VERSION)
-# define DDS_GTEQ_VERSION(MAJOR,MINOR,MICRO)                            \
-    ((DDS_MAJOR_VERSION > MAJOR) ||                                     \
-    ((DDS_MAJOR_VERSION == MAJOR) && (DDS_MINOR_VERSION > MINOR)) ||    \
-    ((DDS_MAJOR_VERSION == MAJOR) && (DDS_MINOR_VERSION == MINOR) && (DDS_MICRO_VERSION >= MICRO)))
-#endif
-
 
 TAF_BEGIN_DDS_NAMESPACE_DECL
 

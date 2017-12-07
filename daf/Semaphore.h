@@ -63,7 +63,7 @@ namespace DAF
 
     public:
 
-        typedef typename Monitor::_mutex_type _mutex_type;
+        typedef Monitor::_mutex_type    _mutex_type;
 
         /** Construct with initial permit count */
         Semaphore(int permits = 1); // Set default == 1 (Unlocked)

@@ -1,5 +1,12 @@
 // Simplified single vendor MPC (without specific vendor mpb's)
 
+project(CORBActiveService_Export) {
+  custom_only = 1
+
+  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl CORBActiveService > CORBActiveService_export.h
+}
+
+
 project(CORBActiveService) : taflib, odds_pubsub {
   sharedname    = *
 
@@ -12,7 +19,7 @@ project(CORBActiveService) : taflib, odds_pubsub {
 
   dynamicflags  += CORBACTIVESERVICE_BUILD_DLL
 
-  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl CORBActiveService > CORBActiveService_export.h
+  after         += CORBActiveService_Export
 
   Idl_Files {
     LTMTopicDetails.idl

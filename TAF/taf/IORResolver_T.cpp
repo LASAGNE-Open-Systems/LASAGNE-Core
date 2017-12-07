@@ -148,6 +148,7 @@ namespace TAF
     template <typename T>
     FileResolver_T<T>::FileResolver_T(const std::string &name, DAF::Monitor &mon, const std::string &directory)
         : TAF::IORResolver_T<T>(name, mon)
+        , IOR_FILENAME_EXTENSION(".ior")
         , filename_(name)
     {
         std::string bindDirectory(DAF::format_args(directory, true, false));

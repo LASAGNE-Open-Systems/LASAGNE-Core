@@ -127,9 +127,9 @@ namespace LTM   // Open the LTM namespace
         virtual DDS::ReturnCode_t on_data_available(const LTMTopicDetailsTopicType &td);
 
         /* Shutup these messages from DDS Reader */
-        virtual void on_subscription_matched(DDS::DataReader_ptr, const DDS::SubscriptionMatchedStatus&)    throw () {}
-        virtual void on_liveliness_changed(DDS::DataReader_ptr, const DDS::LivelinessChangedStatus&)        throw () {}
-        virtual void on_sample_lost(DDS::DataReader_ptr, const DDS::SampleLostStatus&)                      throw ()
+        virtual void on_subscription_matched(DDS::DataReader_ptr, const DDS::SubscriptionMatchedStatus&)    {}
+        virtual void on_liveliness_changed(DDS::DataReader_ptr, const DDS::LivelinessChangedStatus&)        {}
+        virtual void on_sample_lost(DDS::DataReader_ptr, const DDS::SampleLostStatus&)
         {
             if (this->debug()) std::cout << '-';
         }
