@@ -1,4 +1,4 @@
-LASAGNE-Core version 1.5.0
+LASAGNE-Core version 1.5.1
 ==========================
 
 Compilers:
@@ -15,5 +15,5 @@ ACE-TAO version 6.4.5
 Optional:
 ---------
 OpenDDS 3.12
-RTI DDS 5.2 (plus optional CORBA Compatibility Kit)
-CoreDX 3.6.47
+RTI DDS 5.3 (plus optional CORBA Compatibility Kit)
+CoreDX 4.0.12
