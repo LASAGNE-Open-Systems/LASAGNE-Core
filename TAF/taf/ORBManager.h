@@ -71,8 +71,8 @@ namespace TAF
 
         virtual ~ORB(void);
 
-        friend ORBManager;
-        friend ORBSingleton_type;
+        friend class ORBManager;
+        friend class ACE_DLL_Singleton_T<TAF::ORB, ACE_SYNCH_MUTEX>; // ORBSingleton_type;
 
     public: // Access methods
 

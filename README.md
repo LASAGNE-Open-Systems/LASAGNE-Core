@@ -16,22 +16,10 @@ LASAGNE is a pattern-based framework for parallel and distributed computing
   * Core of LASAGNE does not mandate a data model representation
 
 ## Status
-
-master:
-[![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=master)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core)
-[![Build status](https://ci.appveyor.com/api/projects/status/1gwwcaraqoku38i8/branch/master?svg=true)](https://ci.appveyor.com/project/LASAGNE-Open-Systems/lasagne-core/branch/master)
-
-develop:
-[![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=develop)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core)
-[![Build status](https://ci.appveyor.com/api/projects/status/1gwwcaraqoku38i8/branch/develop?svg=true)](https://ci.appveyor.com/project/LASAGNE-Open-Systems/lasagne-core/branch/develop)
-
-Travis CI is building using:
-* g++ 4.8.1
-* g++ 6.2
-
-AppVeyor is building using:
-* Visual Studio 2015
-* Visual Studio 2017
+|   | develop | master |   |
+|---|:---:|:---:|---|
+| Travis CI | [![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=develop)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core) | [![Build Status](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core.svg?branch=master)](https://travis-ci.org/LASAGNE-Open-Systems/LASAGNE-Core) | g++ 4.8.5/7.2.0, clang 5.0.1 |
+| AppVeyor | [![Build status](https://ci.appveyor.com/api/projects/status/1gwwcaraqoku38i8/branch/develop?svg=true)](https://ci.appveyor.com/project/LASAGNE-Open-Systems/lasagne-core/branch/develop) | [![Build status](https://ci.appveyor.com/api/projects/status/1gwwcaraqoku38i8/branch/master?svg=true)](https://ci.appveyor.com/project/LASAGNE-Open-Systems/lasagne-core/branch/master) | Visual Studio 2015/2017 |
 
 ## Getting Started
 
@@ -42,8 +30,8 @@ AppVeyor is building using:
   * MPC [GitHub](https://github.com/DOCGroup/MPC) (if ACE-TAO is retrieved from GitHub)
 * Optional
   * OpenDDS 3.12      [OpenDDS](http://opendds.org/downloads.html) | [GitHub](https://github.com/objectcomputing/OpenDDS)
-  * RTI DDS 5.2 (plus optional CORBA Compatibility Kit)
-  * CoreDX 3.6.47
+  * RTI DDS 5.3.0 (plus optional CORBA Compatibility Kit)
+  * CoreDX 4.0.12
 
 ### Installation
 See the instructions in [docs/html](docs/html/index.html) for the appropriate platform

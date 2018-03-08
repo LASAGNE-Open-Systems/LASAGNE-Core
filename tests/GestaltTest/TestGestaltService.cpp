@@ -164,7 +164,7 @@ TestGestaltService::parse_args(int argc, ACE_TCHAR *argv[])
 
 TestGestaltModule::TestGestaltModule(void)
 
- : ACE_Module<ACE_SYNCH>("TestGestaltModule", new TestGestaltService, new TestGestaltService)
+ : ACE_Module<ACE_SYNCH, ACE_System_Time_Policy>("TestGestaltModule", new TestGestaltService, new TestGestaltService)
 {
   if ( DAF::debug() )
   {

@@ -61,6 +61,10 @@
 
 #  include "ace/config-android.h"
 
+# elif defined(__APPLE__)
+
+#  include "ace/config-macosx.h"
+
 # elif defined(__GNUG__) || defined(__GNUC__)
 
 #  include "ace/config-linux.h"

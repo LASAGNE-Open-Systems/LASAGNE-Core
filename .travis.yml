@@ -1,6 +1,9 @@
 sudo: false
 language: cpp
 
+git:
+  depth: 10
+
 matrix:
   include:
 
@@ -8,17 +11,32 @@ matrix:
       compiler: gcc
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-4.8']
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-4.8
       env: COMPILER=g++-4.8
 
     - os: linux
       compiler: gcc
       addons:
         apt:
-          sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-6']
-      env: COMPILER=g++-6
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-7
+      env: COMPILER=g++-7
+
+    - os: linux
+      compiler: clang
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+            - llvm-toolchain-trusty-5.0
+          packages:
+            - clang++-5.0
+      env: COMPILER=clang++-5.0
 
 env:
   global:
@@ -41,7 +59,7 @@ before_install:
   - cd ext
   - git clone --depth 1 git://github.com/DOCGroup/MPC.git
   - git clone -b Latest_Micro --depth 1 git://github.com/DOCGroup/ACE_TAO.git
-  - git clone --depth 1 git://github.com/objectcomputing/OpenDDS.git
+  - git clone -b latest-release --depth 1 git://github.com/objectcomputing/OpenDDS.git
   - cd ..
 
 branches:
@@ -58,16 +76,22 @@ before_script:
   # Copy additional build files into the correct locations
   - cp bin/build/ace/config.h $ACE_ROOT/ace/config.h
   - cp bin/build/ace/default.features $ACE_ROOT/bin/MakeProjectCreator/config/default.features
-  - cp bin/build/ace/platform_macros.GNU $ACE_ROOT/include/makeinclude/platform_macros.GNU
-  # Build dependencies
-  # - cd $TAO_ROOT
-  # - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAO_ACE.mwc
-  # - make CXX=$COMPILER --silent --jobs 2
-  # - cd $DDS_ROOT
-  # - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 DDS_no_tests.mwc
-  # - make CXX=$COMPILER --silent --jobs 2
+  # Platform macros to use depend on the OS and compiler combination
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      echo "OSX detected";
+      cp -f bin/build/ace/platform_macros.GNU.osxTarget $ACE_ROOT/include/makeinclude/platform_macros.GNU;
+    fi
+  - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
+      if [ "$CXX" == "g++" ]; then
+         echo "Linux and g++ detected";
+         cp -f bin/build/ace/platform_macros.GNU.ci $ACE_ROOT/include/makeinclude/platform_macros.GNU;
+      else
+         echo "Linux and clang detected";
+         cp -f bin/build/ace/platform_macros.GNU.clangTarget $ACE_ROOT/include/makeinclude/platform_macros.GNU;
+      fi
+    fi
 
 script:
   - cd $TAF_ROOT
   - perl $ACE_ROOT/bin/mwc.pl -type gnuace -workers 2 TAF_CI.mwc
-  - make CXX=$COMPILER --jobs 2
+  - make CXX=$COMPILER --jobs 6 --quiet

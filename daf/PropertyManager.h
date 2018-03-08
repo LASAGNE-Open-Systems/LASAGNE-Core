@@ -57,9 +57,9 @@ namespace DAF
     public:
 
         /** Upscope these meta types from protected configurator */
-        typedef typename Configurator::property_key_type    property_key_type;
-        typedef typename Configurator::property_val_type    property_val_type;
-        typedef typename Configurator::property_list_type   property_list_type;
+        typedef Configurator::property_key_type     property_key_type;
+        typedef Configurator::property_val_type     property_val_type;
+        typedef Configurator::property_list_type    property_list_type;
 
         /**
         Access the property within the property map with a key value.
