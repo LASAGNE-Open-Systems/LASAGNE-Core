@@ -40,7 +40,6 @@ workspace {
   $(TAO_ROOT)/utils/nslist/nslist.mpc
 
   $(DDS_ROOT)/dds
-  $(DDS_ROOT)/tools
   $(DDS_ROOT)/java
 
   $(DAF_ROOT)/DAF.mwc
@@ -48,6 +47,7 @@ workspace {
 
   exclude {
     $(DDS_ROOT)/java/jms
+    $(DDS_ROOT)/tools
     $(DDS_ROOT)/tools/modeling/tests
   }
 
