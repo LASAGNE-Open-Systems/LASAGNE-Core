@@ -164,10 +164,10 @@ namespace TAF
                 }
                 break;
             }
-        }
 
-        // Add our own delimiter '/' to the end
-        this->directory_.assign(bindDirectory).append(1, '/');
+            // Add our own delimiter '/' to the end
+            this->directory_.assign(bindDirectory).append(1, '/');
+        }
 
         // Ensure the name supplied will represent a file
         if (int(this->filename_.find_first_of('.')) <= 0)
@@ -192,7 +192,7 @@ namespace TAF
         std::string filename(DAF::trim_string(this->directory_ + this->filename_));
         if (filename.length())
         {
-            for (std::ifstream iorFile(filename_.c_str(), std::ios::in); iorFile;)
+            for (std::ifstream iorFile(filename.c_str(), std::ios::in); iorFile;)
             {
                 std::string iorFileString((std::istreambuf_iterator<char>(iorFile)), (std::istreambuf_iterator<char>()));
                 if (iorFileString.length())

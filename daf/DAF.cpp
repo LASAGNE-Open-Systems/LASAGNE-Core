@@ -449,7 +449,7 @@ namespace DAF
             }
 
             if (arg.length()) { // Build the ARGV from backing list
-                params_argv.add(arg.c_str(), false); // Add this argument to the backing list
+                params_argv.add(arg.c_str(), true); // Add this argument to the backing list
             }
         }
 
