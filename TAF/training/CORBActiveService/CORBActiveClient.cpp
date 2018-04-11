@@ -1,7 +1,6 @@
 #define LTM_CORBACTIVECLIENT_CPP
 
 #include <taf/TAF.h>
-#include <taf/ORBManager.h>
 #include <taf/NamingContext.h>
 #include <taf/IORResolver_T.h>
 

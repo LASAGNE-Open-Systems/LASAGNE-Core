@@ -23,6 +23,7 @@ License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include <daf/Runnable.h>
+#include <taf/ORBManager.h>
 #include <list>
 
 

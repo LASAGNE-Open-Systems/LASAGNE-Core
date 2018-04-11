@@ -23,7 +23,6 @@
 
 
 #include "IORResolver_T.h"
-#include <taf/ORBManager.h>
 
 
 namespace TAF
