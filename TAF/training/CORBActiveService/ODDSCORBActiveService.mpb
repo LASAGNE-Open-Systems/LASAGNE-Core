@@ -1,4 +1,8 @@
 feature(opendds) : CORBActiveService, opendds {
   dcps_ts_flags += -Wb,export_include=CORBActiveService_export.h \
                    -Wb,export_macro=CORBActiveService_Export
+
+  TypeSupport_Files {
+    LTMTopicDetails.idl
+  } 
 }

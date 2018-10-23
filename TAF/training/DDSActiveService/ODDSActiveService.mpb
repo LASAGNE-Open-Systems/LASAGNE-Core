@@ -1,6 +1,10 @@
 feature(opendds) : DDSActiveService, opendds {
   dcps_ts_flags += -Wb,export_include=DDSActiveService_export.h \
                    -Wb,export_macro=DDSActiveService_Export
+
+  TypeSupport_Files {
+    LTMTopicDetails.idl
+  }
 }
 
 feature(java) : dcps_java {

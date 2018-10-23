@@ -1,4 +1,4 @@
-project : opendds {
+feature(opendds) : opendds {
   requires += opendds
   libs  += ODDS_PubSub
   after += ODDS_PubSub

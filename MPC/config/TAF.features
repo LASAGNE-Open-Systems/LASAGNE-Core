@@ -1,6 +1,6 @@
 java             = 0
 
-opendds          = 1
+opendds          = 0
 
 ndds             = 0
 nddscorba        = 0
@@ -23,7 +23,7 @@ tafsecurity      = 0
 tafssliop        = 0
 ssl              = 0
 
-ldbc_sqlite      = 1
+ldbc_sqlite      = 0
 ldbc_odbc        = 0
 
 amqp             = 0

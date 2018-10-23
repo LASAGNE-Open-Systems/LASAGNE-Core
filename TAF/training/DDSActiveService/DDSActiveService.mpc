@@ -1,13 +1,13 @@
 // Simplified single vendor MPC (without specific vendor mpb's)
 
-project(DDSActiveService) : taflib, odds_pubsub {
+project(DDSActiveService) : taflib, DDSActiveService {
+
+  requires	+= opendds
   sharedname    = *
 
   idlflags      += -Wb,export_include=DDSActiveService_export.h \
                    -Wb,export_macro=DDSActiveService_Export
-  dcps_ts_flags += -Wb,export_include=DDSActiveService_export.h \
-                   -Wb,export_macro=DDSActiveService_Export
-
+  
   libout        = $(DAF_ROOT)/lib 
 
   dynamicflags  += DDSACTIVESERVICE_BUILD_DLL
@@ -17,10 +17,6 @@ project(DDSActiveService) : taflib, odds_pubsub {
   Idl_Files {
     LTMTopicDetails.idl
   }
-
-  TypeSupport_Files {
-    LTMTopicDetails.idl
-  } 
 
   Header_Files {
     DDSActiveService.h
@@ -38,10 +34,6 @@ project(DDSActiveService) : taflib, odds_pubsub {
 project(ODDS_DDSActiveService) : ODDSActiveService, odds_pubsub {
   requires += opendds
   after    += DDSActiveService
-
-  TypeSupport_Files {
-    LTMTopicDetails.idl
-  } 
 }
 
 project(NDDS_DDSActiveService) : NDDSActiveService, ndds_pubsub {

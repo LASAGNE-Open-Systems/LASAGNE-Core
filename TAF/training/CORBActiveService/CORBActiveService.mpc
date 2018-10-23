@@ -7,14 +7,15 @@ project(CORBActiveService_Export) {
 }
 
 
-project(CORBActiveService) : taflib, odds_pubsub {
+project(CORBActiveService) : taflib, CORBActiveService {
+
+  requires	+= opendds
+
   sharedname    = *
 
   idlflags      += -Wb,export_include=CORBActiveService_export.h \
                    -Wb,export_macro=CORBActiveService_Export
-  dcps_ts_flags += -Wb,export_include=CORBActiveService_export.h \
-                   -Wb,export_macro=CORBActiveService_Export
-
+  
   libout        = $(DAF_ROOT)/lib 
 
   dynamicflags  += CORBACTIVESERVICE_BUILD_DLL
@@ -24,10 +25,6 @@ project(CORBActiveService) : taflib, odds_pubsub {
   Idl_Files {
     LTMTopicDetails.idl
     CORBActiveService.idl
-  }
-
-  TypeSupport_Files {
-    LTMTopicDetails.idl
   }
 
   Header_Files {
@@ -46,10 +43,6 @@ project(CORBActiveService) : taflib, odds_pubsub {
 project(ODDS_CORBActiveService) : ODDSCORBActiveService, odds_pubsub {
   requires += opendds
   after    += CORBActiveService
-
-  TypeSupport_Files {
-    LTMTopicDetails.idl
-  } 
 }
 
 project(NDDS_CORBActiveService) : NDDSCORBActiveService, ndds_pubsub {
