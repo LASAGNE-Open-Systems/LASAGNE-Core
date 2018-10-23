@@ -73,6 +73,9 @@ project(OSPL_CORBActiveService) : OSPLCORBActiveService, ospl_pubsub {
 }
 
 project(CORBActiveClient) : taflib {
+
+  requires += opendds
+
   exename    = *
   after     += CORBActiveService
 

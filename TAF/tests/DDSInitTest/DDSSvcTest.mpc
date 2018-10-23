@@ -1,4 +1,7 @@
 project (ODDSInitTest) : odds_pubsub, taflib {
+
+    requires += opendds
+
     sharedname = *
 
     dynamicflags += DDS_INIT_TEST_BUILD_DLL

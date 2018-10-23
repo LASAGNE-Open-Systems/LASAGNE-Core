@@ -1,0 +1,5 @@
+include $(DAF_ROOT)/MPC/config/TAF.features
+include $(ACE_ROOT)/include/makeinclude/platform_linux.GNU
+
+FLAGS_C_CC += -march=armv8-a+crc -mfpu=neon-vfpv4 -mfloat-abi=hard
+LDFLAGS    += -march=armv8-a+crc -mfpu=neon-vfpv4 -mfloat-abi=hard
