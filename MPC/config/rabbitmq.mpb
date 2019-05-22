@@ -1,5 +1,6 @@
 project : build_files {
   requires += rabbitmq
+  requires += openssl11
   
   includes  += $(RABBITMQC_ROOT)/include
    

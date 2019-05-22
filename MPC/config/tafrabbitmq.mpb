@@ -1,4 +1,4 @@
-project : build_files, daflib, rabbitmq {
+project : daflib, rabbitmq {
     includes += $(TAF_ROOT)
     libs     += TAF_RabbitMQ
     after    += TAF_RabbitMQ
