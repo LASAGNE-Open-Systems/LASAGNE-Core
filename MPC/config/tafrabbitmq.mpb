@@ -1,5 +1,3 @@
 project : daflib, rabbitmq {
     includes += $(TAF_ROOT)
-    libs     += TAF_RabbitMQ
-    after    += TAF_RabbitMQ
 }

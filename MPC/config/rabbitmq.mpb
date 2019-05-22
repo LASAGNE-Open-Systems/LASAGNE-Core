@@ -1,12 +1,11 @@
 project : build_files {
   requires += rabbitmq
-  requires += openssl11
-  
+
   includes  += $(RABBITMQC_ROOT)/include
-   
+
   // TODO - rework the libpaths 
   libpaths  += $(RABBITMQC_ROOT)/lib
-  
+
   specific(prop:windows) {
     lit_libs += rabbitmq.4
   } else {
