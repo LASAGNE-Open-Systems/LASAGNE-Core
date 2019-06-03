@@ -24,53 +24,45 @@
 #include "DAF.h"
 
 #include <ace/Event_Handler.h>
+#include <ace/Signal.h>
 
 namespace DAF
 {
     /**
-    * \class ShutdownHandler
-    * \brief Shutdown hook for process control
-    *
-    * This class is used to control the teardown of a process and TAF level
-    * infrastructure. It hooks the ACE_Reactor signal handler to detect Ctrl-C,
-    * kill signals (SIGINT) and supply a central point of control for DAF + TAF libraries.
-    * It also provides a single point of access to send a shutdown state to the
-    * application. Multiple threads and wait on the state of the shudown handler.
-    */
+     * \class ShutdownHandler
+     * \brief Shutdown hook for process control
+     *
+     * This class is used to control the teardown of a process and TAF level
+     * infrastructure. It hooks the ACE_Reactor signal handler to detect Ctrl-C,
+     * kill signals (SIGINT) and supply a central point of control for DAF + TAF libraries.
+     * It also provides a single point of access to send a shutdown state to the
+     * application. Multiple threads and wait on the state of the shutdown handler.
+     */
     class DAF_Export ShutdownHandler : protected ACE_Event_Handler
     {
-        int signal_;
-
     public:
-
-
-        ShutdownHandler(int signal = SIGINT);
-
-        virtual ~ShutdownHandler(void);
-
-
+        ShutdownHandler();
+        virtual ~ShutdownHandler();
         /// Indicates if the shutdown state has been signaled.
-        static bool has_shutdown(void);
-
+        static bool has_shutdown();
         /// Used by a thread to block on the shutdown signal.
-        static int  wait_shutdown(const ACE_Time_Value *abs_timeout = 0); // Absolute Time (0 == INFINATE)
+        static int  wait_shutdown(const ACE_Time_Value* abs_timeout = nullptr); // Absolute Time (nullptr => INFINITE)
         /// Send a shutdown state to the shutdown handler.
         static int  send_shutdown(bool send_state = true);
 
         /// Accessor operator. give you current state
-        operator const void * () const
+        explicit operator bool() const
         {
-            return ShutdownHandler::has_shutdown() ? this : 0;
+            return has_shutdown();
         }
 
     protected:
-
         /// ACE_Reactor callback method on signal
-        virtual int handle_signal(int sig,siginfo_t *sig_info,ucontext_t *sig_cxt);
-
+        virtual int handle_signal(int sig, siginfo_t* sig_info, ucontext_t* sig_cxt);
         virtual int handle_shutdown(int signal = 0);
 
     private:
+        ACE_Sig_Set sigs_;
 
         // = Prevent assignment and initialization.
         ACE_UNIMPLEMENTED_FUNC(void operator = (const ShutdownHandler &))
