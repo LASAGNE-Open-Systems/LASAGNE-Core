@@ -25,53 +25,55 @@
 
 #include <ace/Reactor.h>
 
-namespace {
-
+namespace
+{
     class ShutdownMonitor : public DAF::Monitor
     {
+        // note that volatile only means don't cache, doesn't imply any synchronisation
         volatile bool has_shutdown_;
-
     public:
-
-        ShutdownMonitor(void) : has_shutdown_(false)
+        ShutdownMonitor() : has_shutdown_(false)
         {
         }
 
         void set_shutdown(bool val)
         {
-            this->has_shutdown_ = val;
+            has_shutdown_ = val;
         }
 
-        bool has_shutdown(void) const
+        bool has_shutdown() const
         {
-            return this->has_shutdown_;
+            return has_shutdown_;
         }
-
     } shutdown_monitor_;
 }
 
 namespace DAF
 {
-    ShutdownHandler::ShutdownHandler(int signal) : signal_(signal)
+    ShutdownHandler::ShutdownHandler()
     {
-        if (ACE_Reactor::instance()->register_handler(this->signal_, this)) {
-            ACE_DEBUG((LM_ERROR,
-                ACE_TEXT("(%04P | %04t) ERROR: Unable to register shutdown task signal handler with reactor.\n")));
+        sigs_.sig_add(SIGINT);
+        sigs_.sig_add(SIGTERM);
+        if (ACE_Reactor::instance()->register_handler(sigs_, this) != 0)
+        {
+            ACE_DEBUG((LM_ERROR, ACE_TEXT("(%04P | %04t) ERROR: Unable to register shutdown task signal handler with reactor.\n")));
         }
     }
 
-    ShutdownHandler::~ShutdownHandler(void)
+    ShutdownHandler::~ShutdownHandler()
     {
-        ACE_Reactor::instance()->remove_handler(this->signal_, (ACE_Sig_Action*)0);
+        ACE_Reactor::instance()->remove_handler(sigs_);
     }
 
-    int
-    ShutdownHandler::wait_shutdown(const ACE_Time_Value *abs_timeout)
+    int ShutdownHandler::wait_shutdown(const ACE_Time_Value* abs_timeout)
     {
-        if (!ShutdownHandler::has_shutdown()) {
+        if (!has_shutdown())
+        {
             ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, ace_mon, shutdown_monitor_, -1);
-            while (!ShutdownHandler::has_shutdown()) {  // DCL
-                if (shutdown_monitor_.wait(abs_timeout) && errno == ETIME) {
+            while (!has_shutdown()) // DCL
+            {
+                if (shutdown_monitor_.wait(abs_timeout) && errno == ETIME)
+                {
                     return -1;
                 }
             }
@@ -79,38 +81,45 @@ namespace DAF
         return 0;
     }
 
-    bool
-    ShutdownHandler::has_shutdown(void)
+    bool ShutdownHandler::has_shutdown()
     {
         return shutdown_monitor_.has_shutdown();
     }
 
-    int
-    ShutdownHandler::send_shutdown(bool send_state)
+    int ShutdownHandler::send_shutdown(bool send_state)
     {
         shutdown_monitor_.set_shutdown(send_state);
         {
-            ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, ace_mon, shutdown_monitor_, -1); shutdown_monitor_.notifyAll();
+            ACE_GUARD_RETURN(ACE_SYNCH_MUTEX, ace_mon, shutdown_monitor_, -1);
+            shutdown_monitor_.notifyAll();
         }
-        DAF_OS::thr_yield(); return 0;
+        DAF_OS::thr_yield();
+        return 0;
     }
 
-    int
-    ShutdownHandler::handle_shutdown(int signal)
+    int ShutdownHandler::handle_shutdown(int signal)
     {
-        ACE_UNUSED_ARG(signal); return 0;
+        ACE_UNUSED_ARG(signal);
+        return 0;
     }
 
-    int
-    ShutdownHandler::handle_signal(int signal,siginfo_t *sig_info,ucontext_t *sig_cxt)
+    int ShutdownHandler::handle_signal(int signal, siginfo_t* sig_info, ucontext_t* sig_cxt)
     {
-        if (signal == this->signal_) try { // try for user-code
-            if (this->handle_shutdown(signal) == 0) {
-                ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("\nINFO: [%D] shutdown signalled.\n"))
-                    , (this->send_shutdown(), -1)); // Return -1 to unhook reactor
+        if (sigs_.is_member(signal) == 1)
+        {
+            try
+            {
+                if (handle_shutdown(signal) == 0)
+                {
+                    send_shutdown();
+                    ACE_ERROR_RETURN((LM_INFO, ACE_TEXT("\nINFO: [%D] shutdown signalled.\n")), -1); // Return -1 to unhook reactor
+                }
             }
-        } DAF_CATCH_ALL {
-            this->send_shutdown(); return -1;
+            DAF_CATCH_ALL
+            {
+                send_shutdown();
+                return -1;
+            }
         }
 
         return ACE_Event_Handler::handle_signal(signal, sig_info, sig_cxt);
