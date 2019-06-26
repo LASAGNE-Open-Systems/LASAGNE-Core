@@ -50,12 +50,6 @@ namespace DAF
         /// Send a shutdown state to the shutdown handler.
         static int  send_shutdown(bool send_state = true);
 
-        /// Accessor operator. give you current state
-        operator bool() const
-        {
-            return has_shutdown();
-        }
-
     protected:
         /// ACE_Reactor callback method on signal
         virtual int handle_signal(int sig, siginfo_t* sig_info, ucontext_t* sig_cxt);
