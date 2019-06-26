@@ -8,6 +8,11 @@ project(DAF) : dafbasedefaults, acelib {
   } else {
     prebuild      =  perl $(ACE_ROOT)/bin/generate_export_file.pl DAF > DAF_export.h
   }
+  
+  // The boys like C++11 - enable it on g++
+  verbatim(gnuace, top,1) {
+    CCFLAGS += -std=c++11 -Wno-deprecated-declarations
+  }
 
   Header_Files {
     ARGV.h
