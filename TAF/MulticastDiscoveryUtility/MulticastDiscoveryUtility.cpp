@@ -333,7 +333,7 @@ int main(int argc, char *argv[])
         const std::string mcast_address(DAF::get_property(TAF_DISCOVERYENDPOINT, TAF_DEFAULT_DISCOVERY_ENDPOINT, true));
 
 //        const ACE_INET_Addr MCAST_ADDRESS(Thestd::string
-        for (int z = 0; !shutdown_ ; z++) {
+        for (int z = 0; !shutdown_.has_shutdown() ; z++) {
 
             if (TAFDiscoveryHandler(ACE_INET_Addr(mcast_address.c_str())).sendIORQuery(replyHandler, taf::_tc_TAFServer->id()) == 0) {
 
@@ -343,7 +343,7 @@ int main(int argc, char *argv[])
 
                 if (ior_seq.size()) {
 
-                    if (shutdown_) {
+                    if (shutdown_.has_shutdown()) {
                         break;
                     }
 
