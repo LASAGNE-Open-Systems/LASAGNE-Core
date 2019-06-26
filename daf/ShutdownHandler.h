@@ -46,12 +46,12 @@ namespace DAF
         /// Indicates if the shutdown state has been signaled.
         static bool has_shutdown();
         /// Used by a thread to block on the shutdown signal.
-        static int  wait_shutdown(const ACE_Time_Value* abs_timeout = nullptr); // Absolute Time (nullptr => INFINITE)
+        static int  wait_shutdown(const ACE_Time_Value* abs_timeout = NULL); // Absolute Time (nullptr => INFINITE)
         /// Send a shutdown state to the shutdown handler.
         static int  send_shutdown(bool send_state = true);
 
         /// Accessor operator. give you current state
-        explicit operator bool() const
+        operator bool() const
         {
             return has_shutdown();
         }
