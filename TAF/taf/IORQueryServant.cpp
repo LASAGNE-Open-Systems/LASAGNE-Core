@@ -40,8 +40,8 @@ namespace TAF
         if (this != &servant) {
             IORServant_ref::operator=(servant);
             ident_ = servant.ident_;
-            return *this;
         }
+        return *this;
     }
 
     int
