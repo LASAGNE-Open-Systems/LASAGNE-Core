@@ -34,16 +34,15 @@ namespace TAF
     {
     }
 
-	IORQueryServant & 
-	IORQueryServant::operator = (const IORQueryServant &servant)
-	{
-		if (this != &servant)
-		{
-			IORServant_ref::operator=(servant);
-			ident_ = servant.ident_;
-			return *this;
-		}
-	}
+    IORQueryServant & 
+    IORQueryServant::operator = (const IORQueryServant &servant)
+    {
+        if (this != &servant) {
+            IORServant_ref::operator=(servant);
+            ident_ = servant.ident_;
+            return *this;
+        }
+    }
 
     int
     IORQueryServant::is_ident(const std::string &ident) const
