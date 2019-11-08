@@ -24,41 +24,43 @@
 
 namespace TAF
 {
-    IORQueryServant::IORQueryServant(const CORBA::Object_ptr obj, const std::string &ident)
+    IORQueryServant::IORQueryServant(const CORBA::Object_ptr obj, const std::string& ident)
         : IORServant_ref(CORBA::Object::_duplicate(obj)), ident_(ident)
     {
     }
 
-    IORQueryServant::IORQueryServant(const IORQueryServant &servant)
+    IORQueryServant::IORQueryServant(const IORQueryServant& servant)
         : IORServant_ref(servant), ident_(servant.ident())
     {
     }
 
-    IORQueryServant & 
-    IORQueryServant::operator = (const IORQueryServant &servant)
+    IORQueryServant& IORQueryServant::operator = (const IORQueryServant& servant)
     {
-        if (this != &servant) {
+        if (this != &servant)
+        {
             IORServant_ref::operator=(servant);
             ident_ = servant.ident_;
         }
+
         return *this;
     }
 
-    int
-    IORQueryServant::is_ident(const std::string &ident) const
+    int IORQueryServant::is_ident(const std::string& ident) const
     {
-        if (ident.length()) {
-
-            if (CORBA::is_nil(this->in())) {
+        if (ident.length())
+        {
+            if (CORBA::is_nil(this->in()))
+            {
                 throw CORBA::INV_OBJREF();             // Not Activated
             }
-            else if (ident == this->ident()) {
+            else if (ident == this->ident())
+            {
                 return true;
             }
-            else if ((*this)->_is_a(ident.c_str())) {  // This may also throw
+            else if ((*this)->_is_a(ident.c_str()))
+            {  // This may also throw
                 return true;
             }
-
         }
 
         return false;
