@@ -45,13 +45,14 @@ namespace TAF
         IORQueryServant(const IORQueryServant &); // Copy Constructor
         IORQueryServant(const CORBA::Object_ptr obj, const std::string &ident);
 
+        IORQueryServant& operator = (const IORQueryServant &);  // Assignment operator
         const std::string & ident(void) const { return this->ident_; }
 
         int is_ident(const std::string &ident) const;
 
     private:
 
-        const std::string ident_;
+        std::string ident_;
     };
 
     typedef class std::list<IORQueryServant>    IORQueryServantList;
