@@ -57,7 +57,7 @@ env:
 before_install:
   - mkdir ext
   - cd ext
-  - git clone --depth 1 git://github.com/DOCGroup/MPC.git
+  - git clone -b Latest_ACETAO_Micro --depth 1 git://github.com/DOCGroup/MPC.git
   - git clone -b Latest_Micro --depth 1 git://github.com/DOCGroup/ACE_TAO.git
   - git clone -b latest-release --depth 1 git://github.com/objectcomputing/OpenDDS.git
   - cd ..
