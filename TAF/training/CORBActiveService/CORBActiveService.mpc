@@ -1,4 +1,4 @@
-// Simplified single vendor MPC (without specific vendor mpb's)
+// Multi-vendor MPC (with specific vendor mpb's)
 
 project(CORBActiveService_Export) {
   custom_only = 1
@@ -6,50 +6,9 @@ project(CORBActiveService_Export) {
   prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl CORBActiveService > CORBActiveService_export.h
 }
 
-
-project(CORBActiveService) : taflib, odds_pubsub {
-  sharedname    = *
-
-  idlflags      += -Wb,export_include=CORBActiveService_export.h \
-                   -Wb,export_macro=CORBActiveService_Export
-  dcps_ts_flags += -Wb,export_include=CORBActiveService_export.h \
-                   -Wb,export_macro=CORBActiveService_Export
-
-  libout        = $(DAF_ROOT)/lib 
-
-  dynamicflags  += CORBACTIVESERVICE_BUILD_DLL
-
-  after         += CORBActiveService_Export
-
-  Idl_Files {
-    LTMTopicDetails.idl
-    CORBActiveService.idl
-  }
-
-  TypeSupport_Files {
-    LTMTopicDetails.idl
-  }
-
-  Header_Files {
-    CORBActiveService.h
-    CORBActiveDataSupport.h
-  }
-
-  Source_Files {
-    CORBActiveService.cpp
-    CORBActiveDataSupport.cpp
-  }
-}
-
-// Multi-vendor MPC (with specific vendor mpb's)
-
 project(ODDS_CORBActiveService) : ODDSCORBActiveService, odds_pubsub {
   requires += opendds
   after    += CORBActiveService
-
-  TypeSupport_Files {
-    LTMTopicDetails.idl
-  } 
 }
 
 project(NDDS_CORBActiveService) : NDDSCORBActiveService, ndds_pubsub {

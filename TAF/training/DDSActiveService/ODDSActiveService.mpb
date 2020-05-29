@@ -1,4 +1,9 @@
 feature(opendds) : DDSActiveService, opendds {
+
+  TypeSupport_Files {
+    LTMTopicDetails.idl
+  }
+
   dcps_ts_flags += -Wb,export_include=DDSActiveService_export.h \
                    -Wb,export_macro=DDSActiveService_Export
 }

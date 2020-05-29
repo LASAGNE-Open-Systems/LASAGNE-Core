@@ -6,7 +6,8 @@
 #endif
 
 #if !defined(CDDS_KEY)
-# if defined(TAF_USES_COREDX) && defined(DDS_IDL) // Define used by CoreDX
+# if defined(TAF_USES_COREDX) && defined(DDS_IDL)
+// Define used by CoreDX
 #  define CDDS_KEY __dds_key
 #  else
 #  define CDDS_KEY

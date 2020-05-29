@@ -1,61 +1,53 @@
 // Simplified single vendor MPC (without specific vendor mpb's)
 
-project(DDSActiveService) : taflib, odds_pubsub {
-  sharedname    = *
+//project(DDSActiveService) : taflib, odds_pubsub {
+//  sharedname    = *
+//
+//  idlflags      += -Wb,export_include=DDSActiveService_export.h \
+//                   -Wb,export_macro=DDSActiveService_Export
+// dcps_ts_flags += -Wb,export_include=DDSActiveService_export.h \
+//                   -Wb,export_macro=DDSActiveService_Export
+//
+//  libout        = $(DAF_ROOT)/lib 
+//
+//  dynamicflags  += DDSACTIVESERVICE_BUILD_DLL
+//
+//  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl DDSActiveService > DDSActiveService_export.h
+//
+//  Idl_Files {
+//    LTMTopicDetails.idl
+//  }
 
-  idlflags      += -Wb,export_include=DDSActiveService_export.h \
-                   -Wb,export_macro=DDSActiveService_Export
-  dcps_ts_flags += -Wb,export_include=DDSActiveService_export.h \
-                   -Wb,export_macro=DDSActiveService_Export
+//  TypeSupport_Files {
+//    LTMTopicDetails.idl
+//  } 
 
-  libout        = $(DAF_ROOT)/lib 
+//  Header_Files {
+//    DDSActiveService.h
+//    DDSActiveDataSupport.h
+//  }
 
-  dynamicflags  += DDSACTIVESERVICE_BUILD_DLL
-
-  prebuild      = perl $(ACE_ROOT)/bin/generate_export_file.pl DDSActiveService > DDSActiveService_export.h
-
-  Idl_Files {
-    LTMTopicDetails.idl
-  }
-
-  TypeSupport_Files {
-    LTMTopicDetails.idl
-  } 
-
-  Header_Files {
-    DDSActiveService.h
-    DDSActiveDataSupport.h
-  }
-
-  Source_Files {
-    DDSActiveService.cpp
-    DDSActiveDataSupport.cpp
-  }
-}
+//  Source_Files {
+//    DDSActiveService.cpp
+//    DDSActiveDataSupport.cpp
+//  }
+//}
 
 // Multi-vendor MPC (with specific vendor mpb's)
 
 project(ODDS_DDSActiveService) : ODDSActiveService, odds_pubsub {
   requires += opendds
   after    += DDSActiveService
-
-  TypeSupport_Files {
-    LTMTopicDetails.idl
-  } 
 }
 
 project(NDDS_DDSActiveService) : NDDSActiveService, ndds_pubsub {
   requires += ndds
-  after    += DDSActiveService ODDS_DDSActiveService
-
-  NDDSTypeSupport_Files {
-    LTMTopicDetails.idl
-  }
+  after    += DDSActiveService NDDS_DDSActiveService
 }
 
 project(CDDS_DDSActiveService) : CDDSActiveService, cdds_pubsub {
   requires += coredx
-  after    += DDSActiveService ODDS_DDSActiveService NDDS_DDSActiveService
+  after    += DDSActiveService
 
   CoreDXTypeSupport_Files {
     LTMTopicDetails.idl
@@ -64,7 +56,7 @@ project(CDDS_DDSActiveService) : CDDSActiveService, cdds_pubsub {
 
 project(OSPL_DDSActiveService) : OSPLActiveService, ospl_pubsub {
   requires += opensplice
-  after    += DDSActiveService ODDS_DDSActiveService NDDS_DDSActiveService CDDS_DDSActiveService
+  after    += DDSActiveService ODDS_DDSActiveService 
 
   OSPLTypeSupport_Files {
     LTMTopicDetails.idl
