@@ -7,7 +7,7 @@ project(DDSPubSub) : DDSPubSub {
   }
 }
 
-project(ODDS_PubSub) : opendds, DDSPubSub {
+project(ODDS_PubSub) : opendds, dcps, DDSPubSub {
   requires += opendds
   Test_Files {
     $(DAF_ROOT)/bin/dds.ini
