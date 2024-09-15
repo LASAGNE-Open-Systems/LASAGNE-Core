@@ -21,6 +21,7 @@
 #define DAF_BARRIER_CPP
 
 /************************ Barrier ******************************
+*
 * A Barrier for a fixed number of threads with an all-or-none breakage model.
 *
 * A Barrier is a reasonable choice for a barrier in
@@ -54,160 +55,183 @@
 
 #include "Barrier.h"
 
+#include "DirectExecutor.h"
+
 namespace DAF
 {
-    Barrier::Barrier(size_t parties, const Runnable_ref &command)
-        : entryGate_        (int(parties))
-        , parties_          (parties)
-        , synch_            (0)
-        , count_            (0)
-        , resets_           (0)
-        , broken_           (false)
-        , shutdown_         (false)
-        , triggered_        (false)
+    Barrier::Barrier(int parties, const Runnable_ref & command) : Monitor()
+        , barrierSemaphore_ (ace_max(0, parties))
         , barrierCommand_   (command)
+        , parties_          (0)
+        , resets_           (0)
+        , count_            (0)
+        , broken_           (false)
+        , triggered_        (false)
     {
-        if (parties == 0) {
-            throw InitializationException("DAF::Barrier Initialization Error parties == 0");
+        if ((this->parties_ = this->barrierSemaphore_.permits()) == 0) {
+            DAF_THROW_EXCEPTION(InitializationException);
         }
     }
 
     Barrier::~Barrier(void)
     {
-        ACE_GUARD( ACE_SYNCH_MUTEX, ace_mon, *this );
-        this->shutdown_ = true;
-        while (this->count_ > 0) {
-            this->notifyAll();
-            if (this->wait(100) && DAF_OS::last_error() == ETIME) {
-                if (this->broken_) {
-                    this->entryGate_.release(int(this->count_)); break;
-                } else this->broken_ = true;
+        this->interrupt(); ACE_GUARD(_mutex_type, mon, *this);
+        for (const ACE_Time_Value tv(DAF_OS::gettimeofday(DAF_MSECS_ONE_SECOND)); this->count_ > 0;) {
+            if (this->wait(tv) && DAF_OS::last_error() == ETIME) { // Wait for threads to exit
+                break;
             }
         }
     }
 
-    int     Barrier::barrier(void)
+    int
+    Barrier::interrupt(void)
     {
-        this->entryGate_.acquire();
+        return Monitor::interrupt() + this->barrierSemaphore_.interrupt() ? -1 : 0;
+    }
 
-        ACE_Guard<ACE_SYNCH_MUTEX> ace_mon(*this);
+    bool
+    Barrier::broken(void) const
+    {
+        return this->broken_;
+    }
 
-        size_t index = this->count_;
+    int
+    Barrier::parties(void) const
+    {
+        return this->parties_;
+    }
 
-        this->resets_ = ++this->count_;
+    void
+    Barrier::setBarrierCommand(const Runnable_ref & command)
+    {
+        ACE_GUARD(_mutex_type, mon, *this); this->barrierCommand_ = command;
+    }
 
-        while ((this->broken_ || this->triggered_) ? false : true) {
-            try {
-                if (this->shutdown_) {
-                    this->broken_ = true;
-                } else if (this->count_ != this->parties_) {
-                    this->wait();
-                } else if (DAF::is_nil(this->barrierCommand_)) {
-                    this->triggered_ = true;
+    int
+    Barrier::barrier(const ACE_Time_Value * abstime)
+    {
+        int index = 0, resets = 0;
+
+        { // Process entry gate
+
+            ACE_GUARD_REACTION(_mutex_type, mon, *this, DAF_THROW_EXCEPTION(LockFailureException));
+
+            if (this->interrupted()) {
+                DAF_THROW_EXCEPTION(InterruptedException);
+            }
+            else if (this->triggered_ || this->broken_ || 0 >= this->barrierSemaphore_.permits()) {
+                DAF_THROW_EXCEPTION(IllegalStateException);
+            }
+            else if (this->barrierSemaphore_.acquire(abstime)) {
+                switch (this->interrupted() ? DAF_OS::last_error(EINTR) : DAF_OS::last_error()) {
+                case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
+                case ETIME: DAF_THROW_EXCEPTION(TimeoutException);
+                default:    DAF_THROW_EXCEPTION(IllegalStateException);
+                }
+            }
+
+            resets  = this->resets_;
+            index   = this->count_++;
+        }
+
+        for (;;) try {
+
+            ACE_GUARD_REACTION(_mutex_type, mon, *this, DAF_THROW_EXCEPTION(LockFailureException));
+
+            if (this->interrupted()) {
+                DAF_THROW_EXCEPTION(InterruptedException);
+            }
+            else if (resets != this->resets_) { // Same Transaction
+                DAF_THROW_EXCEPTION(IllegalStateException);
+            }
+            else if (this->broken_) {
+                DAF_THROW_EXCEPTION(BrokenBarrierException);
+            }
+            else if (this->triggered_) {
+
+                if (--this->count_ > 0 ? (this->signal(), false) : true) {
+                    this->resetBarrier();
+                }
+
+                return index;
+            }
+            else if (this->barrierSemaphore_.permits() > 0) {
+                if (this->interrupted() || this->wait(abstime)) {
+                    switch (this->interrupted() ? DAF_OS::last_error(EINTR) : DAF_OS::last_error()) {
+                    case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
+                    case ETIME:
+
+                        if (this->triggered_ || this->broken_) {
+                            break;
+                        }
+
+                        DAF_THROW_EXCEPTION(TimeoutException);
+
+                    default:  this->broken_ = true; break;
+                    }
+                }
+            }
+            else if ((this->triggered_ || this->broken_) ? false : (this->triggered_ = true)) {
+                DirectExecutor().execute(this->barrierCommand_); this->broadcast();
+            }
+
+        } catch (...) {
+            ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g);
+            if (--this->count_ > 0) {
+                this->broken_ = true; this->broadcast();
+            } else {
+                this->resetBarrier();
+            }
+            throw;
+        }
+    }
+
+    int
+    Barrier::waitReset(const ACE_Time_Value * abstime)
+    {
+        if (this->interrupted()) {
+            DAF_THROW_EXCEPTION(InterruptedException);
+        }
+
+        int last_error = 0;
+
+        { // Scope Lock
+
+            ACE_GUARD_REACTION(_mutex_type, mon, *this, DAF_THROW_EXCEPTION(LockFailureException));
+
+            int resets = this->resets_;
+
+            for (ACE_Time_Value * abstimer = const_cast<ACE_Time_Value *>(abstime); resets == this->resets_;) {
+                if (this->count_ > 0) {
+                    if (this->interrupted() || this->wait(abstimer)) {
+                        switch (this->interrupted() ? EINTR : (last_error = DAF_OS::last_error())) {
+                        case EINTR: DAF_THROW_EXCEPTION(InterruptedException);
+                        default: this->broken_ = true; this->broadcast(); abstimer = 0; // Set infinate wait
+                        }
+                    }
                 } else {
-                    this->barrierCommand_->run(); this->triggered_ = true;
+                    this->resetBarrier();
                 }
-            } catch (...) {
-                this->broken_ = true;
-                --this->resets_;
-                this->broadcast();
-                throw;
             }
         }
 
-        bool broken = this->broken_, shutdown = this->shutdown_; // Get state onto the stack
-
-        this->broadcast();
-
-        if (--this->resets_ == 0) {
-            this->entryGate_.release(int(this->count_));
-            this->broken_ = this->triggered_ = false; ++this->synch_;
-            this->count_ = 0;
-        }
-
-        if (shutdown) {
-            throw IllegalThreadStateException();
-        } else if (broken) {
-            throw BrokenBarrierException();
-        }
-
-        return int(index);
+        return last_error ? (DAF_OS::last_error(last_error), -1) : 0;
     }
 
-    int   Barrier::barrier(time_t msecs)
+    int // called with Monitor locks held
+    Barrier::resetBarrier(void)
     {
-        if (this->entryGate_.attempt(msecs)) {
-            throw TimeoutException();
+        // Reset our state
+        this->broken_       = false;
+        this->triggered_    = false;
+        this->count_        = 0;
+
+        // Reset permits on the entry gate
+        for (int permits = this->parties() - this->barrierSemaphore_.permits(); permits > 0;) {
+            this->barrierSemaphore_.release(permits); break; // Set our permits back
         }
 
-        ACE_Guard<ACE_SYNCH_MUTEX> ace_mon( *this );
-
-        ACE_Time_Value end_time(DAF_OS::gettimeofday(msecs));
-
-        bool timeout    = false;
-        size_t index    = this->count_;
-
-        this->resets_   = ++this->count_;
-
-        while ((this->broken_ || this->triggered_) ? false : true) {
-            try {
-                if (this->shutdown_) {
-                    this->broken_ = true;
-                } else if (this->count_ != this->parties_) {
-                    if (end_time > DAF_OS::gettimeofday()) {
-                        this->wait(end_time);
-                    } else timeout = this->broken_ = true;
-                } else if (DAF::is_nil(this->barrierCommand_)) {
-                    this->triggered_ = true;
-                } else {
-                    this->barrierCommand_->run(); this->triggered_ = true;
-                }
-            } catch (...) {
-                this->broken_ = true;
-                --this->resets_;
-                this->notifyAll();
-                throw;
-            }
-        }
-
-        this->broadcast();
-
-        bool broken = this->broken_, shutdown = this->shutdown_; // Get state onto the stack
-
-        if (--this->resets_ == 0) {
-            this->entryGate_.release(int(this->count_));
-            this->broken_ = this->triggered_ = false; ++this->synch_;
-            this->count_ = 0;
-        }
-
-        if (timeout) {
-            throw DAF::TimeoutException();
-        } else if (shutdown) {
-            throw DAF::IllegalThreadStateException();
-        } else if (broken) {
-            throw DAF::BrokenBarrierException();
-        }
-
-        return int(index);
+        ++this->resets_; return this->signal();
     }
 
-    bool    Barrier::waitReset(time_t msecs)
-    {
-        ACE_Guard<ACE_SYNCH_MUTEX> ace_mon( *this );
-
-        for (size_t synch = this->synch_; this->count_ > 0;) {
-            if (this->shutdown_) {
-                throw DAF::IllegalThreadStateException();
-            } else if (this->synch_ == synch) {
-                if (this->triggered_ || this->broken_) {
-                    this->notifyAll();
-                }
-                if (this->wait(DAF_OS::gettimeofday(msecs))) {
-                    this->broken_ = true; this->notifyAll(); return false;
-                }
-            } else break;
-        }
-
-        return true;
-    }
 } // namespace DAF

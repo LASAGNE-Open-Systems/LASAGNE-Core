@@ -28,80 +28,131 @@
 
 #include <iostream>
 
-namespace test
-{
-bool debug = false;
-const char *TEST_NAME = "BarrierTest";
+namespace { // Anonymous
 
-struct TestBarrier : public DAF::Runnable
-{
-    DAF::Barrier &barrier_;
-    int broken_;
-    int timeout_;
-    int illegal_;
-    int unknown_;
-    time_t msecs_;
-    DAF::Semaphore &sema_;
+    const int WILD_INITIAL_VALUE = 26857;
 
-    TestBarrier(DAF::Semaphore &sema_in, DAF::Barrier &barrier, time_t msecs = 0) : DAF::Runnable()
-    , barrier_(barrier)
-    , broken_(0)
-    , timeout_(0)
-    , illegal_(0)
-    , unknown_(0)
-    , msecs_(msecs)
-    , sema_(sema_in)
-    {
-    }
+    bool debug = false;
+    const char *TEST_NAME = "BarrierTest";
 
-    virtual int run(void) {
-        if ( debug) ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X Entering Barrier\n"), this));
+    struct TestBarrier : public DAF::Runnable {
+        DAF::Barrier   &barrier_;
+        int             broken;
+        int             interrupted;
+        int             illegal;
+        int             unknown;
+        int             timeout;
+        int             returned;
+        int             result;
+        time_t          msecs_;
+        time_t          delay_msec_;
+        DAF::Semaphore &sema_;
 
-        int barrierCount = 0;
-        try {
-            sema_.release();
-            if (this->msecs_ == 0 )
-                barrierCount = this->barrier_.barrier();
-            else
-                barrierCount = this->barrier_.barrier(this->msecs_);
-        } catch ( const DAF::BrokenBarrierException &e) {
-            this->broken_++;
-            if (debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Broken on Barrier %s %d\n"), this,  e.what(), this->broken_));
-        } catch ( const DAF::TimeoutException &te ) {
-            this->timeout_++;
-            if (debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Timeout on Barrier %s\n"), this, te.what()));
-        } catch ( const DAF::IllegalThreadStateException &te ) {
-            // This occurs when the PooledExecutor dies
-            // and our underlying thread bombs out.
-            this->illegal_++;
-            if(debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X IllegalThreadState on Barrier %s\n"), this, te.what()));
-        } catch ( const std::exception & se) {
-            if (debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X std::exception %s\n"), this, se.what()));
-        } DAF_CATCH_ALL {
-            this->unknown_++;
-            if(debug) ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Unknown Exception on Barrier\n"), this));
+        TestBarrier(DAF::Semaphore &sema_in, DAF::Barrier &barrier, time_t msecs = 0, time_t delay_msec = 0) : DAF::Runnable()
+            , barrier_(barrier)
+            , broken(0)
+            , interrupted(0)
+            , illegal(0)
+            , unknown(0)
+            , timeout(0)
+            , returned(0)
+            , result(0)
+            , msecs_(ace_max(time_t(0), msecs))
+            , delay_msec_(ace_max(time_t(0), delay_msec))
+            , sema_(sema_in)
+        {
         }
 
-        if ( debug) ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X Barrier Count %d\n"), this, barrierCount));
-        return 0;
-    }
-};
+        ~TestBarrier(void)
+        {
+            if (debug) {
+                ACE_DEBUG((LM_DEBUG, ACE_TEXT("(%P|%t) 0x%@ broken=%d,interrupted=%d,timeout=%d,illegal=%d,unknown=%d,returned=%d\n"), this
+                    , this->broken
+                    , this->interrupted
+                    , this->timeout
+                    , this->illegal
+                    , this->unknown
+                    , this->returned
+                    ));
+            }
+        }
 
-int count;
-struct TestTrigger : DAF::Runnable
-{
-    //int count;
-    TestTrigger() : DAF::Runnable()
-    //, count(0)
-    {}
+        DAF_DEFINE_REFCOUNTABLE(TestBarrier);
 
-    virtual int run(void)
+        virtual int run(void)
+        {
+            int rtnval = 0, error = 0;
+
+            if (this->delay_msec_) {
+                DAF_OS::sleep(ACE_Time_Value(0, suseconds_t(this->delay_msec_ * 1000)));
+            }
+
+            if (debug) {
+                ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t)\t%T 0x%@ Entering Barrier\n"), this));
+            }
+
+            try {
+
+                this->sema_.release();
+
+                if (this->msecs_ == 0) {
+                    result = rtnval = this->barrier_.barrier();
+                } else {
+                    result = rtnval = this->barrier_.barrier(this->msecs_);
+                }
+
+                ++returned; return 0;
+
+            } catch (const DAF::BrokenBarrierException &e) {
+                ++this->broken;
+                if (debug) { ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Broken on Barrier %s\n"), this, e.what())); }
+            } catch (const DAF::TimeoutException &e) {
+                ++this->timeout;
+                if (debug) { ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Timeout on Barrier %s\n"), this, e.what())); }
+            } catch (const DAF::InterruptedException &e) {
+                ++this->interrupted;
+                if (debug) { ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Interrupted on Barrier %s\n"), this, e.what())); }
+            } catch (const std::exception &e) {
+                ++this->illegal;
+                if (debug) { ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - 0x%08X Interrupted on Barrier %s\n"), this, e.what())); }
+            } catch (...) {
+                ++this->unknown;
+                if (debug) { ACE_DEBUG((LM_ERROR, ACE_TEXT("(%P|%t) %T - Unknown Exception on Barrier\n"))); }
+                throw;
+            }
+
+            return 0;
+        }
+    };
+
+    DAF_DECLARE_REFCOUNTABLE(TestBarrier);
+
+    struct TestTrigger : DAF::Runnable
     {
-        count++;
-        if ( debug) ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%08X Trigger Count %d\n"), this, count));
-        return 0;
-    }
-};
+        int count;
+        bool ran;
+        const ACE_Time_Value delay_;
+
+        TestTrigger(const ACE_Time_Value & delay = ACE_Time_Value(1)) : DAF::Runnable()
+            , count(0), ran(false), delay_(delay)
+        {
+        }
+
+        DAF_DEFINE_REFCOUNTABLE(TestTrigger);
+
+        virtual int run(void)
+        {
+            this->ran = true; ++this->count;
+            if (debug) {
+                ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - 0x%@ Trigger Call Count %d\n"), this, this->count));
+            }
+            DAF_OS::sleep(this->delay_); return 0;
+        }
+    };
+
+    DAF_DECLARE_REFCOUNTABLE(TestTrigger);
+
+} // Anonymous
 
 /**
  * TEST
@@ -109,35 +160,28 @@ struct TestTrigger : DAF::Runnable
  * No Barrier Command, will the barrier still function with when a
  * BarrierCommand has not been set.
  */
-int test_NoBarrierCommand(int threadCount )
+int test_BarrierNoCommand(int threadCount )
 {
-    int result = 1;
-    int expected = 0;
-    int value = 0;
+    int expected = 0, value = WILD_INITIAL_VALUE;
 
-    DAF::Barrier barrier(threadCount + 1);
-    DAF::Semaphore counter(0);
+    DAF::Semaphore  blocker(0);
 
     {
-        count = 0;
-        DAF::TaskExecutor executor;
-
-        for ( int i = 0 ; i < threadCount; ++i )
+        DAF::Barrier    barrier(threadCount);
         {
-            executor.execute(new TestBarrier(counter, barrier));
+            DAF::TaskExecutor executor;
+
+            for (int i = 1; i < threadCount; ++i) {
+                executor.execute(new TestBarrier(blocker, barrier)); blocker.acquire(); ++expected;
+            }
+
+            value = barrier.barrier();
         }
-
-        const int barrierResult = barrier.barrier();
-        ACE_UNUSED_ARG(barrierResult);
-
-        DAF_OS::thr_yield();
-
-        value = count;
     }
 
-    result &= (expected == value);
+    int result = (expected == value);
 
-    std::cout << __FUNCTION__ <<  " Expected " << 0 << " result " << count << " " << (result ? "OK" : "FAILED" ) << std::endl;
+    std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
 
     return result;
 }
@@ -148,33 +192,31 @@ int test_NoBarrierCommand(int threadCount )
  */
 int test_BarrierCommand(int threadCount)
 {
-    int result = 0;
-    const int expected = 1;
-    int value = 0;
+    int expected = 0, value = WILD_INITIAL_VALUE;
 
-    DAF::Barrier barrier(threadCount + 1);
-    DAF::Semaphore counter(0);
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
 
     {
-        DAF::TaskExecutor executor;
-
-        count = 0;
-        barrier.setBarrierCommand(new TestTrigger());
-
-        for ( int i = 0 ; i < threadCount; ++i )
+        DAF::Barrier    barrier(threadCount);
         {
-            executor.execute(new TestBarrier(counter, barrier));
+            DAF::TaskExecutor executor;
+
+            barrier.setBarrierCommand(trigger);
+
+            for (int i = 1; i < threadCount; ++i) {
+                executor.execute(new TestBarrier(blocker, barrier)); blocker.acquire(); ++expected;
+            }
+
+            int returned = barrier.barrier();
+
+            if (trigger->count) {
+                value = returned;
+            }
         }
-
-        const int barrierResult = barrier.barrier();
-        ACE_UNUSED_ARG(barrierResult);
-
-        DAF_OS::thr_yield();
-
-        value = count ;
     }
 
-    result = (value == expected);
+    int result = (value == expected);
 
     std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
 
@@ -182,324 +224,498 @@ int test_BarrierCommand(int threadCount)
 }
 
 /**
- * TEST
- *
- * Check the BrokenBarrierException gets called
- */
-int test_BarrierBrokenException(int threadCount)
-{
-    ACE_UNUSED_ARG(threadCount);
-    int result = 0;
-    int expected = 1;
-    int value = 0;
-
-    DAF::Semaphore counter(0);
-
-    {
-        DAF::Barrier barrier(3);
-        //DAF::Runnable_ref broken = new TestBarrier(barrier);
-        DAF::Runnable_ref breaker = new TestBarrier(counter,barrier, 500);
-
-        DAF::TaskExecutor executor;
-
-        //executor.execute(broken);
-        executor.execute(breaker);
-
-        // Give enough time for the breaker to leave.
-        try {
-            barrier.barrier();
-        } catch (const DAF::BrokenBarrierException & ) {
-            value++;
-        }
-
-        DAF_OS::sleep(1);
-        // Not sure why this value is not correct ? -> 0 ? coz the exception is thrown
-        //value = reinterpret_cast<TestBarrier*>(broken.ptr())->broken_ ;
-        //if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - 0x%08X Broken Count %d\n", broken.ptr(), value));
-    }
-
-    result = (value == expected);
-
-    std::cout << __FUNCTION__ <<  "Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
-
-    return result;
-}
-
-/**
- * TEST
- *
- * Check the IllegalException gets called
- * this is hard to force as the Barrier needs to go out of scope
- * so we are using a pointer and deleting while waiting.
- */
-int test_BarrierIllegalStateException(int threadCount)
+* TEST
+*
+* Testing the WaitReset functionality
+* This test is supposed to allow a waitReset to not expire
+* with an ETIME error. ie the Rendezvous succeeded.
+* and we are particularly loooking for the error
+* condition on "broken" it should false
+*
+*/
+int test_BarrierWaitResetTimeoutClean(int threadCount)
 {
     ACE_UNUSED_ARG(threadCount);
 
-    int result = 0;
-    const int expected = 1;
-    int value = 0;
+    int expected = 0, value = WILD_INITIAL_VALUE;
 
-    DAF::Semaphore blocker(0);
-
-    DAF::Barrier *barrier = new DAF::Barrier(2);
-    DAF::Runnable_ref illegal = new TestBarrier(blocker, *barrier);
-
-    // Got the Scope on the executor to force an IllegalState
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
 
     {
-        DAF::TaskExecutor executor;
+        DAF::Barrier        barrier(2, trigger);
+        TestBarrier_ref     tester(new TestBarrier(blocker, barrier));
+        TestBarrier_ref     player(new TestBarrier(blocker, barrier, 0, 100)); // Test actor
 
-        executor.execute(illegal);
-
-        blocker.acquire();
-        DAF_OS::sleep(1);
-
-        delete barrier;
-        DAF_OS::sleep(1);
-    }
-
-    value = reinterpret_cast<TestBarrier*>(illegal.ptr())->illegal_;
-
-    result = (value == expected);
-
-    std::cout << __FUNCTION__ <<  "Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
-
-    return result;
-}
-
-/**
- * TEST
- *
- * Check the TimeoutException gets called
- */
-int test_BarrierTimeoutException(int threadCount )
-{
-    int result = 0;
-    int expected = threadCount;
-    int value = 0;
-
-    DAF::Semaphore counter(0);
-
-    {
-        DAF::TaskExecutor executor;
-        DAF::Barrier barrier(2);
-        DAF::Runnable_ref timeout = new TestBarrier(counter, barrier, 100);
-
-        for (int i = 0 ; i < threadCount; ++i)
         {
-            executor.execute(timeout);
-            DAF_OS::sleep(ACE_Time_Value(0, 500000));
+            DAF::TaskExecutor executor;
+
+            executor.execute(tester);   blocker.acquire(); ++expected;
+            executor.execute(player);   blocker.acquire(); ++expected;
+
+            if (barrier.waitReset(100) || barrier.broken()) {
+                ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("(%P|%t) ERROR: %C should have observed a clean competion, but did not!\n"), __FUNCTION__), 0);
+            } else if (trigger->ran ? false : true) {
+                ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("(%P|%t) ERROR: %C Trigger should have run, but did not!\n"), __FUNCTION__), 0);
+            }
+
+            DAF_OS::thr_yield();
         }
 
-        value = reinterpret_cast<TestBarrier*>(timeout.ptr())->timeout_;
+        value = tester->returned + player->returned;
     }
-    result = (value == expected);
-    std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
+
+    int result = (value == expected);
+
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
 
     return result;
 }
 
 /**
- * TEST
- *
- * Does waitReset work.
- */
-int test_BarrierWaitResetClean(int threadCount)
-{
-    ACE_UNUSED_ARG(threadCount);
-
-    int result = 1;
-    const int expected = 0;
-    int value = 0;
-    DAF::Semaphore blocker(0);
-    DAF::Barrier barrier(2);
-
-    {
-        DAF::TaskExecutor executor;
-
-        DAF::Runnable_ref broken = new TestBarrier(blocker, barrier);
-
-       // for ( int i = 0 ; i < threadCount; ++i )
-        {
-            executor.execute(broken);
-            executor.execute(broken);
-
-            blocker.acquire();
-            blocker.acquire();
-
-            DAF_OS::sleep(ACE_Time_Value(0, 5000));
-
-            bool clean = barrier.waitReset();
-            result &= !barrier.broken() && clean;
-        }
-
-        value = reinterpret_cast<TestBarrier*>(broken.ptr())->broken_  +
-                reinterpret_cast<TestBarrier*>(broken.ptr())->unknown_ +
-                reinterpret_cast<TestBarrier*>(broken.ptr())->illegal_  ;
-    }
-
-    result &= (value == expected);
-
-    std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
-
-    return result;
-}
-
-/**
- * TEST
- *
- * BarrierWaitReset with Timeout
- * There is a problem with waitReset when nobody has entered the
- * Barrier, waitReset will return true. But then if
- * somebody enters after...
- */
+* TEST
+*
+* Testing the WaitReset functionality
+* This test is supposed to allow a waitReset to expire
+* with an ETIME error. ie the Rendezvous succeeded.
+* and we are particularly loooking for the error
+* condition on "broken" it should true
+*
+*/
 int test_BarrierWaitResetTimeout(int threadCount)
 {
-    std::cout << __FUNCTION__;
+    int expected = 0, value = WILD_INITIAL_VALUE;
 
-    ACE_UNUSED_ARG(threadCount);
-    int result = 1;
-    const int expected = 1;
-    int value = 0;
-    bool clean = false;
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
 
-    DAF::Semaphore counter(0);
-    DAF::Barrier barrier(threadCount+1);
-    TestBarrier *tester = new TestBarrier(counter, barrier);
-    DAF::Runnable_ref broken(tester);
+    {  // Scope rend for destructor
 
-    {
-        DAF::TaskExecutor executor;
+        DAF::Barrier        barrier(threadCount, trigger);
+        TestBarrier_ref     tester(new TestBarrier(blocker, barrier));
 
-        for ( int i = 1 ; i < threadCount; ++i )
         {
-            executor.execute(new TestBarrier(counter, barrier));
+            DAF::TaskExecutor executor;
+
+            for (int i = 1; i < threadCount; ++i) {
+                executor.execute(tester); blocker.acquire(); ++expected;
+            }
+
+            // Want this one to work after a period of time.
+            if (barrier.waitReset(100) && DAF_OS::last_error() == ETIME) {
+                if (trigger->ran ? true : false) {
+                    ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("(%P|%t) ERROR: %C Functor should not have run, but did!\n"), __FUNCTION__), 0);
+                }
+                value = barrier.broken() ? WILD_INITIAL_VALUE : 0; // Ensure we are no longer broken after reset with timeout
+            }
+
+            DAF_OS::thr_yield();
         }
 
-        clean = barrier.waitReset(1000);
-
-        result &= barrier.broken() && !clean;
-
-        if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s %d\n", (clean ? "YES" : "NO"), result));
-        DAF_OS::sleep(ACE_Time_Value(1));
+        value += barrier.broken() ? tester->unknown : tester->broken; // Should now be broken after clobber with an unknown (abi)
     }
 
-    value = tester->broken_  + tester->unknown_ + tester->illegal_  ;
+    int result = (value == expected);
 
-    result &= (value == expected);
-
-    std::cout <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
 
     return result;
 }
 
 /**
- * TEST
- *
- * Barrier Construction of Zero Expecting a throw InitializationException
- * similar kindof design decision to the Rendezvous. Upon init of 0 parties
- * we could
- * 1. Throw InitializationException
- * 2. change 0 -> 1.
- * 3. Throw an exception on rendezvous entry ie IllegalState
- *
- * Currently adopting Option 2.
- */
+* TEST
+*
+* Testing the WaitReset functionality
+* Because waitReset sets the broken flag, the rendezvous is
+* nuffed. What we are particularly interested in here
+* is that the entrant parties exit cleanly.
+*
+*
+*/
+int test_BarrierWaitResetHard(int threadCount)
+{
+    int expected = 0, value = WILD_INITIAL_VALUE;
+
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
+
+    { // Scope rend
+
+        DAF::Barrier        barrier(threadCount, trigger);
+        TestBarrier_ref     tester(new TestBarrier(blocker, barrier));
+
+        {
+            DAF::TaskExecutor executor;
+
+            for (int i = 1; i < threadCount; ++i) {
+                executor.execute(tester); blocker.acquire(); ++expected;
+            }
+
+            if (barrier.waitReset(100) && DAF_OS::last_error() == ETIME) {
+                barrier.interrupt(); value = 0;
+            }
+
+            DAF_OS::thr_yield();
+        }
+
+        if (trigger->ran ? true : false) {
+            ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("(%P|%t) ERROR: %C Functor should not have run, but did!\n"), __FUNCTION__), 0);
+        }
+
+        value += tester->interrupted + tester->broken; // Either of these would happen dependant on thread scheduling (probably broken)
+    }
+
+    int result = (value == expected);
+
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
+
+    return result;
+}
+
+/**
+* TEST
+*
+* Testing the WaitReset functionality
+* Because waitReset sets the broken flag, the rendezvous is
+* nuffed. The Second rendezvous is enters but immediately
+* sees the broken condition and will return.
+* What we are particularly interested in here is the
+* the return value being true when the parties/rendezvous
+* has been completed
+*
+*/
+int test_BarrierWaitResetClean(int threadCount)
+{
+    int expected = 0, value = WILD_INITIAL_VALUE;
+
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
+
+    { // scope rend
+
+        DAF::Barrier        barrier((threadCount - 1), trigger);
+        TestBarrier_ref     tester(new TestBarrier(blocker, barrier));
+
+        {
+            DAF::TaskExecutor executor;
+
+            for (int i = 1; i < threadCount; ++i) {
+                executor.execute(tester); blocker.acquire(); ++expected;
+            }
+
+            if (barrier.waitReset(100) || barrier.broken()) {
+                ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("(%P|%t) ERROR: %C should have observed a clean competion, but did not!\n"), __FUNCTION__), 0);
+            } else if (trigger->ran ? false : true) {
+                ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("(%P|%t) ERROR: %C Functor should have run, but did not!\n"), __FUNCTION__), 0);
+            }
+
+            DAF_OS::thr_yield();
+        }
+
+        value = tester->returned;
+    }
+
+    int result = (value == expected);
+
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
+
+    return result;
+}
+
+/**
+* TEST
+*
+* Testing the rendezvous(value, timeout) functionality
+* and making sure the Rendezvous condition is set before timeout
+*
+* NOTE: We have 1 too little for the rendezvous
+*/
+int test_BarrierTimeoutBroken(int threadCount)
+{
+    int expected = 0, value = WILD_INITIAL_VALUE;
+
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
+
+    {
+        DAF::Barrier        barrier(threadCount, trigger);
+        TestBarrier_ref     tester(new TestBarrier(blocker, barrier, 100));
+
+        {
+            DAF::TaskExecutor executor;
+
+            for (int i = 1; i < threadCount; ++i) {
+                executor.execute(tester); blocker.acquire(); ++expected;
+            }
+
+            DAF_OS::sleep(1);
+
+            value = tester->timeout + tester->broken;
+
+            DAF_OS::thr_yield();
+        }
+    }
+
+    int result = (value == expected);
+
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
+
+    return result;
+}
+
+/**
+* TEST
+*
+* Testing the rendezvous(value, timeout) functionality
+* and making sure the Rendezvous condition is set before timeout
+*
+* NOTE: We have 1 too many for the rendezvous.
+*/
+int test_BarrierTimeoutIllegal(int threadCount)
+{
+    int expected = 0, value = WILD_INITIAL_VALUE;
+
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
+
+    {
+        DAF::Barrier        barrier(threadCount - 1, trigger);
+        TestBarrier_ref     tester(new TestBarrier(blocker, barrier, 100));
+
+        {
+            DAF::TaskExecutor executor;
+
+            for (int i = 0; i < threadCount; ++i) {
+                executor.execute(tester); blocker.acquire(); ++expected;
+            }
+
+            DAF_OS::sleep(1); // Need to wait for threads to do their thing
+
+            if (tester->returned == (expected - 1)) {
+                value = tester->returned + tester->illegal;
+            }
+
+            DAF_OS::thr_yield();
+        }
+    }
+
+    int result = (value == expected);
+
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
+
+    return result;
+}
+
+/**
+* TEST
+*
+* Testing the Broken exception is thrown when another thread
+* exits the rendezvous.
+*/
+int test_BarrierBroken(int threadCount)
+{
+    int expected = 0, value = WILD_INITIAL_VALUE;
+
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
+
+    {
+        DAF::Barrier        barrier(threadCount, trigger);
+        TestBarrier_ref     tester(new TestBarrier(blocker, barrier, 500));
+
+        {
+            DAF::TaskExecutor executor;
+
+            for (int i = 2; i < threadCount; ++i) {
+                executor.execute(tester); blocker.acquire(); ++expected;
+            }
+
+            try {
+                barrier.barrier();
+            } catch (const DAF::BrokenBarrierException &) {
+                value = expected;
+            }
+
+            DAF_OS::thr_yield();
+        }
+    }
+
+    int result = (value == expected);
+
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
+
+    return result;
+}
+
+/**
+* TEST
+*
+* Rendezvous basic working should test that The Function
+* object can be used. It will fail if the
+* Function object is copied and not referenced. Disallowing
+* the return value to return.
+*/
+int test_BarrierBasicWorking(int threadCount)
+{
+    int expected = 1, value = WILD_INITIAL_VALUE;
+
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
+
+    {
+        DAF::Barrier    barrier(threadCount, trigger);
+        {
+            DAF::TaskExecutor executor;
+
+            for (int i = 1; i < threadCount; ++i) {
+                executor.execute(new TestBarrier(blocker, barrier)); blocker.acquire();
+            }
+
+            barrier.barrier();
+
+            DAF_OS::thr_yield();
+        }
+
+        value = trigger->count;
+    }
+
+    int result = (value == expected);
+
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
+
+    return result;
+}
+
+/**
+* TEST
+*
+* Rendezvous Is getting shutdown and an IllegalThreadState should
+* be used. Wanting to use multiple Entrants here to ensure the
+* destruction correctly waits for all entrants.
+*/
+int test_BarrierDestruction(int threadCount)
+{
+    int expected = 0, value = WILD_INITIAL_VALUE;
+
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
+
+    {
+        DAF::Barrier *      barrier(new DAF::Barrier(threadCount, trigger));
+        TestBarrier_ref     tester(new TestBarrier(blocker, *barrier));
+
+        {
+            DAF::TaskExecutor executor;
+
+            for (int i = 1; i < threadCount; ++i) {
+                executor.execute(tester); blocker.acquire(); ++expected;
+            }
+
+            DAF_OS::sleep(1);
+
+            delete barrier; barrier = 0;
+
+            DAF_OS::thr_yield();
+        }
+
+        value = tester->interrupted;
+    }
+
+    int result = (value == expected);
+
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
+
+    return result;
+}
+
+/**
+* TEST
+*
+* Rendezvous constructed with zero parties. what happens ?
+* What should happen?
+* There could be a number of ways of handling this.
+* 1. Throw DAF::InitializationException
+* 2. Trigger every time, ie same as parties == 1.
+* 3. Throw an exception on rendezvous entry ie IllegalStateException?
+*
+* Following "fail early"  philosophy and expecting InitializationException
+* Changed this behaviour to adopt the 0 -> 1 (option 2)
+*/
 int test_BarrierCtorZero(int threadCount)
 {
     ACE_UNUSED_ARG(threadCount);
-    int result = 0;
-    const int expected = 1;
-    int value = 0;
+
+    int expected = 1, value = WILD_INITIAL_VALUE;
 
     try {
-        DAF::Barrier barrier(0);
-
-        barrier.barrier(100);
-    } catch ( const DAF::InitializationException& ) {
+        DAF::Barrier(0).barrier(100);
+    } catch (const DAF::InitializationException &) {
         value = 1;
-    } catch ( const DAF::TimeoutException &) {
+    } catch (const DAF::TimeoutException &) {
         value = 2;
+    } catch (const std::exception &) {
+        value = 3;
     }
 
-    result = (value == expected);
+    int result = (value == expected);
 
-    std::cout << __FUNCTION__ <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
 
     return result;
 }
 
 /**
- * TEST
- *
- * Barrier_ThreadKill
- * Testing the is resilient to threads being abruptly interrupted and killed.
- */
+* TEST
+*
+* Testing thread killing stability
+*
+*
+*/
 int test_BarrierThreadKill(int threadCount)
 {
-    std::cout << __FUNCTION__;
+    int expected = 0, value = WILD_INITIAL_VALUE;
 
-    ACE_UNUSED_ARG(threadCount);
-    int result = 1;
-    const int expected = 1;
-    int value = 0;
-    bool clean = false;
-
-    DAF::Semaphore counter(0);
-    DAF::Barrier barrier(threadCount+2); // threadCount + tester + thread_killer
-    TestBarrier *tester = new TestBarrier(counter, barrier);
-    DAF::Runnable_ref broken(tester);
+    DAF::Semaphore  blocker(0);
+    TestTrigger_ref trigger(new TestTrigger());
 
     {
-        DAF::TaskExecutor executor;
-        DAF::TaskExecutor *kill_executor = new DAF::TaskExecutor;
+        DAF::Barrier        barrier(threadCount + 1, trigger);
+        TestBarrier_ref     tester(new TestBarrier(blocker, barrier));
 
-        executor.execute(broken);
-
-        for ( int i = 2 ; i < threadCount; ++i )
         {
-            executor.execute(new TestBarrier(counter, barrier));
+            DAF::TaskExecutor executor, *kill_executor = new DAF::TaskExecutor;
+
+            for (int i = 1; i < threadCount; ++i) {
+                executor.execute(tester); blocker.acquire(); ++expected;
+            }
+
+            kill_executor->execute(tester); blocker.acquire(); ++expected;
+
+            DAF_OS::sleep(1);
+
+            delete kill_executor; kill_executor = 0;
+
+            DAF_OS::thr_yield();
         }
 
-
-
-        kill_executor->execute(new TestBarrier(counter, barrier));
-
-        for ( int i = 0; i < threadCount; ++i )
-        {
-            counter.acquire();
+        if (trigger->ran) {
+            ACE_ERROR_RETURN((LM_ERROR, ACE_TEXT("(%P|%t) ERROR: %C should not have run, but did!\n"), __FUNCTION__), 0);
         }
 
-        // Kill the TaskExecutor - This should lead to a hard thread kill
-        // Can the Barrier recover?
-        if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Killing the TaskExecutor\n"));
-        delete kill_executor;
-
-        DAF_OS::sleep(ACE_Time_Value(1,0));
-
-        //result &= barrier.broken();
-
-        if (debug) ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Clean Wait %s %d\n", (clean ? "YES" : "NO"), result));
-        DAF_OS::sleep(ACE_Time_Value(1));
+        value = tester->broken + tester->unknown; // We could have recieved an abi unwind
     }
 
-    value = tester->broken_  + tester->unknown_ + tester->illegal_  ;
+    int result = (value == expected);
 
-    result &= (value == expected);
-
-    std::cout <<  " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED" ) << std::endl;
+    std::cout << __FUNCTION__ << " Expected " << expected << " result " << value << " " << (result ? "OK" : "FAILED") << std::endl;
 
     return result;
 }
-
-
-}//namespace test
 
 void print_usage(const ACE_Get_Opt &cli_opt)
 {
     ACE_UNUSED_ARG(cli_opt);
-    std::cout << test::TEST_NAME
+    std::cout << TEST_NAME
               << " -h --help              : Print this message \n"
               << " -z --debug             : Debug \n"
               << " -n --count             : Number of Threads/Test\n"
@@ -508,35 +724,35 @@ void print_usage(const ACE_Get_Opt &cli_opt)
 
 int main(int argc, char *argv[])
 {
-    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), test::TEST_NAME));
+    ACE_DEBUG((LM_INFO, ACE_TEXT("(%P|%t) %T - %C\n"), TEST_NAME));
 
-    int result = 1, threadCount = 2;
+    int result = 1, threadCount = 3; // Must be at least 3 threads for tests to pass
 
     ACE_Get_Opt cli_opt(argc, argv, "hzn:");
     cli_opt.long_option("help",'h', ACE_Get_Opt::NO_ARG);
     cli_opt.long_option("debug",'z', ACE_Get_Opt::NO_ARG);
     cli_opt.long_option("count",'n', ACE_Get_Opt::ARG_REQUIRED);
 
-    for (int i = 0; i < argc; ++i) {
-        switch (cli_opt()) {
+    for( int i = 0; i < argc; ++i ) switch(cli_opt()) {
         case -1: break;
         case 'h': print_usage(cli_opt); return 0;
-        case 'z': DAF::debug(true); test::debug = true; break;
-        case 'n': threadCount = ace_max(2, DAF_OS::atoi(cli_opt.opt_arg())); break;
-        }
+        case 'z': DAF::debug(true); debug=true; break;
+        case 'n': threadCount = ace_max(3,DAF_OS::atoi(cli_opt.opt_arg()));
     }
 
-    result &= test::test_BarrierCommand(threadCount);
-    result &= test::test_NoBarrierCommand(threadCount);
-    result &= test::test_BarrierWaitResetClean(threadCount);
-    //result &= test::test_BarrierWaitResetTimeout(threadCount);
-    result &= test::test_BarrierBrokenException(threadCount);
-    result &= test::test_BarrierTimeoutException(threadCount);
-    result &= test::test_BarrierIllegalStateException(threadCount);
-    result &= test::test_BarrierCtorZero(threadCount);
-#if 1 //ndef ACE_WIN32
-    result &= test::test_BarrierThreadKill(threadCount);
-#endif
+    result &= test_BarrierCommand(threadCount);
+    result &= test_BarrierNoCommand(threadCount);
+    result &= test_BarrierBasicWorking(threadCount);
+    result &= test_BarrierTimeoutBroken(threadCount);
+    result &= test_BarrierTimeoutIllegal(threadCount);
+    result &= test_BarrierBroken(threadCount);
+    result &= test_BarrierWaitResetClean(threadCount);
+    result &= test_BarrierWaitResetTimeoutClean(threadCount);
+    result &= test_BarrierWaitResetTimeout(threadCount);
+    result &= test_BarrierWaitResetHard(threadCount);
+    result &= test_BarrierDestruction(threadCount);
+    result &= test_BarrierCtorZero(threadCount);
+    result &= test_BarrierThreadKill(threadCount);
 
     return !result;
 }

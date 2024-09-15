@@ -35,12 +35,12 @@ namespace DAF
      * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
      * \ingroup executor
      */
-    struct DAF_Export DirectExecutor : DAF::Executor {
-
-        virtual int execute(const DAF::Runnable_ref &command) {
+    struct DAF_Export DirectExecutor : Executor {
+        virtual int execute(const Runnable_ref & command) {
             return (DAF::is_nil(command) ? 0 : command->run());
         }
     };
+
 } // namespace DAF
 
 #endif

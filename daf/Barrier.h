@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -21,10 +21,11 @@
 #ifndef DAF_BARRIER_H
 #define DAF_BARRIER_H
 
-#include "DAF.h"
+#include "Monitor.h"
 #include "Runnable.h"
 #include "Semaphore.h"
 
+#include <ace/Min_Max.h>
 
 namespace DAF
 {
@@ -62,8 +63,9 @@ namespace DAF
     * ATTRIBUTION: Doug Lee Based On 'Concurrency Patterns in Java'
     */
 
-    class DAF_Export Barrier : protected DAF::Monitor
+    class DAF_Export Barrier : protected Monitor
     {
+        using Monitor::wait; // Hide this from interface
 
     public:
 
@@ -75,7 +77,7 @@ namespace DAF
         *              when the barrier condition is met
         *              (ie when all parties/threads are present)
         */
-        Barrier(size_t parties, const DAF::Runnable_ref& cmd= 0);
+        Barrier(int parties, const Runnable_ref & cmd = 0);
 
 
         virtual ~Barrier(void);
@@ -84,16 +86,10 @@ namespace DAF
         * The barrier has been broken and is in an indeterminate state. This can
         * be due to parties leaving the barrier, due to timeout or interruption.
         */
-        bool    broken(void) const
-        {
-            return this->broken_;
-        }
+        bool    broken(void) const;
 
         /** \return the number of parties or threads participating */
-        size_t  parties(void) const
-        {
-            return this->parties_;
-        }
+        int     parties(void) const;
 
         /**
         * Set the command to run at the point at which all threads reach the
@@ -102,27 +98,7 @@ namespace DAF
         * broken.
         * @param cmd the command to run. If null, no command is run.
         */
-        void  setBarrierCommand(const Runnable_ref &cmd)
-        {
-            ACE_Guard<ACE_SYNCH_MUTEX> ace_mon( *this ); this->barrierCommand_ = cmd;
-        }
-
-        /**
-        * Enter barrier and wait for the other parties()-1 threads.
-        * @return the arrival index: the number of other parties
-        * that were still waiting
-        * upon entry. This is a unique value from zero to parties()-1.
-        * If it is zero, then the current
-        * thread was the last party to hit barrier point
-        * and so was responsible for releasing the others.
-        * @exception BrokenBarrierException if any other thread
-        * in any previous or current barrier
-        * since either creation or the last <code>restart</code>
-        * operation left the barrier
-        * prematurely due to interruption or time-out. (If so,
-        * the <code>broken</code> status is also set.)
-        */
-        virtual int barrier(void);
+        void  setBarrierCommand(const Runnable_ref & command);
 
         /**
         * Enter barrier and wait at most msecs for the other parties()-1 threads.
@@ -143,6 +119,8 @@ namespace DAF
         * the barrier. If the timeout occured while already in the
         * barrier, <code>broken</code> status is also set.
         */
+        int barrier(const ACE_Time_Value * abstime = 0);
+        int barrier(const ACE_Time_Value & abstime);
         int barrier(time_t msecs);
 
         /**
@@ -150,15 +128,58 @@ namespace DAF
         * @return indicates <code>true</code> if the barrier was reset
         * ie all threads exited, <code>false</code> if an error occured.
         */
-        bool waitReset(time_t msecs = 0);
+        int waitReset(const ACE_Time_Value * abstime = 0);
+        int waitReset(const ACE_Time_Value & abstime);
+        int waitReset(time_t msecs);
+
+        /** Interrupt the monitor and the entry semaphore */
+        int interrupt(void);
+
+        using Monitor::waiters;
+        using Monitor::interrupted;
 
     private:
 
-        DAF::Semaphore      entryGate_;
-        size_t              parties_, synch_, count_, resets_;
-        volatile bool       broken_, shutdown_, triggered_;
-        DAF::Runnable_ref   barrierCommand_;
+        int resetBarrier(void); // Internal method called with monitor locked
+
+    private:
+
+        Semaphore       barrierSemaphore_;
+        Runnable_ref    barrierCommand_;
+
+    private:
+
+        int     parties_;
+        int     resets_;
+        int     count_;
+        bool    broken_;
+        bool    triggered_;
     };
+
+    inline int
+    Barrier::barrier(const ACE_Time_Value & abstime)
+    {
+        return this->barrier(&abstime);
+    }
+
+    inline int
+    Barrier::barrier(time_t msecs)
+    {
+        return this->barrier(DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
+    }
+
+    inline int
+    Barrier::waitReset(const ACE_Time_Value & abstime)
+    {
+        return this->waitReset(&abstime);
+    }
+
+    inline int
+    Barrier::waitReset(time_t msecs)
+    {
+        return this->waitReset(DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
+    }
+
 } // namespace DAF
 
 #endif // DAF_BARRIER_H
