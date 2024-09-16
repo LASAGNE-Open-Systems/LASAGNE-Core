@@ -1,199 +1,207 @@
 /***************************************************************
-    Copyright 2016, 2017 Defence Science and Technology Group,
-    Department of Defence,
-    Australian Government
+Copyright 2016, 2017 Defence Science and Technology Group,
+Department of Defence,
+Australian Government
 
-    This file is part of LASAGNE.
+This file is part of LASAGNE.
 
-    LASAGNE is free software: you can redistribute it and/or modify
-    it under the terms of the GNU Lesser General Public License as
-    published by the Free Software Foundation, either version 3
-    of the License, or (at your option) any later version.
+LASAGNE is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as
+published by the Free Software Foundation, either version 3
+of the License, or (at your option) any later version.
 
-    LASAGNE is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU Lesser General Public License for more details.
+LASAGNE is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Lesser General Public
-    License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
+You should have received a copy of the GNU Lesser General Public
+License along with LASAGNE.  If not, see <http://www.gnu.org/licenses/>.
 ***************************************************************/
 #ifndef DAF_SYNCHVALUE_T_CPP
 #define DAF_SYNCHVALUE_T_CPP
 
 #include "SynchValue_T.h"
 
+#include <ace/Min_Max.h>
+
 namespace DAF
 {
-    template <typename T>
-    SynchValue<T>::SynchValue(const T &value) : DAF::Monitor()
-        , value_(value)
-        , shutdown_(false)
-        , waiters_(0)
-        , itemTaken_(0)
-        , setterGate_(1)
+    template <typename T, typename F> inline
+    SynchValue_T<T,F>::SynchValue_T(const T & value) : Monitor()
+        , value_(value), valueSemaphore_(0)
     {
     }
 
-    template <typename T>
-    SynchValue<T>::~SynchValue()
+    template <typename T, typename F>
+    SynchValue_T<T,F>::~SynchValue_T(void)
     {
-        // Got a couple of options on shutdown..
-        // we can either poll the waiters_ value and wait for others to exit
-        // or we can use the itemTaken_ semaphore.
-        ACE_GUARD(ACE_SYNCH_MUTEX, ace_mon, *this);
+        this->interrupt();
+    }
 
-        this->shutdown_ = true;
+    template <typename T, typename F> T
+    SynchValue_T<T,F>::getValue(void) const
+    {
+        ACE_GUARD_RETURN(_mutex_type, val_guard, this->valueLock_, this->value_); return this->value_;
+    }
 
-        // flush our setters - they should hit the shutdown flag
-        int setter_waiters = this->setterGate_.waiters();
-        this->setterGate_.release(setter_waiters);
+    template <typename T, typename F> int
+    SynchValue_T<T,F>::setValue(const T & value)
+    {
+        if (this->interrupted()) {
+            DAF_THROW_EXCEPTION(InterruptedException);
+        }
 
-        // flush a setter in mid-cycle
-        this->itemTaken_.release(int(this->waiters_));
+        int result = 0, waiter_count = 0;
 
+        ACE_GUARD_REACTION(_mutex_type, val_guard, this->valueLock_, DAF_THROW_EXCEPTION(LockFailureException));
 
-        // flush our waiters.
-        while( this->waiters_ > 0 ) {
-            this->notifyAll();
+        {
+            ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
 
-            if (this->wait(100) && DAF_OS::last_error() == ETIME ) {
-                // CRUDE: using wait with timeout allow others to clear
-                // out before destroying. We don't expect a
-                // corresponding notify.
+            this->value_ = value;
+
+            if ((waiter_count = this->valueSemaphore_.valueWaiters()) > 0) {
+                this->broadcast();
+            }
+        }
+
+        while (waiter_count-- > 0) {
+            if (this->valueSemaphore_.acquire()) {
+                result = -1;
+            }
+        }
+
+        return result;
+    }
+
+    template <typename T, typename F> int
+    SynchValue_T<T,F>::waitValue(const T & value, const ACE_Time_Value * abstime) const
+    {
+        while (!this->interrupted()) {
+
+            ACE_GUARD_REACTION(_mutex_type, guard, *this, DAF_THROW_EXCEPTION(LockFailureException));
+
+            if (_comparator_type()(this->value_,value)) {
+                return 0; // All Good
+            }
+
+            // Wait for next value to test
+
+            {   // Register Atomic-Signallable Semaphore Waiter and wait for value to change
+
+                ValueSemaphoreWaiterGuard waiterGuard(this->valueSemaphore_); ACE_UNUSED_ARG(waiterGuard);
+
+                if (this->wait(abstime)) {
+                    switch (this->interrupted() ? EINTR : DAF_OS::last_error()) {
+                    case EINTR: continue; // Retry Interrupted testing loop
+                    case ETIME:
+                        if (_comparator_type()(this->value_,value)) {
+                            return 0; // All Good
+                        }
+#if 1 // Original implementation throws a TimeoutException here - Maybe should return errno in future release
+                        DAF_THROW_EXCEPTION(TimeoutException);
+#else
+                        // Fall through
+#endif
+                    default: return -1;     // Return with errno set
+                    }
+                }
+                else if (_comparator_type()(this->value_,value)) {
+                    return 0; // All Good
+                }
+            }
+        }
+
+        DAF_THROW_EXCEPTION(InterruptedException);
+    }
+
+    /** Wait on a Latched Value until abs time value tv */
+    template <typename T, typename F> inline int
+    SynchValue_T<T,F>::waitValue(const T & value, const ACE_Time_Value & abstime) const
+    {
+        return this->waitValue(value, &abstime);
+    }
+
+    /** Wait on a Latched Value for upto msec */
+    template <typename T, typename F> inline int
+    SynchValue_T<T,F>::waitValue(const T & value, time_t msecs) const
+    {
+        return this->waitValue(value, DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
+    }
+
+    /***********************************************************************************/
+
+    template <typename T, typename F> inline
+    SynchValue_T<T,F>::ValueSemaphore::ValueSemaphore(int permits) : Semaphore(permits)
+        , valueWaiters_(0)
+    {}
+
+    template <typename T, typename F> inline
+    SynchValue_T<T,F>::ValueSemaphore::~ValueSemaphore(void)
+    {
+        this->interrupt();
+    }
+
+    template <typename T, typename F> inline int
+    SynchValue_T<T,F>::ValueSemaphore::valueWaiters(void) const
+    {
+        return this->valueWaiters_.valueWaiters();
+    }
+
+    template <typename T, typename F> inline int
+    SynchValue_T<T,F>::ValueSemaphore::acquireWaiter(void)
+    {
+        ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g); // Preserve errno
+        ++this->valueWaiters_; return 0;
+    }
+
+    template <typename T, typename F> inline int
+    SynchValue_T<T,F>::ValueSemaphore::releaseWaiter(void)
+    {
+        ACE_Errno_Guard g(errno); ACE_UNUSED_ARG(g); // Preserve errno
+        --this->valueWaiters_; return this->release();
+    }
+
+    /***********************************************************************************/
+
+    template <typename T, typename F> inline
+    SynchValue_T<T,F>::ValueSemaphore::ValueWaiters::ValueWaiters(int valueWaiters) : Monitor()
+        , valueWaiters_(valueWaiters)
+    {
+    }
+
+    template <typename T, typename F>
+    SynchValue_T<T,F>::ValueSemaphore::ValueWaiters::~ValueWaiters(void)
+    {
+        ACE_GUARD(_mutex_type, mon, *this);
+        for (const ACE_Time_Value abstime(DAF_OS::gettimeofday(DAF_MSECS_ONE_SECOND)); this->valueWaiters_ > 0;) { // Wait upto 1 Second
+            if (this->wait(abstime) && DAF_OS::last_error() == ETIME) {
                 break;
             }
         }
     }
 
-    template <typename T> T
-    SynchValue<T>::getValue(void) const
+    template <typename T, typename F> int
+    SynchValue_T<T,F>::ValueSemaphore::ValueWaiters::valueWaiters(void) const
     {
-        ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, this->value_ ); return this->value_;
+        return this->valueWaiters_;
     }
 
-    template <typename T> int
-    SynchValue<T>::setValue(const T &value)
+    template <typename T, typename F> int
+    SynchValue_T<T,F>::ValueSemaphore::ValueWaiters::operator ++ () // Prefix
     {
-        if (this->shutdown_) {
-            return -1;
-        }
-
-        this->setterGate_.acquire();
-
-        if (this->value_ == value) { // DCL
-            return 0;
-        } else if ( this->shutdown_ ? false : true)   {
-            int waiters = 0;
-
-            { // scope guard.
-                ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
-
-                if (this->shutdown_) {
-                    return -1;
-                }
-
-                // store the number of waiters we need to wait for.
-                waiters = int(this->waiters_ - 1 + this->itemTaken_.permits());
-                //ACE_DEBUG((LM_DEBUG, "(%P|%t) %T - Set Waiters %d %d\n", waiters, this->itemTaken_.permits()));
-                while (this->value_ == value ? false : true) {
-                    this->value_ = value;
-                }
-                this->broadcast();
-            } // scope guard exit
-
-            this->itemTaken_.acquire(waiters);
-        }
-
-        this->setterGate_.release();
-
-        return 0;
+        ACE_GUARD_RETURN(_mutex_type, mon, *this, ++this->valueWaiters_); // Just increment value on lock failure
+        int value = ++this->valueWaiters_; this->signal(); return value;
     }
 
-    template <typename T> int
-    SynchValue<T>::waitValue(const T &value)
+    template <typename T, typename F> int
+    SynchValue_T<T,F>::ValueSemaphore::ValueWaiters::operator -- () // Prefix
     {
-        if (this->value_ == value) { // DCL
-            return 0;
-        } else if(this->shutdown_ ? false : true) {
-
-            ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
-            ++this->waiters_;
-
-            while (this->value_ == value ? false : true) try {
-                if(this->shutdown_) {
-                    break;
-                } else {
-                    this->wait();
-                }
-                this->itemTaken_.release();
-            } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-                --this->waiters_;
-                // Are we in the middle of a setter cycle.
-                if (this->setterGate_.permits() == 0)  {
-                    this->itemTaken_.release();
-                }
-                throw;
-            }
-            --this->waiters_;
-
-            if (this->shutdown_) {
-                throw DAF::IllegalThreadStateException();
-            }
-        } else {
-            // shutdown ?
-            throw DAF::IllegalThreadStateException();
-        }
-        return 0;
+        ACE_GUARD_RETURN(_mutex_type, mon, *this, --this->valueWaiters_); // Just decrement value on lock failure
+        int value = --this->valueWaiters_; this->signal(); return value;
     }
 
-    template <typename T> int
-    SynchValue<T>::waitValue(const T &value, time_t msec)
-    {
-        const ACE_Time_Value end_time(DAF_OS::gettimeofday(msec));
-
-        if (this->value_ == value) { // DCL
-            return 0;
-        } else if (this->shutdown_ ? false : true) {
-            ACE_GUARD_RETURN( ACE_SYNCH_MUTEX, ace_mon, *this, -1 );
-            ++this->waiters_;
-            bool timeout = false;
-
-            while (this->value_ == value ? false : true) try {
-                if(this->shutdown_) {
-                    break;
-                } else if (end_time > DAF_OS::gettimeofday() ) {
-                    this->wait(end_time);
-                } else {
-                    timeout = true;
-                    break;
-                }
-                this->itemTaken_.release();
-            } catch(...) { // JB: Deliberate catch(...) - DON'T replace with DAF_CATCH_ALL
-                --this->waiters_;
-                // Are we in the middle of a setter cycle.
-                if ( this->setterGate_.permits() == 0 )
-                {
-                    this->itemTaken_.release();
-                }
-                throw;
-            }
-            --this->waiters_;
-
-            if (timeout) {
-                throw TimeoutException();
-            }
-
-            if (this->shutdown_){
-                throw IllegalThreadStateException();
-            }
-        } else {
-            // shutdown ?
-            throw IllegalThreadStateException();
-        }
-
-        return 0;
-    }
 } // namespace DAF
 
 #endif // DAF_SYNCHVALUE_T_CPP
