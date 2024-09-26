@@ -3,7 +3,7 @@
     Department of Defence,
     Australian Government
 
-	This file is part of LASAGNE.
+    This file is part of LASAGNE.
 
     LASAGNE is free software: you can redistribute it and/or modify
     it under the terms of the GNU Lesser General Public License as
@@ -21,12 +21,13 @@
 #ifndef DAF_RENDEZVOUS_T_H
 #define DAF_RENDEZVOUS_T_H
 
-
-
 #include "Monitor.h"
 #include "Semaphore.h"
 
+#include <ace/Min_Max.h>
+
 #include <vector>
+#include <algorithm>
 
 namespace DAF
 {
@@ -37,19 +38,18 @@ namespace DAF
    */
 
   /** @class RendezvousCommand
-  * @brief Brief \todo{Brief}
+  * @brief A common rotator rendezvous function.
   *
-  * Detailed Description \todo{details}
+  * Rotates the array so that each thread returns an item presented by
+  * some other thread (or itself, if parties is 1).
   */
     template <typename T>
-    struct RendezvousCommand
-    {
+    struct RendezvousCommand : std::unary_function<std::vector<T>,void> {
+        typedef T               _value_type;
+        typedef void            _result_type;
+        typedef std::vector<T>  _argument_type;
         virtual ~RendezvousCommand(void) {}
-
-        typedef T                           _value_type;
-        typedef std::vector<_value_type>    _slots_type;
-
-        virtual void operator () (_slots_type&) { /* Do Nothing */ }
+        virtual typename RendezvousCommand<T>::_result_type operator () (typename RendezvousCommand<T>::_argument_type &);
     };
 
     /** @class Rendezvous
@@ -89,59 +89,31 @@ namespace DAF
     * --> Doug Lee
     */
     template < typename T, typename F = RendezvousCommand<T> >
-    class Rendezvous : protected DAF::Monitor
+    class Rendezvous : protected Monitor
     {
+        using Monitor::wait; // Hide Wait
+
     public:
 
-        typedef T                           _value_type;
-        typedef std::vector<_value_type>    _slots_type;
+        typedef T   _value_type;
+        typedef F   _function_type;
+
+        typedef typename _function_type::_argument_type _slots_type;
+        typedef typename Monitor::_mutex_type           _mutex_type;
 
         /**
         * Create a Barrier for the indicated number of parties,
         */
-        Rendezvous(size_t parties, F &fn = F());
+        Rendezvous(int parties, typename Rendezvous<T,F>::_function_type & function = F());
 
         /** \todo{Fill this in} */
         virtual ~Rendezvous(void);
 
         /** \todo{Fill this in} */
-        bool    broken(void)  const
-        {
-            return this->broken_;
-        }
+        bool    broken(void) const;
 
         /** \todo{Fill this in} */
-        size_t  parties(void) const
-        {
-            return this->parties_;
-        }
-
-        /**
-        * Wait For the Rendezvous to reset after an exchange
-        * @return indicates <code>true</code> if the rendezvous was reset
-        * ie all threads exited, <code>false</code> if an error occured.
-        * Upon a Timeout occuring this will set the state to broken
-        * and notify all existing waiters.
-        */
-        bool    waitReset(time_t msecs = 0);
-
-        /**
-        * Enter a rendezvous; returning after all other parties arrive.
-        * @param t the item to present at rendezvous point.
-        * By default, this item is exchanged with another.
-        * @return an item given by some thread, and/or processed
-        * by the rendezvousFunction.
-        * @exception BrokenBarrierException
-        * if any other thread
-        * in any previous or current barrier
-        * since either creation or the last <code>restart</code>
-        * operation left the barrier
-        * prematurely due to interruption or time-out. (If so,
-        * the <code>broken</code> status is also set.)
-        * Also returns as
-        * broken if the RendezvousFunction encountered a run-time exception.
-        */
-        T       rendezvous(const T &t_in);
+        int     parties(void) const;
 
         /**
         * Wait msecs to complete a rendezvous.
@@ -163,27 +135,76 @@ namespace DAF
         * the exchange. If the timeout occured while already in the
         * exchange, <code>broken</code> status is also set.
         */
-        T      rendezvous(const T &t_in, time_t msec);
+        T   rendezvous(const T & t, const ACE_Time_Value * abstime = 0);
+        T   rendezvous(const T & t, const ACE_Time_Value & abstime);
+        T   rendezvous(const T & t, time_t msecs);
+
+        /**
+        * Wait For the Rendezvous to complete its transaction after an exchange
+        * and all the treads have exited.
+        * @return indicates <code>true</code> if the rendezvous was reset
+        * ie all threads exited, <code>false</code> if an error occured.
+        * Upon a Timeout occuring this will set the state to broken
+        * and notify all existing waiters.
+        */
+        int waitReset(const ACE_Time_Value * abstime = 0);
+        int waitReset(const ACE_Time_Value & abstime);
+        int waitReset(time_t msecs);
+
+        /** Interrupt the monitor and the entry semaphore */
+        int     interrupt(void);
+
+        using Monitor::waiters;
+        using Monitor::interrupted;
 
     private:
 
-        DAF::Semaphore  entryGate_;
-        size_t          parties_, synch_, count_, resets_;
-        volatile bool   broken_, shutdown_, triggered_;
-        _slots_type     slots_;
-        F               &fn_;
+        int resetRendezvous(void); // Internal method called with monitor locked
+
+    private:
+
+        Semaphore           rendezvousSemaphore_;
+
+        _slots_type         rendezvousSlots_;
+        _function_type &    rendezvousFunction_;
+
+    private:
+
+        int     parties_;
+        int     resets_;
+        int     count_;
+        bool    broken_;
+        bool    triggered_;
     };
 
-   /** @struct RendezvousRotator
-    * @brief A common rotator rendezvous function.
-    *
-    * Rotates the array so that each thread returns an item presented by
-    * some other thread (or itself, if parties is 1).
-    */
-    template <typename T>
-    struct RendezvousRotator : RendezvousCommand<T> {
-        virtual void operator () (std::vector<T> &val);
-    };
+    template <typename T, typename F>
+    inline T
+    Rendezvous<T,F>::rendezvous(const T & t, const ACE_Time_Value & abstime)
+    {
+        return this->rendezvous(t, &abstime);
+    }
+
+    template <typename T, typename F>
+    inline T
+    Rendezvous<T,F>::rendezvous(const T & t, time_t msecs)
+    {
+        return this->rendezvous(t, DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
+    }
+
+    template <typename T, typename F>
+    inline int
+    Rendezvous<T, F>::waitReset(const ACE_Time_Value & abstime)
+    {
+        return this->waitReset(&abstime);
+    }
+
+    template <typename T, typename F>
+    inline int
+    Rendezvous<T, F>::waitReset(time_t msecs)
+    {
+        return this->waitReset(DAF_OS::gettimeofday(ace_max(msecs, time_t(0))));
+    }
+
 } // namespace DAF
 
 #if defined (ACE_TEMPLATES_REQUIRE_SOURCE)
